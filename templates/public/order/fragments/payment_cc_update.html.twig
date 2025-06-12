@@ -1,0 +1,424 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% block stylesheets %}
+<style>
+    .switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+    }
+
+    .switch input { 
+    opacity: 0;
+    width: 0;
+    height: 0;
+    }
+
+    .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+    }
+
+    .slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+    }
+
+    input:checked + .slider {
+    background-color: #4b85cc;
+    }
+
+    input:focus + .slider {
+    box-shadow: 0 0 1px #4b85cc;
+    }
+
+    input:checked + .slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+    }
+
+    /* Rounded sliders */
+    .slider.round {
+    border-radius: 34px;
+    }
+
+    .slider.round:before {
+    border-radius: 50%;
+    }
+
+    .btn-cc-red,.btn-cc-red:hover {
+        background-color: #4b85cc;
+        font-size: 14px;
+        padding: 10px 15px;
+        text-align: center;
+        border-radius: 5px;
+        color: #fff;
+        border: 1px solid #4b85cc;
+        margin: 2px;
+        cursor: pointer;
+        text-decoration: none;
+    }
+    .btn-cc-red-border,.btn-cc-red-border:hover {
+        background-color: transparent;
+        font-size: 14px;
+        padding: 10px 15px;
+        text-align: center;
+        border-radius: 5px;
+        color: #4b85cc;
+        border: 1px solid #4b85cc;
+        margin: 2px;
+        cursor: pointer;
+        text-decoration: none;
+    }
+    .status-step .border-red {
+        width: 90px;
+        height: 90px;
+        margin: 10px 65px;
+        border: 3px #4b85cc solid;
+    }
+    .status-step .border-red i {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%,-50%);
+        color: #4b85cc;
+        font-size: 30px;
+    }
+
+    .status-step .border-grey {
+        width: 90px;
+        height: 90px;
+        margin: 10px 65px;
+        border: 3px #999 solid;
+    }
+    .status-step .border-grey i {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%,-50%);
+        color: #999;
+        font-size: 30px;
+    }
+    .text-step {
+        font-size: 14px;
+        font-weight:600;
+        position: absolute;
+        bottom: -190%;
+        left: 50%;
+        color:#000;
+        transform: translate(-50%,-50%);
+        height: 100px;
+    }
+
+    .table_spk tr td,th {
+        border: 1px solid #000;
+        padding: 10px;
+    }
+
+    .loader {
+        width: 18px;
+        aspect-ratio: 1;
+        display:grid;
+        -webkit-mask: conic-gradient(from 15deg,#0000,#000);
+        animation: l26 1s infinite steps(12);
+    }
+    .loader,
+    .loader:before,
+    .loader:after{
+    background:
+        radial-gradient(closest-side at 50% 12.5%,
+        #f03355 96%,#0000) 50% 0/20% 80% repeat-y,
+        radial-gradient(closest-side at 12.5% 50%,
+        #f03355 96%,#0000) 0 50%/80% 20% repeat-x;
+    }
+    .loader:before,
+    .loader:after {
+        content: "";
+        grid-area: 1/1;
+        transform: rotate(30deg);
+    }
+    .loader:after {
+        transform: rotate(60deg);
+    }
+
+    @keyframes l26 {
+        100% {transform:rotate(1turn)}
+    }
+    .c-disabled {
+        cursor: not-allowed !important
+    }
+</style>
+{% endblock %}
+{% block content %}
+    <main class="cr-page">
+        <section>
+            <div class="container">
+                <div class="sc-cart row">
+                    <div class="dc12">
+                        <div class="row">
+                            <div class="dc12 tc12 auto box ct">
+                            <input type="hidden" id="haveTransaksi" value="{{dataPayment is null or (dataPayment is not null and dataPayment.getStatus != "PENDING") ? 'no' : 'yes'}}"/>
+                                {% if dataPayment is null or (dataPayment is not null and dataPayment.getStatus != "PENDING") %}
+                                    <div class="dc12 tc12" style="display:flex;align-items:center;justify-content: center;background-color: #ff9800;color: #fff;padding: 20px;border-radius: 15px;margin-bottom: 40px;">
+                                        <h5 style="margin: 0;" id="countdown">Selesaikan pembayaran sebelum <span id="count-down">00:00:00</span></h5>
+                                    </div> 
+                                {% endif %}
+                                <div class="dc12 tc12" style="display:flex;align-items:center;justify-content: center;">
+                                    <div class="dc7 tc12" style="padding: 0;">
+                                        <div class="status-step" style="margin-bottom: 50px;display:flex;align-items:center;justify-content: space-between;padding: 0;">
+                                            <div 
+                                                {% if dataPayment is null or (dataPayment is not null and dataPayment.getStatus != "PENDING") %}
+                                                    class="border-red" 
+                                                {% else %}
+                                                    class="border-grey" 
+                                                {% endif %}
+                                            >
+                                                <i class="fa fa-exclamation-circle"></i>
+                                                <div class="text-step">
+                                                    <p>Menunggu Pembayaran</p>
+                                                </div>
+                                            </div>
+                                            <div 
+                                                {% if dataPayment is not null and dataPayment.getStatus == 'PENDING' %}
+                                                    class="border-red" 
+                                                {% else %}
+                                                    class="border-grey" 
+                                                {% endif %}
+                                            >
+                                                <i class="fa fa-clock"></i>
+                                                <div class="text-step">
+                                                    <p>Proses Pembayaran</p>
+                                                </div>
+                                            </div>
+                                            <div 
+                                                {% if dataPayment is not null and dataPayment.getStatus == 'PAID' %}
+                                                    class="border-red" 
+                                                {% else %}
+                                                    class="border-grey" 
+                                                {% endif %}
+                                            >
+                                                <i class="fa fa-check"></i>
+                                                <div class="text-step">
+                                                    <p>Terbayar</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="dc6 tc12" style="text-align: left;border: 2px #333 solid; padding: 40px 20px 20px 20px;border-radius: 20px;">
+                                    <div class="dc12" style="display:flex;align-items:center;justify-content: center;background-color: #4b85cc;color: #fff;padding: 10px;border-radius: 15px;margin-bottom: 40px;">
+                                        <h5 style="margin: 0;"><b>Tagihan <span>Rp. {{nominal|number_format}}</span></b></h5>
+                                    </div>
+                                    {% if dataPayment is null or (dataPayment is not null and dataPayment.getStatus != "PENDING") %}
+                                    <form action="{{ path('user_order_cc_payment_store', {'id': sharedId}) }}" method="POST" id="form-submit-payment">
+                                        <div class="dc12 div-list">
+                                            {# <button type="button" class="btn-cc-red-border" style="margin-bottom: 10px;" id="list-manual">Manual Payment</button> #}
+                                            <a href="{{ path('user_order_cc_payment', {'id': sharedId}) }}" type="button" class="btn-cc-red-border">Manual Payment</a>
+                                            <table class="table_spk" width="100%" style="margin-top: 30px;">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Virtual Card No</th>
+                                                        <th>Nama Bank</th>
+                                                        <th width="15%">Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        {# <div class="dc12 div-manual">
+                                            <label for="">Payment Method</label>
+                                            <div class="dc12" style="display:flex;align-items:center;padding: 0;">
+                                                <div style="width: 80px;height: 50px;margin: 15px;border: 2px #4b85cc solid; border-radius: 5px;display:flex;align-items:center;justify-content: center;">
+                                                    <img src="{{ asset('assets/img/qris/GPN-Logo.png') }}" style="width: 60%" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="dc12 div-manual">
+                                            <label for="">Payment Detail</label>
+                                            <div class="dc12" style="padding: 0;margin-top: 15px;">
+                                                <input type="hidden" name="_csrf_token" value="{{ csrf_token(token_id) }}">
+                                                <input type="hidden" name="_csrf_token_id" value="{{ token_id }}">
+                                                    <div class="input form-group">
+                                                        <input type="text" class="form-control" value="" placeholder="Virtual Card No" style="background-color: #fff;border: 1px #333 solid" name="cpan">
+                                                    </div>
+                                                    <div class="input form-group">
+                                                        <input type="text" class="form-control" value="" placeholder="OTT" style="background-color: #fff;border: 1px #333 solid" name="ott">
+                                                    </div>
+                                                    <div class="input form-group" style="display: flex;align-items:center;">
+                                                        <label class="switch">
+                                                            <input type="checkbox" name="isBinding" checked>
+                                                            <span class="slider round"></span>
+                                                        </label>
+                                                        <p style="margin-left: 20px;font-size: 14px;margin-right: 10px;">Simpan data kartu <i class="fa fa-info-circle" style="color: #999;">  </i></p>
+                                                        <button type="button" class="btn-cc-red-border" id="list-binding" style="width: 140px; display: inline-block">List Binding</button>
+                                                        <a href="{{ path('user_order_cc_payment_list_binding_page', {'id': sharedId}) }}" type="button" class="btn-cc-red-border" style="width: 140px; display: inline-block">List Binding 1</a>
+                                                    </div>
+                                                    <p style="font-size: 14px;"><i>Dengan mengklik "Konfirmasi" Anda menyetujui persyaratan layanan kami</i></p>
+                                                    <div class="input form-group">
+                                                        <a href="{{ path('user_ppktreasurer_detail', {'id': id}) }}" type="button" class="btn-cc-red-border">Kembali</a>
+                                                        <button type="submit" class="btn-cc-red" id="myBtn">Konfirmasi</button>
+                                                    </div>
+                                            </div>
+                                        </div> #}
+                                    </form>
+                                    {% else %}
+                                        <p style="font-weight: 700;font-size: 28px;text-align: center; margin: 50px 0px;">Pembayaran sedang dalam proses. <br> Silahkan melakukan pembayaran sebelum {{expiredTime}}</p>
+                                        <div class="dc12" style="text-align:center">
+                                            <button type="submit" class="btn-cc-red" id="btnCheckStatus"><i class="fas fa-sync-alt"></i> Check Status Pembayaran</button>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="dc6 tc12" style="padding-top: 50px;">
+                                    <img src="{{ asset('assets/img/cc-bg.svg') }}" style="width: 60%" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        $(document).ready(function() {
+            $('#btnCheckStatus').on('click', function () {
+                elementLoading.show();
+                // fetchData()
+                location.reload();
+            })
+
+            
+            $.ajax({
+                url: `${BASE_URL}/user/order/cc-payment/list-binding`,
+                type: 'GET',
+                beforeSend: function(){
+                  elementLoading.show();
+                },
+                complete: function(){
+                  elementLoading.hide();
+                },
+                success: (result) => {
+                    if(result.success){
+                        const datas = result.datas
+                        
+                        const template = datas.map((v, i)=> {
+                            return `
+                                <tr>
+                                    <td>${v.customerPan}</td>
+                                    <td>${v.issuerName}</td>
+                                    <td>
+                                        <button type="submit" class="btn-cc-red" name="submit_normal" value="${v.id}">Normal</button>
+                                        <button type="submit" class="btn-cc-red" name="submit_single" value="${v.id}">Single</button>
+                                    </td>
+                                </tr>
+                            `
+                            
+                        })
+                        
+                        $('.table_spk').find('tbody').html(template)
+                    }else{
+                        $('.table_spk').find('tbody').html(`
+                            <tr>
+                                <td colspan="4" style="text-align:center">Tidak ada data</td>
+                            </tr>
+                        `)
+                    }
+                    $('.div-list').show();
+                    $('.div-manual').hide();
+                    $('#list-binding').removeClass('c-disabled');
+                    $('#list-binding').attr('disabled', false);
+                    $('#list-binding').html('List Binding');
+                },
+                error: function (result) {
+                    $('#list-binding').removeClass('c-disabled');
+                    $('#list-binding').attr('disabled', false);
+                    $('#list-binding').html('List Binding');
+                }
+            })
+
+            $('#list-manual').on('click', function () {
+                $('#list-binding').removeClass('c-disabled');
+                $('#list-binding').html('List Binding');
+                $('#list-binding').attr('disabled', false);
+                $('.div-list').hide();
+                $('.div-manual').show();
+            })
+
+            if ($('#haveTransaksi').val() == 'yes') {
+                var y = setInterval(function() {
+                        clearInterval(y);
+                        location.reload();
+                }, 6000);
+            }
+
+            $('#form-submit-payment').on('submit', function (e) {
+                elementLoading.show();
+            });
+            
+            var targetDateObj = new Date("{{accToken.expiredDate|date('Y-m-d H:i:s', 'Asia/Makassar')}}").getTime();
+            var x = setInterval(function() {
+                var nowUTC = new Date().getTime();
+                var now = nowUTC + (8 * 60 * 60 * 1000);
+                var distance = targetDateObj - now;
+
+                // var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                $('#count-down').html(hours + ' jam ' + minutes + ' menit ' + seconds + ' detik')
+                if (distance < 0) {
+                    clearInterval(x);
+                    // $("#countdown").html("Token Expired, refresh halaman untuk mengulang transaksi");
+                    // $('#myBtn').remove();
+                    if ($('#haveTransaksi').val() == 'no') {
+                        // window.location.href = $('#btn-kembali-redirect').data('redirect')
+                        location.reload();
+                    }
+                }
+            }, 1000);
+        });
+
+        function fetchData() {
+            return new Promise((resolve, reject) => {
+                fetch("{{ path('user_order_cc_payment_check', {'id': dataPayment != null ? dataPayment.getId: 0}) }}")
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.hasOwnProperty('responseMessage') && data.responseMessage === 'Success') {
+                            location.reload();
+                        }
+                        resolve(); // Resolve the promise since the request was successful
+                    })
+                    .catch(error => {
+                        // Handle errors here
+                        console.error('There was a problem with the fetch operation:', error);
+                        reject(error);
+                    });
+                console.log('Fetch request sent at ' + new Date());
+            });
+        }
+    </script>
+{% endblock %}

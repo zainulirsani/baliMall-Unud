@@ -1,0 +1,28 @@
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    ##
+    ## Prevent access to these folders & files
+    ##
+    RewriteRule ^assets/.* index.php [L,NC]
+    RewriteRule ^bin/.* index.php [L,NC]
+    RewriteRule ^config/.* index.php [L,NC]
+    RewriteRule ^src/.* index.php [L,NC]
+    RewriteRule ^templates/.* index.php [L,NC]
+    RewriteRule ^translations/.* index.php [L,NC]
+    RewriteRule ^var/.* index.php [L,NC]
+    RewriteRule ^vendor/.* index.php [L,NC]
+    RewriteRule ^.env index.php [L,NC]
+    RewriteRule ^bundle.config.js index.php [L,NC]
+    RewriteRule ^composer.json index.php [L,NC]
+    RewriteRule ^composer.lock index.php [L,NC]
+    RewriteRule ^gulpfile.js index.php [L,NC]
+    RewriteRule ^package.json index.php [L,NC]
+    RewriteRule ^package-lock.json index.php [L,NC]
+    RewriteRule ^README.md index.php [L,NC]
+    RewriteRule ^symfony.lock index.php [L,NC]
+</IfModule>

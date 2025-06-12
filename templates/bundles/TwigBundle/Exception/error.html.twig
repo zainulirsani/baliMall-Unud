@@ -1,0 +1,16 @@
+{% set section = 'public' %}
+
+{% if user is defined and user is not empty %}
+    {% if user.getRole() in ['ROLE_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_ACCOUNTING_1', 'ROLE_ACCOUNTING_2',
+        'ROLE_HELPDESK_USER', 'ROLE_HELPDESK_MERCHANT', 'ROLE_ADMIN_PRODUCT', 'ROLE_ADMIN_MERCHANT', 'ROLE_ADMIN_VOUCHER',
+        'ROLE_ADMIN_MERCHANT_CABANG',
+    ] %}
+        {% set section = 'admin' %}
+    {% endif %}
+{% endif %}
+
+{% extends '@__main__/' ~ section ~ '/base/layouts/default.html.twig' %}
+
+{% block body %}
+    {% include '@Twig/Exception/partials/' ~ section ~ '.html.twig' %}
+{% endblock %}

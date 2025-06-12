@@ -1,0 +1,16 @@
+{# {% if order is defined %}
+{% set separator = false %}
+{% if order['o_status'] != 'pending' %}
+    {% set separator = true %}
+    <div id="bast-file" style="display: inline-grid;">
+        <center>
+            <a href="{{ path('user_order_print', {'id': order['o_id'], 'type': 'invoice'}) }}" title="{{ 'button.download'|trans }}" target="_blank">
+                <img src="{{ asset('dist/img/doc-placeholder.jpg') }}" alt="" width="100px">
+            </a>
+            <br>
+            <label>{{ 'label.invoice'|trans }}</label>
+        </center>
+    </div>
+{% endif %}
+{% if separator == true and order['u_role'] != 'ROLE_USER_GOVERNMENT' and order['o_invoiceFile'] is empty %}<hr>{% endif %}
+{% endif %} #}

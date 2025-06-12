@@ -1,0 +1,12 @@
+parameters:
+    level: 5
+    inferPrivatePropertyTypeFromConstructor: true
+    paths:
+        - src
+    excludes_analyse:
+        - src/Migrations/*
+        - src/Utility/UploadHandler.php
+        #- src/Validator/Constraints/*
+    ignoreErrors:
+        - '#Access to an undefined property [a-zA-Z0-9\\_]+::\$message#'
+        - '#Parameter \#[0-9] \$im of function imagejpeg expects resource, GdImage\|false given.#'

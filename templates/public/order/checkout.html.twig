@@ -1,0 +1,333 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% set cart_items = user_cart is not empty ? user_cart.getItems : [] %}
+{% set cart_taxes = 0 %}
+{% set order_payment_accounts = get_parameter('order_payment_accounts') %}
+
+{% block content %}
+    {# CSS override #}
+    <style>
+        .cr-item-list li .courier .input .selectric-wrapper {
+            width: 100%;
+            margin-left: 0;
+        }
+        .voucher-input {
+            margin-bottom: 40px;
+            padding-bottom: 15px;
+            border-bottom: solid 1px #EDEDED;
+        }
+        #input-voucher {
+            width: 90%;
+        }
+        #apply-voucher {
+            margin-top: 0;
+        }
+        @media screen and (max-width: 690px) {
+            #input-voucher {
+                width: 80%;
+            }
+        }
+        @media screen and (max-width: 580px) {
+            #input-voucher {
+                width: 70%;
+            }
+        }
+    </style>
+    <main class="cr-page">
+        {% include '@__main__/public/base/partials/breadcrumb.html.twig' %}
+        <section>
+            <div class="container">
+                <div class="row">
+                    <div class="dc8 tc12 auto">
+                        <div class="box">
+                            <h2 class="ct">{{ 'button.checkout'|trans|upper }}</h2>
+                            <form id="checkout-form" action="{{ path('order_process') }}" method="POST" accept-charset="UTF-8">
+                                {{ csrf_field('process_order') }}
+                                <div class="cr-item-list">
+                                    {% for key, merchant in merchants %}
+                                        {% set hash = merchant['hash'] %}
+                                        {% set total_weight = 0 %}
+                                        {% set vendor_couriers = [] %}
+                                        <ul>
+                                            {% for item in merchant['items'] %}
+                                                {% set item_hash = item['id'] %}
+                                                {% set attr = item['attributes'] %}
+                                                {% set thumb = product_main_image(attr['image']|default(0)) %}
+                                                {% set quantity = item['quantity'] %}
+                                                {% set total_weight = total_weight + (attr['weight'] * quantity) %}
+                                                {% set price = attr['price'] %}
+                                                {% set max_qty = attr['max_qty']|default(1) %}
+                                                {% set tax_nominal = attr['tax_nominal'] %}
+                                                {% set price_with_tax = price + tax_nominal %}
+                                                {% set sub_total = price * quantity %}
+                                                {% set sub_total_with_tax = sub_total %}
+                                                {% set store_url = path('store_page', {'store': attr['vendor_slug']}) %}
+                                                {% set vendor_couriers = get_vendor_couriers(attr['vendor_slug']) %}
+                                                {% set product_url = path('store_product_page', {
+                                                    'store': attr['vendor_slug'],
+                                                    'product': attr['slug']
+                                                }) %}
+
+                                                {% if attr['with_tax'] == 1 and tax_nominal > 0 %}
+                                                    {% set cart_taxes = cart_taxes + tax_nominal %}
+                                                    {% set sub_total_with_tax = sub_total + tax_nominal %}
+                                                {% endif %}
+                                                <li>
+                                                    <div class="top">
+                                                        <figure>
+                                                            <img src="{{ asset(thumb) }}" alt="">
+                                                        </figure>
+                                                        <div class="item-title">
+                                                            <h5><a href="{{ product_url }}" target="_blank">{{ attr['name'] }}</a></h5>
+                                                            <h6><a href="{{ store_url }}">{{ attr['vendor']|default('N/A')|raw }}</a></h6>
+                                                        </div>
+                                                        <div class="info">
+                                                            <div class="default">
+                                                                <span class="qty">
+                                                                    {{ 'label.qty'|trans|upper }} <b>{{ quantity }}</b>
+                                                                </span>
+                                                                <span><i class="fas fa-wallet"></i> Rp. {{ price|number_format }}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="summary">
+                                                        &nbsp;<h4 id="cart-item-total-{{ hash }}" class="item-sub-total" data-sub-total="{{ sub_total }}" data-sub-total-with-tax="{{ sub_total_with_tax }}">
+                                                            {% if app.user and app.user.role == 'ROLE_USER_GOVERNMENT' %}
+                                                                Rp. {{ sub_total_with_tax|number_format }}
+                                                            {% else %}
+                                                                Rp. {{ sub_total|number_format }}
+                                                            {% endif %}
+                                                        </h4>
+                                                    </div>
+                                                </li>
+                                            {% endfor %}
+                                            {% if app.user and addresses|length > 0 %}
+                                                <li>
+                                                    <div id="address-element-{{ hash }}" class="address">
+                                                        <h6>{{ 'label.delivery_address'|trans }}</h6>
+                                                        {% for address in addresses %}
+                                                            <div class="input">
+                                                                <span class="check-wrapper">
+                                                                    <input type="radio" class="radio adr-opt" name="address[{{ hash }}]" value="{{ address.getId }}" title="" data-hash="{{ hash }}">
+                                                                    <label></label>
+                                                                </span> {{ address.getTitle }}
+                                                                <p>{{ address.getAddress ~ ' ' ~ address.getPostCode ~ ' - ' ~ address.getCity ~ ' ' ~ address.getProvince }}</p>
+                                                                <div id="adr-detail-{{ address.getId ~ '-' ~ hash }}" data-cid="{{ address.getCityId }}" data-pid="{{ address.getProvinceId }}" data-sid="{{ key }}" data-origin="{{ merchant['origin_id'] }}" data-weight="{{ total_weight }}"></div>
+                                                            </div>
+                                                        {% endfor %}
+                                                    </div>
+                                                    {% if app.user and app.user.role != 'ROLE_USER_GOVERNMENT' %}
+                                                        <div class="inner-box">
+                                                            <span class="check-wrapper">
+                                                                <input type="checkbox" name="pick_up[{{ hash }}]" class="check self-pick-up" value="1" title="" data-hash="{{ hash }}">
+                                                                <label></label>
+                                                            </span>
+                                                            <p>
+                                                                {{ 'label.self_pick_up'|trans }}<br>
+                                                                {{ 'message.info.self_pick_up'|trans }}
+                                                            </p>
+                                                        </div>
+                                                    {% endif %}
+                                                    <div id="courier-choices-{{ hash }}" class="courier">
+                                                        <div class="input dc12">
+                                                            <select id="shipping-courier-{{ hash }}" name="shp_name[{{ hash }}]" class="shipping-courier" title="">
+                                                                {% set courier = 'label.courier'|trans %}
+                                                                <option value="">{{ 'label.select_label'|trans({'%label%': courier}) }}</option>
+                                                                {% for key, courier in get_parameter('raja_ongkir_couriers') %}
+                                                                    {% if key in vendor_couriers %}
+                                                                        <option value="{{ key }}">{{ courier }}</option>
+                                                                    {% endif %}
+                                                                {% endfor %}
+                                                            </select>
+                                                        </div>
+                                                        <div class="input dc12">
+                                                            <select id="shipping-package-{{ hash }}" name="shp_service[{{ hash }}]]" class="shipping-package" title="">
+                                                                <option value="">{{ 'label.select_option'|trans }}</option>
+                                                            </select>
+                                                        </div>
+                                                        {#<div class="input dc12">
+                                                            <textarea name="address[{{ hash }}]" class="no-resize" placeholder="{{ 'label.note'|trans }}" title=""></textarea>
+                                                        </div>#}
+                                                        <span id="shipping-cost-{{ hash }}"><i class="fas fa-wallet"></i> Rp. 0</span>
+                                                        <input id="shipping-name-{{ hash }}" type="hidden" value="0">
+                                                        <input id="shipping-service-{{ hash }}" type="hidden" value="0">
+                                                        <input id="shipping-price-{{ hash }}" type="hidden" value="0">
+                                                        <div class="clear"></div>
+                                                    </div>
+                                                </li>
+                                            {% endif %}
+                                        </ul>
+                                    {% endfor %}
+                                    {#<div class="row voucher-input">
+                                        <div class="dc9 input">
+                                            <input id="input-voucher" type="text" title="" placeholder="{{ 'label.input_voucher'|trans }}">
+                                        </div>
+                                        <div class="dc3 input">
+                                            <button id="apply-voucher" type="button" class="sBtn red right-side">
+                                                {{ 'label.check'|trans }}
+                                            </button>
+                                        </div>
+                                    </div>#}
+                                    <div class="total-price">
+                                        <h4 class="left-side">{{ 'label.total'|trans }}</h4>
+                                        <h4 id="input-grand-total" class="right-side rt" data-grand-total="{{ user_cart.getAttributeTotal }}" data-grand-total-with-tax="{{ user_cart.getAttributeTotal + cart_taxes }}">
+                                            Rp. {{ user_cart.getAttributeTotal|number_format }}
+                                        </h4>
+                                        <div class="clear"></div>
+                                    </div>
+                                </div>
+                                <div class="inner-box">
+                                    <span class="check-wrapper">
+                                        <input type="checkbox" name="tnc" class="check" value="1" title="">
+                                        <label></label>
+                                    </span>
+                                    <p>{{ 'message.confirm.tnc'|trans|raw }}</p>
+                                </div>
+                                {% set tax_checked = app.user and app.user.role == 'ROLE_USER_GOVERNMENT' ? 'checked' : '' %}
+                                {% set tax_readonly = tax_checked == 'checked' ? 'onclick="return false;"' : '' %}
+                                {% set tax_style = tax_checked == 'checked' ? 'display: block;' : 'display: none;' %}
+                                <div class="inner-box">
+                                    <span class="check-wrapper">
+                                        <input id="tax-invoice-btn" type="checkbox" name="with_tax" class="check" value="1" title="" {{ tax_checked }} {{ tax_readonly|raw }}>
+                                        <label></label>
+                                    </span>
+                                    <p>{{ 'label.tax_invoice'|trans }}</p>
+                                </div>
+                                {% if app.user %}
+                                    <div id="tax-documents" class="inner-box" style="{{ tax_style }}">
+                                        <ul>
+                                            <li>
+                                                <div class="address">
+                                                    <h6>{{ 'label.tax_document'|trans }}</h6>
+                                                </div>
+                                            </li>
+                                            {% if tax_documents|length > 0 %}
+                                                {% for tax_document in tax_documents %}
+                                                    <li>
+                                                        <div class="address">
+                                                            <h6>{{ tax_document.getTitle }}</h6>
+                                                            <div class="input">
+                                                                <span class="check-wrapper">
+                                                                    <input type="radio" class="radio tax-opt" name="tax_document" value="{{ tax_document.getId }}" title="">
+                                                                    <label></label>
+                                                                </span> {{ tax_document.getEmail ~ ' (' ~ tax_document.getPhone ~ ')' }}
+                                                            </div>
+                                                        </div>
+                                                    </li>
+                                                {% endfor %}
+                                            {% else %}
+                                                <li>
+                                                    <div class="address">
+                                                        <h6>{{ 'message.info.no_tax_document'|trans }}</h6>
+                                                        <a href="{{ path('user_tax_new') }}" class="sBtn red">
+                                                            {{ 'button.add'|trans }}
+                                                        </a>
+                                                    </div>
+                                                </li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
+                                    {% if no_phone == true %}<div id="no-phone"></div>{% endif %}
+                                {% endif %}
+                                {% if is_buyer and checkout_payment_info == 'show' %}
+                                    <div class="inner-box">
+                                        <p>
+                                            {{ 'message.info.payment_info'|trans }}<br>
+                                            {#{% if app.user and app.user.role == 'ROLE_USER_GOVERNMENT' %}
+                                                <code id="sp-gov">
+                                                    {% if show_pay_account_1 == 'yes' %}{{ order_payment_accounts['all_1']|join('<br>')|raw }}{% endif %}
+                                                    {% if show_pay_account_2 == 'yes' %}<br><br>{{ order_payment_accounts['all_2']|join('<br>')|raw }}{% endif %}
+                                                </code>
+                                            {% else %}
+                                                <code id="without-tax">
+                                                    {% if show_pay_account_1 == 'yes' %}{{ order_payment_accounts['all_1']|join('<br>')|raw }}{% endif %}
+                                                    {% if show_pay_account_2 == 'yes' %}<br><br>{{ order_payment_accounts['all_2']|join('<br>')|raw }}{% endif %}
+                                                </code>
+                                                <code id="with-tax" style="display: none;">
+                                                    {% if show_pay_account_1 == 'yes' %}{{ order_payment_accounts['all_1']|join('<br>')|raw }}{% endif %}
+                                                    {% if show_pay_account_2 == 'yes' %}<br><br>{{ order_payment_accounts['all_2']|join('<br>')|raw }}{% endif %}
+                                                </code>
+                                            {% endif %}#}
+                                        </p>
+                                    </div>
+                                    <div class="inner-box" style="margin-top: -35px;">
+                                        <div class="dc6 tc12">
+                                            {% if app.user and app.user.role == 'ROLE_USER_GOVERNMENT' %}
+                                                <code class="sp-gov">
+                                                    {% if show_pay_account_1 == 'yes' %}
+                                                        {{ order_payment_accounts['all_1']|join('<br>')|raw }}
+                                                    {% endif %}
+                                                </code>
+                                            {% else %}
+                                                <code class="without-tax">
+                                                    {% if show_pay_account_1 == 'yes' %}
+                                                        {{ order_payment_accounts['all_1']|join('<br>')|raw }}
+                                                    {% endif %}
+                                                </code>
+                                                <code class="with-tax" style="display: none;">
+                                                    {% if show_pay_account_1 == 'yes' %}
+                                                        {{ order_payment_accounts['all_1']|join('<br>')|raw }}
+                                                    {% endif %}
+                                                </code>
+                                            {% endif %}
+                                        </div>
+                                        <div class="dc6 tc12">
+                                            {% if app.user and app.user.role == 'ROLE_USER_GOVERNMENT' %}
+                                                <code class="sp-gov">
+                                                    {% if show_pay_account_2 == 'yes' %}
+                                                        {{ order_payment_accounts['all_2']|join('<br>')|raw }}
+                                                    {% endif %}
+                                                </code>
+                                            {% else %}
+                                                <code class="without-tax">
+                                                    {% if show_pay_account_2 == 'yes' %}
+                                                        {{ order_payment_accounts['all_2']|join('<br>')|raw }}
+                                                    {% endif %}
+                                                </code>
+                                                <code class="with-tax" style="display: none;">
+                                                    {% if show_pay_account_2 == 'yes' %}
+                                                        {{ order_payment_accounts['all_2']|join('<br>')|raw }}
+                                                    {% endif %}
+                                                </code>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% if show_qris_pay == 'yes' %}
+                                        <div class="inner-box" style="margin-top: -35px;">
+                                            <img src="{{ asset(asset_qris_pay) }}" height="400px" alt="">
+                                        </div>
+                                        <div class="inner-box" style="margin-top: -50px;">
+                                            <a href="{{ asset(asset_qris_pay) }}" class="sBtn small red" download>
+                                                {{ 'button.download'|trans ~ ' QRIS' }}
+                                            </a>
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                                <div class="btn-wrapper">
+                                    {% if app.user %}
+                                        {% if addresses|length > 0 %}
+                                            {% set btn_label = app.user.role == 'ROLE_USER' ? 'button.submit_cart' : 'button.continue_order' %}
+                                            <a id="checkout-now" href="javascript:void(0);" class="sBtn red right-side">
+                                                {{ btn_label|trans|upper }}
+                                            </a>
+                                        {% else %}
+                                            <a href="javascript:void(0);" class="sBtn red right-side cart-incomplete">
+                                                {{ 'button.submit_cart'|trans|upper }}
+                                            </a>
+                                        {% endif %}
+                                    {% else %}
+                                        <input type="submit" class="sBtn red right-side" value="{{ 'button.submit_cart'|trans|upper }}">
+                                    {% endif %}
+                                    <a href="{{ path('cart_index') }}" class="gBtn">{{ 'button.return'|trans }}</a>
+                                    <div class="clear"></div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}
+
+

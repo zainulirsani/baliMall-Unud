@@ -1,0 +1,27 @@
+{% set page_title = page_title|default('title.page.default') %}
+{% set page_title_parameter = trans_parameter|default({}) %}
+{% set token_parameter = get_parameter('ajax_csrf_token_id') %}
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+<title>{{ page_title|trans(page_title_parameter) ~ ' | ' ~ get_parameter('app_name') }}</title>
+<link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+
+{% include '@__main__/shared/anti_click_jack.html.twig' %}
+
+<script>
+    BASE_URL = '{{ base_url }}';
+    {% if admin_login is defined and admin_login == true %}ADMIN_PATH = '{{ get_parameter("admin_url") }}';{% endif %}
+    {% if text_editor is defined and text_editor == true %}CKEDITOR_BASEPATH = BASE_URL+'/vendor/ckeditor/';{% endif %}
+    TOKEN = {'_csrf_token': '{{ csrf_token(token_parameter["admin"]) }}', '_csrf_token_id': '{{ token_parameter["admin"] }}'};
+    LANG = '{{ locale }}';
+    CONFIRM_MSG = '{{ translation("message.info.confirmation") }}';
+    CONFIRM_DELETE_MSG = '{{ translation("message.info.confirmation_deleted") }}';
+    QS_SELLING_PRICE = '{{ translation("message.info.qs_selling_price") }}';
+    QS_BASE_PRICE = '{{ translation("message.info.qs_base_price") }}';
+    QS_QUANTITY = '{{ translation("message.info.qs_quantity") }}';
+    SELECT_OPTION_LABEL = '{{ "label.select_option"|trans }}';
+    LEAFLET_ACCESS_TOKEN = '{{ get_parameter('leaflet_access_token') }}';
+    MSG_CONFIRMATION = '{{ "message.info.confirmation"|trans }}';
+</script>

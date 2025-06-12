@@ -1,0 +1,413 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% set controller = app.request.get('_controller') %}
+{% set page_method = controller[1] is defined ? controller[1] : 'n/a' %}
+{% set price = form_data['p_price']|default() %}
+{% set base_price = form_data['p_basePrice']|default() %}
+
+{% if page_method == 'edit' %}
+    {% set price = price|to_int|number_format %}
+    {% set base_price = base_price|to_int|number_format %}
+{% endif %}
+
+{% block stylesheets %}
+    <style>
+        .editor {
+            position: fixed;
+            width: 50%;
+            height: 50%;
+            margin: auto;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 9999;
+            background-color: #000;
+            visibility: hidden;
+        }
+
+        .wrapper-editor {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+            height: 100vmax !important;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 9998;
+        }
+
+        .upBtn {
+            position: absolute;
+            bottom: 5px;
+            z-index: 9999;
+            min-width: 20px;
+            min-height: 10px;
+        }
+
+        .left {
+            left: 10px;
+        }
+        .right-2 {
+            right: 120px;
+        }
+
+        .right {
+            right: 10px;
+        }
+
+        @media screen and (max-width: 450px) {
+            .tablinks {
+                font-size: 2vw !important;
+            }
+        }
+
+        @media screen and (max-width: 320px) {
+            .tablinks > i {
+                font-size: 2vw;
+            }
+
+            .tablinks {
+                display: block !important;
+                left: 0 !important;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .upBtn {
+                width: 15vw;
+                font-size: 2vw;
+                margin-bottom: 0;
+                text-align: center;
+            }
+
+            .left {
+                left: 1vw;
+            }
+
+            .right {
+                right: 1vw;
+
+            }
+        }
+
+        @media screen and (max-width: 400px) {
+            .right {
+                right: -5vw;
+            }
+        }
+
+        .sub-menu {
+            width: 100%;
+            left: -7vw;
+            padding-right: 1vw;
+        }
+
+        .sub-menu button {
+            left: 1vw;
+        }
+
+        .preview-file {
+            padding: 6px 12px;
+            border: 1px solid #ccc;
+            border-top: none;
+            height: 500px;
+            overflow-y: scroll;
+        }
+
+        td {
+            padding: 10px;
+        }
+
+        .error {
+            padding-top: 6px;
+        }
+
+        .hide {
+            display: none;
+        }
+
+        .input-bg-white > input {
+            background-color: #fff !important;
+            border: 1px solid #ddd !important;
+        }
+
+        @media screen and (max-width: 463px) {
+            .textTerm {
+                font-size: 10px;
+            }
+        }
+
+        #addressMap {
+            height: 350px;
+            z-index: 99;
+        }
+
+    </style>
+{% endblock %}
+
+{% block content %}
+    <main class="pdl">
+        {% include '@__main__/public/base/partials/breadcrumb.html.twig' %}
+        <section>
+            <div class="container">
+                <div class="box">
+                    <div class="row">
+                        {% include '@__main__/public/user/fragments/menu.html.twig' %}
+                        <div class="dc9 tc12">
+                            <div class="sub-title">
+                                <div class="text">
+                                    <h3>
+                                        {% if page_method == 'edit' %}
+                                            {{ 'title.page.product_edit'|trans({'%name%': form_data['p_name']|default()}) }}
+                                        {% else %}
+                                            {{ 'label.product_add'|trans }}
+                                        {% endif %}
+                                    </h3>
+                                </div>
+                                <div class="clear"></div>
+                            </div>
+                            <div class="pr-card">
+                                <div class="row">
+                                    <div class="container fc">
+                                        <form id="user-product-form" action="" method="post" accept-charset="UTF-8" enctype="multipart/form-data">
+                                            {% set error = errors['p_sku'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                                <label for="input-sku">SKU</label>
+                                                <input id="input-sku" type="text" value="{{ form_data['p_sku']|default() }}" name="p_sku" title="" placeholder="SKU">
+                                                {% if error %}<p class="{{ error }}">{{ errors['p_sku'] }}</p>{% endif %}
+                                            </div>
+
+                                            {% set error = errors['p_name'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                                <label for="input-name">{{ 'label.name'|trans }}</label>
+                                                <input id="input-name" type="text" name="p_name" value="{{ form_data['p_name']|default() }}" title="" placeholder="{{ 'label.name'|trans }}">
+                                                {% if error %}<p class="{{ error }}">{{ errors['p_name'] }}</p>{% endif %}
+                                            </div>
+                                            {% set error = errors['p_category'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                                <label for="input-category">{{ 'label.category'|trans }}</label>
+                                                <select id="input-category" name="p_category" class="" title="">
+                                                    {% set label = 'label.category'|trans %}
+                                                    <option value="">{{ 'label.select_label'|trans({'%label%': label}) }}</option>
+                                                    {% for category in product_category_data %}
+                                                        {#{% set selected = category['id'] in form_data['p_category']|default({}) ? 'selected' : '' %}#}
+                                                        {% set selected = category['id'] == form_data['p_category']|default() ? 'selected' : '' %}
+                                                        {% set disabled = category['level'] == 1 ? 'disabled' : '' %}
+                                                        <option value="{{ category['id'] }}" {{ selected }} {{ disabled }}>{{ category['text'] }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                                {% if error %}<p class="{{ error }}">{{ errors['p_category'] }}</p>{% endif %}
+                                            </div>
+                                            {% set error = errors['p_isPdn'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                                <label for="input-pdn">{{ 'label.pdn_or_non_product'|trans }}</label>
+                                                <select id="input-pdn" name="p_isPdn" class="" title="">
+                                                    {% for choice in get_parameter('pdn_options') %}
+                                                        {% set label = 'label.' ~ choice ~ '_product' %}
+                                                        {% set label2 = 'label.' ~ choice ~ '_option' %}
+                                                        {% set selected = form_data['p_is_pdn']|default() == choice ? 'selected' : '' %}
+                                                        <option value="{{ choice }}" {{ selected }}>{{ label|trans ~ ' ' ~ label2|trans }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                                {% if error %}<p class="{{ error }}">{{ errors['p_isPdn'] }}</p>{% endif %}
+                                            </div>
+                                            {% set error = errors['p_keywords'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                                <label for="input-keywords">{{ 'label.keywords'|trans }}</label>
+                                                <input id="input-keywords" type="tags" name="p_keywords" value="{{ form_data['p_keywords']|default() }}" title="" placeholder="{{ 'label.keywords'|trans }}">
+                                                {% if error %}<p class="{{ error }}">{{ errors['p_keywords'] }}</p>{% endif %}
+                                            </div>
+                                            {% set error = errors['p_description'] is defined ? 'error' : null %}
+                                            <div class="input">
+                                                <label for="input-description">{{ 'label.description'|trans }}</label>
+                                                <textarea id="input-description" name="p_description" class="no-resize" title="" placeholder="{{ 'label.description'|trans }}">{{ form_data['p_description']|default() }}</textarea>
+                                                {% if error %}<p class="{{ error }}">{{ errors['p_description'] }}</p>{% endif %}
+                                            </div>
+                                            {% if form_data['p_note'] is defined %}
+                                                <div class="input">
+                                                    <label for="input-note">{{ 'label.publish_note'|trans }}</label>
+                                                    <textarea style="background: #EDEDED;border: 1px solid red" class="no-resize" title="" placeholder="{{ 'label.publish_note'|trans }}" disabled>{{ form_data['p_note']|default() }}</textarea>
+                                                </div>
+                                            {% endif %}
+                                            {% set error = errors['p_quantity'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                                <label for="input-quantity">{{ 'label.stock'|trans }}</label>
+                                                <input id="input-quantity" type="text" name="p_quantity" value="{{ form_data['p_quantity']|default() }}" title="" placeholder="{{ 'label.stock'|trans }}">
+                                                {% if error %}<p class="{{ error }}">{{ errors['p_quantity'] }}</p>{% endif %}
+                                            </div>
+                                            {% set error = errors['p_price'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                                <label for="input-price">{{ 'label.selling_price_without_tax'|trans }}</label>
+                                                <input id="input-price" type="text" name="p_price" value="{{ price }}" placeholder="{{ 'label.selling_price_without_tax'|trans }}">
+                                                {% if error %}<p class="{{ error }}">{{ errors['p_price'] }}</p>{% endif %}
+                                            </div>
+                                            {% set error = errors['p_basePrice'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                                <label for="input-base-price">{{ 'label.base_price'|trans }}</label>
+                                                <input id="input-base-price" type="text" name="p_basePrice" value="{{ base_price }}" title="" placeholder="{{ 'label.base_price'|trans }}">
+                                                {% if error %}<p class="{{ error }}">{{ errors['p_basePrice'] }}</p>{% endif %}
+                                            </div>
+                                             {% set error = errors['p_unit'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                                <label for="input-unit">{{ 'label.unit_alt'|trans }}</label>
+                                                <select id="input-unit" name="p_unit" title="">
+                                                    {% set label = 'label.unit_alt'|trans %}
+                                                    <option value="">{{ 'label.select_label'|trans({'%label%': label}) }}</option>
+                                                    {% for key, unit in product_unit_types %}
+                                                        {% set selected = key == form_data['p_unit']|default() ? 'selected' : '' %}
+                                                        <option value="{{ key }}" {{ selected }}>{{ unit|trans }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                                {% if error %}<p class="{{ error }}">{{ errors['p_unit'] }}</p>{% endif %}
+                                            </div>
+                                            {% set error = errors['p_weight'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                                <label for="input-weight">{{ 'label.weight_in'|trans({'%type%': 'kg'}) }}</label>
+                                                <input id="input-weight" type="text" name="p_weight" value="{{ form_data['p_weight']|default() }}" title="" placeholder="{{ 'label.weight_in'|trans({'%type%': 'kg'}) }}">
+                                                {% if error %}<p class="{{ error }}">{{ errors['p_weight'] }}</p>{% endif %}
+                                            </div>
+                                            <div class="input">
+                                                <label for="input-weight">{{ 'label.weight_in'|trans({'%type%': 'g'}) }}</label>
+                                                <input disabled id="input-weight-for-gram" type="text" name="p_weight" value="{{ form_data['p_weight']|default() * 1000 }}" title="" placeholder="{{ 'label.weight_in'|trans({'%type%': 'g'}) }}">
+                                                {% if error %}<p class="{{ error }}">{{ errors['p_weight'] }}</p>{% endif %}
+                                            </div>
+                                            {#{% set error = errors['p_status'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                                <label for="input-status">{{ 'label.status'|trans }}</label>
+                                                <select id="input-status" name="p_status" title="">
+                                                    {% set label = 'label.status'|trans %}
+                                                    <option value="">{{ 'label.select_label'|trans({'%label%': label}) }}</option>
+                                                    {% for choice in get_parameter('publish_draft') %}
+                                                        {% set label = 'label.' ~ choice %}
+                                                        {% set selected = form_data['p_status']|default() == choice ? 'selected' : '' %}
+                                                        <option value="{{ choice }}" {{ selected }}>{{ label|trans }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                                {% if error %}<p class="{{ error }}">{{ errors['p_status'] }}</p>{% endif %}
+                                            </div>#}
+                                            <div class="input">
+                                                <p>
+                                                    {{ 'label.add_product_image'|trans({'%limit%': 4}) }}
+                                                    <br>
+                                                    <b><span style="font-size: 0.9em;font-style: italic;">{{ 'message.info.product_images'|trans }}</span></b>
+                                                </p>
+                                                <div class="row">
+                                                    {% if page_method == 'edit' %}
+                                                        {% set remaining = 4 - form_data['p_images']|length %}
+                                                        {% for image in form_data['p_images'] %}
+                                                            {% set index = loop.index %}
+                                                            {% set product_image = image['filePath']|default() %}
+                                                            <div class="dc3 tc6 img-id">
+                                                                <div class="inner">
+                                                                    {% if loop.first %}
+                                                                        <span class="badge green">{{ 'label.main_picture'|trans }}</span>
+                                                                    {% endif %}
+                                                                    <a href="javascript:void(0);" class="fas fa-trash-alt remove-product-img" data-index="{{ index }}"></a>
+                                                                    <a href="javascript:void(0);" class="fas fa-edit user-product-img-{{ index }}"></a>
+                                                                    <a id="dz-up-uploader-{{ index }}" href="javascript:void(0);" class="add-img">
+                                                                        <span class="user-product-img-{{ index }}">+</span>
+                                                                        <img id="product-img-{{ index }}-src" src="{{ path('sftp_show_file', {'path': product_image}) }}" class="user-product-img-{{ index }}" alt="">
+                                                                    </a>
+                                                                    <input id="product-img-{{ index }}-temp" type="hidden" name="p_imagesTmp[filePath][]" value="{{ product_image }}">
+                                                                    <input id="product-img-{{ index }}-name" type="hidden" name="p_imagesTmp[fileName][]" value="{{ image['fileName']|default() }}">
+                                                                    <input id="product-img-{{ index }}-mime" type="hidden" name="p_imagesTmp[fileMimeType][]" value="{{ image['fileMimeType']|default() }}">
+                                                                    <input id="product-img-{{ index }}-old" type="hidden" name="p_imagesTmp[fileOld][]" value="{{ product_image }}">
+                                                                    <input id="product-img-{{ index }}-id" type="hidden" name="p_imagesTmp[fileId][]" value="{{ image['id']|default(0) }}">
+                                                                </div>
+                                                            </div>
+                                                        {% endfor %}
+                                                        {% if remaining > 0 %}
+                                                            {% for index in 1..remaining %}
+                                                                {% set key = index - 1 %}
+                                                                {% set index = index + (4 - remaining) %}
+                                                                {% set product_image = form_data['p_imagesTmp']['filePath'][key]|default('dist/img/bg.jpg') %}
+                                                                <div class="dc3 tc6 img-id">
+                                                                    <div class="inner">
+                                                                        <a href="javascript:void(0);" class="fas fa-trash-alt remove-product-img" data-index="{{ index }}"></a>
+                                                                        <a href="javascript:void(0);" class="fas fa-edit user-product-img-{{ index }}"></a>
+                                                                        <a id="dz-up-uploader-{{ index }}" href="javascript:void(0);" class="add-img">
+                                                                            <span class="user-product-img-{{ index }}">+</span>
+                                                                            <img id="product-img-{{ index }}-src" src="{{ asset(product_image) }}" class="user-product-img-{{ index }}" alt="">
+                                                                        </a>
+                                                                        <input id="product-img-{{ index }}-temp" type="hidden" name="p_imagesTmp[filePath][]" value="{{ product_image }}">
+                                                                        <input id="product-img-{{ index }}-name" type="hidden" name="p_imagesTmp[fileName][]" value="{{ form_data['p_imagesTmp']['fileName'][key]|default() }}">
+                                                                        <input id="product-img-{{ index }}-mime" type="hidden" name="p_imagesTmp[fileMimeType][]" value="{{ form_data['p_imagesTmp']['fileMimeType'][key]|default() }}">
+                                                                        <input id="product-img-{{ index }}-old" type="hidden" name="p_imagesTmp[fileOld][]" value="">
+                                                                        <input id="product-img-{{ index }}-id" type="hidden" value="0">
+                                                                    </div>
+                                                                </div>
+                                                            {% endfor %}
+                                                        {% endif %}
+                                                    {% else %}
+                                                        {% for index in 1..4 %}
+                                                            {% set key = index - 1 %}
+                                                            {% set product_image = form_data['p_imagesTmp']['filePath'][key]|default('dist/img/bg.jpg') %}
+                                                            <div class="dc3 tc6 img-id">
+                                                                <div class="inner">
+                                                                    {% if loop.first %}
+                                                                        <span class="badge green">{{ 'label.main_picture'|trans }}</span>
+                                                                    {% endif %}
+                                                                    <a href="javascript:void(0);" class="fas fa-trash-alt remove-product-img" data-index="{{ index }}"></a>
+                                                                    <a href="javascript:void(0);" class="fas fa-edit user-product-img-{{ index }}"></a>
+                                                                    <a id="dz-up-uploader-{{ index }}" href="javascript:void(0);" class="add-img">
+                                                                        <span class="user-product-img-{{ index }}">+</span>
+                                                                        <img id="product-img-{{ index }}-src" src="{{ asset(product_image) }}" class="user-product-img-{{ index }}" alt="">
+                                                                    </a>
+                                                                    <input id="product-img-{{ index }}-temp" type="hidden" name="p_imagesTmp[filePath][]" value="{{ product_image }}">
+                                                                    <input id="product-img-{{ index }}-name" type="hidden" name="p_imagesTmp[fileName][]" value="{{ form_data['p_imagesTmp']['fileName'][key]|default() }}">
+                                                                    <input id="product-img-{{ index }}-mime" type="hidden" name="p_imagesTmp[fileMimeType][]" value="{{ form_data['p_imagesTmp']['fileMimeType'][key]|default() }}">
+                                                                    <input id="product-img-{{ index }}-old" type="hidden" name="p_imagesTmp[fileOld][]" value="">
+                                                                    <input id="product-img-{{ index }}-id" type="hidden" value="0">
+                                                                </div>
+                                                            </div>
+                                                        {% endfor %}
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <div class="input">
+                                                <input type="hidden" name="_csrf_token" value="{{ csrf_token(token_id) }}">
+                                                <input type="hidden" name="_csrf_token_id" value="{{ token_id }}">
+                                                <input id="input-id" type="hidden" name="p_id" value="{{ form_data['p_id']|default() }}">
+                                                <input id="input-store-id" type="hidden" name="s_id" value="{{ form_data['s_id']|default(store_id) }}">
+                                                <input id="input-dir-slug" type="hidden" name="p_dirSlug" value="{{ form_data['p_dirSlug']|default() }}">
+                                            </div>
+                                            <div class="input">
+                                                <input id="btn-save-product" type="submit" value="{{ 'button.save'|trans }}" class="sBtn red">
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        $(function() {
+            $('#input-quantity').on('keyup', function(e) {
+                e.preventDefault();
+                var value     = e.target.value;
+                var is_number = value.replace(/\D/gi, '');
+
+                e.target.value = is_number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            });
+        });
+
+        $('#btn-save-product').on('click', function (e) {
+            e.preventDefault();
+            showLoading();
+            $('#user-product-form').submit();
+        })
+
+        $('#input-weight').on('keyup', function(e) {
+            var value = e.target.value;
+            $('#input-weight-for-gram').val(value * 1000);
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,277 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% set min_price = '' %}
+{% set max_price = '' %}
+{% set sort_options = {
+    'cheapest': 'label.cheapest'|trans,
+    'most_expensive': 'label.most_expensive'|trans,
+    'latest': 'label.latest'|trans,
+    'oldest': 'label.oldest'|trans,
+    'a_to_z': 'A-Z',
+    'z_to_a': 'Z-A',
+    'most_bought': 'label.most_bought'|trans,
+} %}
+
+{% if parameters['price']['min'] is defined and parameters['price']['min'] > 0 %}
+    {% set min_price = parameters['price']['min']|round(0, 'floor') %}
+{% endif %}
+
+{% if parameters['price']['max'] is defined and parameters['price']['max'] > 0 %}
+    {% set max_price = parameters['price']['max']|round(0, 'floor') %}
+{% endif %}
+
+{% block content %}
+    <main class="pdl">
+        {% include '@__main__/public/base/partials/breadcrumb.html.twig' %}
+        <section>
+            <div class="container">
+                <div class="page-title">
+                    <h2>{{ 'message.info.product_search'|trans }}</h2>
+                    <p>{{ 'message.info.product_search_title'|trans }}</p>
+                </div>
+                <div class="box">
+                    <form id="search-form" action="" method="GET" accept-charset="UTF-8">
+                        <div class="row">
+                            <button type="button" class="sBtn btn-mobile-filter">
+                                <i class="fas fa-sliders-h"></i> {{ 'label.filter'|trans }}
+                            </button>
+                            <div class="dc3 mobile-filter">
+                                <div class="sidebar">
+                                    <div class="box">
+                                        <div class="sidebar__group">
+                                            <h6>{{ 'label.category'|trans }}</h6>
+                                            {% for key, category in product_category_search_filter %}
+                                                {% set id = category['id'] %}
+                                                {% set checked = id in parameters['category'] ? 'checked' : '' %}
+                                                {% set active = id in parameters['category'] ? 'active' : '' %}
+                                                <div class="input acc {{ active }}">
+                                                    <span class="check-wrapper">
+                                                        <input id="p-cat-{{ id }}" type="checkbox" class="check f-category" name="category1[{{ key }}]" value="{{ id }}" title="{{ category['text'] }}" {{ checked }}>
+                                                        <label></label>
+                                                    </span> {{ category['text'] }}
+                                                    {% if category['children']|length > 0 %}
+                                                        <button id="p-cat-sub-{{ id }}" type="button" class="acc__button"></button>
+                                                        <div class="acc__child acc">
+                                                            {% for index, sub_category in category['children'] %}
+                                                                {% if sub_category['status'] == 1 %}
+                                                                    {% set sub_id = sub_category['id'] %}
+                                                                    {% set checked = sub_id in parameters['sub_category'] ? 'checked' : '' %}
+                                                                    {% set active = sub_id in parameters['sub_category'] ? 'active' : '' %}
+                                                                    <div class="input input--child acc {{ active }}">
+                                                                        <span class="check-wrapper">
+                                                                            <input id="s-cat-{{ sub_id }}" type="checkbox" class="check f-sub-category s-cat-{{ id }}" name="category2[{{ index }}]" value="{{ sub_id }}" title="{{ sub_category['text'] }}" data-parent="{{ id }}" {{ checked }}>
+                                                                            <label></label>
+                                                                        </span> {{ sub_category['text'] }}
+                                                                        {% if sub_category['children']|length > 0 %}
+                                                                            <button id="p-cat-child-{{ id }}" type="button" class="acc__button"></button>
+                                                                            <div class="acc__child">
+                                                                                {% for child_category in sub_category['children'] %}
+                                                                                    {% if child_category['status'] == 1 %}
+                                                                                        {% set child_id = child_category['id'] %}
+                                                                                        {% set checked = child_id in parameters['child_category'] ? 'checked' : '' %}
+                                                                                        {% set active = child_id in parameters['child_category'] ? 'active' : '' %}
+                                                                                        <div class="input input--child {{ active }}">
+                                                                                            <span class="check-wrapper">
+                                                                                                <input type="checkbox" class="check f-child-category s-cat-{{ id }} c-cat-{{ sub_id }}" name="category3[{{ index }}]" value="{{ child_id }}" title="{{ child_category['text'] }}" data-parent="{{ sub_id }}" {{ checked }}>
+                                                                                                <label></label>
+                                                                                            </span> {{ child_category['text'] }}
+                                                                                        </div>
+                                                                                    {% endif %}
+                                                                                {% endfor %}
+                                                                            </div>
+                                                                        {% endif %}
+                                                                    </div>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                        <hr>
+                                        <div class="sidebar__group">
+                                            <h6>{{ 'label.price'|trans }}</h6>
+                                            {% if search_filter['price'] == 'slider' %}
+                                                <p><input type="text" id="amount" title="" readonly></p>
+                                                <div id="slider-range"></div>
+                                            {% endif %}
+                                            <div class="{{ search_filter['price'] }}">
+                                                <input id="f-min-price" type="text" placeholder="{{ 'label.min_price'|trans }}" name="price[min]" value="{{ min_price }}" title="" {% if search_filter['price'] == 'slider' %}hidden{% endif %}>
+                                            </div>
+                                            <div class="{{ search_filter['price'] }}">
+                                                <input id="f-max-price" type="text" placeholder="{{ 'label.max_price'|trans }}" name="price[max]" value="{{ max_price }}" title="" {% if search_filter['price'] == 'slider' %}hidden{% endif %}>
+                                            </div>
+                                        </div>
+                                        <hr>
+                                        <div class="input">
+                                            <select id="input-province" name="province_id" title="">
+                                                {% set label = 'label.province'|trans %}
+                                                <option value="">{{ 'label.select_label'|trans({'%label%': label}) }}</option>
+                                                {% for province in province_data %}
+                                                    <option value="{{ province['province_id'] }}">{{ province['province'] }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="input">
+                                            <span class="city-label hide">
+                                                {% set label = 'label.city'|trans %}
+                                                {{ 'label.select_label'|trans({'%label%': label}) }}
+                                            </span>
+                                            <select id="input-city" name="region" title=""></select>
+                                        </div>
+                                        <hr>
+                                        <div>
+                                            <input type="hidden" name="keywords" value="{{ parameters['keywords']|default() }}">
+                                            <input type="hidden" name="page" value="{{ parameters['page']|default(1) }}">
+                                        </div>
+                                        <button id="f-reset" type="button" class="sBtn red" style="width: 100%;">
+                                            {{ 'button.reset'|trans }}
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="btn-wrapper block-mobile">
+                                    {#<a href="javascript:void(0);" class="sBtn red">{{ 'label.filter'|trans}) }}</a>#}
+                                    <button type="button" class="close-btn">{{ 'button.close'|trans }}</button>
+                                </div>
+                            </div>
+                            <div class="dc9 tc12">
+                                <div class="sub-title">
+                                    <div class="text">
+                                        <h5>{{ page_header }}</h5>
+                                        {% if pagination is not empty %}
+                                            <p>{{ 'message.info.pagination_info'|trans({'%length%': products|length, '%total%': pagination.getNbResults}) }}</p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="input">
+                                        <select id="f-sort" name="sort" title="">
+                                            <option value="">{{ 'label.select_option'|trans }}</option>
+                                            {% for key, label in sort_options %}
+                                                {% set selected = parameters['sort'] == key ? 'selected' : '' %}
+                                                <option value="{{ key }}" {{ selected }}>{{ label }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="clear"></div>
+                                </div>
+                                {#{% include '@__main__/public/product_category/fragments/category_list.html.twig' %}#}
+                                <div class="item-list">
+                                    <div class="row">
+                                        {% if products|length > 0 %}
+                                            {% for product in products %}
+                                                {% set store_url = path('store_page', {'store': product['s_slug']}) %}
+                                                {% set rating_count = 0 %}
+                                                {% set store_verified = product['s_is_verified']|to_bool %}
+                                                {% set store_pkp = product['s_is_pkp']|to_bool %}
+                                                {% set umkm_category = product['s_umkm_category']|replace({'_':' '})|title %}
+                                                {% set product_url = path('store_product_page', {
+                                                    'store': product['s_slug'],
+                                                    'product': product['slug'],
+                                                    'state': 'search'
+                                                }) %}
+                                                {% set product_id = product['id']|default(0) %}
+                                                {% set text_pkp = store_pkp ? 'PKP':'Non PKP' %}
+                                                {% set text_product = 'label.products'|trans %}
+                                                {% set text_pdn = product['is_pdn'] == null ? 'label.pdn_product' : 'label.' ~ product['is_pdn'] ~ '_product' %}
+
+                                                {# {% if product['rating_count'] > 0 and product['pr_total'] > 0 %}
+                                                    {% set rating_count = product['rating_count'] / product['pr_total']|round(0, 'floor') %}
+                                                {% endif %} #}
+
+                                                {# {{ dump(product) }} #}
+                                                <div class="dc4 tc6 single-item-detail">
+                                                    <div class="box">
+                                                        <figure>
+                                                            <a href="{{ product_url }}" class="btn-gtm-bm" data-id="{{ product_id }}">
+                                                                <img src="{{ path('sftp_show_file', {'path': product_main_image(product['id']|default(0))}) }}" alt="">
+                                                            </a>
+                                                        </figure>
+                                                        {#<a href="javascript:void(0);" class="wishlist-btn">
+                                                            <i class="fas fa-heart"></i>
+                                                            <i class="far fa-heart"></i>
+                                                        </a>#}
+                                                        <div class="description">
+                                                            <h6><a href="{{ product_url }}" class="btn-gtm-bm" data-id="{{ product_id }}">{{ product['name'] }}</a></h6>
+                                                            <span style="color: #999;font-size: 10px">{{ product['sku'] }}</span>
+                                                            <p>
+                                                                <span style="color: #999;font-size: 10px">{{ text_pdn|trans }}</span>
+                                                            </p>
+                                                            <p>
+                                                                {# {% set product_price = store_pkp ? (product['price'] + (product['price'] * 0.1)) : product['price'] %} #}
+
+                                                                <strong>Rp. {{ product['price']|number_format }}</strong>
+                                                                <br>
+                                                                <span style="font-size: 10px">{{ 'label.price_exclude_tax'|trans }}</span>
+                                                                <br>
+                                                                {{ product['s_city'] }}
+                                                            </p>
+                                                            <div class="stat-wrapper row">
+                                                                <p class="dc4"><i class="fas fa-tag"></i> {{ product['pr_total'] }}</p>
+                                                                <p class="dc4"><i class="fas fa-eye"></i> {{ product['view_count'] }}</p>
+                                                                <p class="dc4"><i class="fas fa-star"></i> {{ product['avg_rating']|round(1) }}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="vendor-info">
+                                                            <p>
+                                                                <a href="{{ store_url }}">
+                                                                    {% if store_verified %}
+                                                                        {# <i class="fas fa-store"><span>{{ 'label.verified_merchant'|trans }}</span></i> #}
+                                                                    {% endif %}
+                                                                    <span class="product-name">{{ product['s_name']|raw }}</span>
+                                                                </a>
+                                                            </p>
+                                                            <p>
+                                                                <span style="color: #999;font-size: 10px">{{ text_pkp }} | {{umkm_category}}</span>
+                                                            </p>
+                                                            {% if enable_chat and app.user and is_buyer and is_government and store_verified %}
+                                                                <a href="javascript:void(0);" class="chat" data-slug="{{ product['s_slug'] }}">
+                                                                    <i class="fas fa-envelope"></i>
+                                                                </a>
+                                                            {% endif %}
+                                                            <div class="clear"></div>
+                                                        </div>
+                                                        <div>
+                                                            <input id="gtm-pc-name-{{ product_id }}" type="hidden" value="{{ product['name'] }}">
+                                                            <input id="gtm-pc-id-{{ product_id }}" type="hidden" value="{{ product_id }}">
+                                                            <input id="gtm-pc-price-{{ product_id }}" type="hidden" value="{{ product['price']|number_format(2, '.', '') }}">
+                                                            <input id="gtm-pc-brand-{{ product_id }}" type="hidden" value="{{ product['s_name'] }}">
+                                                            <input id="gtm-pc-category-{{ product_id }}" type="hidden" value="{{ product_category_name(product_id) }}">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        {% else %}
+                                            <div class="dc12 single-item-detail">
+                                                <h4 class="sgd-text-center">{{ 'message.info.no_product'|trans }}</h4>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% if pagination is not empty and pagination.getNbResults > pagination.getMaxPerPage %}{{ html|raw }}{% endif %}
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}
+
+{% block javascripts %}
+    {% if search_filter['price'] == 'slider' %}
+        <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+        <script type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui-touch-punch/0.2.3/jquery.ui.touch-punch.min.js"></script>
+    {% endif %}
+    <script>
+        $(function() {
+            var searchParameters = {{ parameters|json_encode|raw }};
+
+            {% if search_filter['price'] == 'slider' %}
+                handleRangePrice({{ lowest_price|round(0, 'floor') }}, {{ highest_price|round(0, 'floor') }});
+            {% endif %}
+
+            handleSelectCity({{ city_data|json_encode|raw }}, {{ province_id|default(0) }}, searchParameters.region);
+            searchFunctionCheckChildCategories();
+        });
+    </script>
+{% endblock %}

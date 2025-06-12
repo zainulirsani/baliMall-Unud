@@ -1,0 +1,519 @@
+<div class="row">
+    <div class="dc12">
+        <h4>Data Produk & Riwayat</h4>
+    </div>
+    <div class="dc12">
+        <div class="ccp__section ccp__box">
+            <div class="row">
+                {% if app.user.getRole != 'ROLE_USER_SELLER' %}
+                <div class="dc12 tc12">
+                    <h5>{{ 'label.store'|trans }}</h5>
+                    <p>{{ order['s_name'] }}</p>
+                </div>
+                {% endif %}
+                <div class="dc6 tc12">
+                    <h5>{{ 'label.delivery_address'|trans }}</h5>
+                    <p>{{ order['o_address'] }}</p>
+                    <p>{{ order['o_city'] ~ ', ' ~ order['o_province'] ~ ' - ' ~ order['o_postCode'] }}</p>
+                    {% if order['o_note'] is not empty %}
+                        <h5>{{ 'label.note'|trans }}</h5><p>{{ order['o_note'] }}</p>
+                    {% endif %}
+                </div>
+                <div class="dc6 tc12">
+                    {# <div>
+                        <h5>{{ 'label.ppk_payment_method'|trans }}</h5>
+                        {% set ppk_payment_method = order['o_ppk_payment_method']|default('uang_persediaan') %}
+                        <p>{{ 'label.ppk_payment_method'|trans }} : {{get_parameter('ppk_method_options')[ppk_payment_method]}}</p>
+                    </div> #}
+                    <h5>{{ 'label.order_status'|trans }}</h5>
+                    <div id="order-content-status">
+                        {% if order['o_status'] == 'pending' %}
+                            <p><span>{{ 'label.pending'|trans }}</span>
+                                ({{ order['o_createdAt']|date('d/m/Y - H:i') }})</p>
+                        {% elseif order['o_status'] == 'pending_approve' %}
+                            <p><span>{{ 'label.pending_approve'|trans }}</span>
+                                ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                        {% elseif order['o_status'] == 'pending_payment' %}
+                            <p><span>{{ 'label.pending_payment'|trans }}</span>
+                                ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                        {% elseif order['o_status'] == 'confirm_order_ppk' %}
+                            <p><span>{{ 'label.confirm_order_ppk'|trans }}</span>
+                                ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                        {% elseif order['o_status'] == 'approved_order' %}
+                            <p><span>{{ 'label.approved_order'|trans }}</span>
+                                ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                        {% elseif order['o_status'] == 'paid' %}
+                            <p><span>{{ 'label.paid'|trans }}</span>
+                                ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                        {% elseif order['o_status'] == 'payment_process' %}
+                            <p><span>{{ 'label.payment_process'|trans }}</span>
+                                ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                        {% elseif order['o_status'] == 'confirmed' %}
+                            <p><span>{{ 'label.confirmed'|trans }}</span>
+                                ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                        {% elseif order['o_status'] == 'processed' %}
+                            <p><span>{{ 'label.processed'|trans }}</span>
+                                ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                        {% elseif order['o_status'] == 'partial_delivery' %}
+                            <p>
+                                <span>{{ 'label.partial_delivery'|trans }}</span>
+                                <span>({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</span>
+                            </p>
+
+                            {% if delivery_detail is not empty %}
+                                {% for item in delivery_detail %}
+                                    <p>-
+                                        <span>{{ ('label.batch'|trans) }} {{ item['batch'] }},</span>
+                                        <span>{{ 'label.tracking_code'|trans }}: </span>
+                                        <span>{{ item['tracking_code'] }}</span>
+                                        <span>({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</span>
+                                    </p>
+                                {% endfor %}
+                            {% endif %}
+                        {% elseif order['o_status'] == 'shipped' %}
+                            <p>
+                                <span>{{ 'label.shipped'|trans }}</span>
+
+                                {% if delivery_detail is defined and delivery_detail is empty %}
+                                    ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})
+                                {% endif %}
+                            </p>
+
+                            {% if delivery_detail is defined and delivery_detail is not empty %}
+                                {% for item in delivery_detail %}
+                                    <p>-
+                                        <span>{{ ('label.batch'|trans) }} {{ item['batch'] }},</span>
+                                        <span>{{ 'label.tracking_code'|trans }}: </span>
+                                        <span>{{ item['tracking_code'] }}</span>
+                                        <span>({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</span>
+                                    </p>
+                                {% endfor %}
+                            {% elseif order['o_shippingCourier'] != 'gosend' %}
+                                <h6>{{ 'label.tracking_code'|trans ~ ': ' ~ order['o_trackingCode'] }}</h6>
+                            {% endif %}
+                        {% elseif order['o_status'] == 'received' %}
+                            <p><span>{{ 'label.received'|trans }}</span>
+                                ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                        {% elseif order['o_status'] == 'cancel' %}
+                            <p><span>{{ 'label.cancelled'|trans }}</span>
+                                ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                        {% elseif order['o_status'] == 'document' %}
+                            <p><span>{{ 'label.document'|trans }}</span>
+                                ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                        {% elseif order['o_status'] == 'tax_invoice' %}
+                            <p><span>{{ 'label.tax_invoice'|trans }}</span>
+                                ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                        {% elseif order['o_status'] == 'cancel_request' %}
+                            <p><span>{{ 'label.cancel_request'|trans }}</span></p>
+                        {% elseif order['o_status'] == 'new_order' %}
+                            <p><span>{{ 'label.new_order'|trans }}</span>
+                                ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                        {% endif %}
+                    </div>
+
+                    {% set data_nego_detail_2 = null %}
+                    {% set nego_batch_2 = 0 %}
+                    {% set can_approve_negotiation_2 = false %}
+                    {% set allow_negotiation_2 = false %}
+                    {% set is_nego_seller = false %}
+                    {% set is_nego_buyer = false %}
+                    {% if order['o_negotiatedProducts']|length > 0 %}
+                        {% for temp_nego_data in order['o_negotiatedProducts'] %}
+                            {% set data_nego_detail_2 = temp_nego_data %}
+                            {% set nego_batch_2 = temp_nego_data['on_batch'] %}
+
+                            {% if user_type == 'buyer' and data_nego_detail_2['on_customerApproval'] == false %}
+                                {% set allow_negotiation_2 = true %}
+                            {% endif %}
+
+                            {% if user_type == 'seller' and data_nego_detail_2['on_merchantApproval'] == false %}
+                                {% set allow_negotiation_2 = true %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+
+                    {% if user_type == 'seller' %}
+                        {% set seller_attempt = 0 %}
+                        {% set seller_batch = [] %}
+                        {% for product in order['o_negotiatedProducts'] %}
+                            {% if product['on_submittedAs'] == 'seller' and product['on_batch'] not in seller_batch %}
+                                {% set seller_attempt = seller_attempt + 1 %}
+                                {% set seller_batch = seller_batch|merge([product['on_batch']]) %}
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if data_nego_detail_2['on_merchantApproval'] == false %}
+                            {% set can_approve_negotiation_2 = true %}
+                            {% if (nego_batch_2 % 2) != 0 and allow_negotiation_2 == true %}
+                                {% set is_nego_seller = true %}
+                            {% endif %}
+                        {% endif %}
+                    {% elseif user_type == 'buyer' %}
+                        {% set buyer_attempt = 0 %}
+                        {% set buyer_batch = [] %}
+                        {% for product in order['o_negotiatedProducts'] %}
+                            {% if product['on_submittedAs'] == 'buyer' and product['on_batch'] not in buyer_batch %}
+                                {% set buyer_attempt = buyer_attempt + 1 %}
+                                {% set buyer_batch = buyer_batch|merge([product['on_batch']]) %}
+                            {% endif %}
+                        {% endfor %}
+                        {% if data_nego_detail_2['on_customerApproval'] == false %}
+
+                            {% if nego_batch_2 == 1 and data_nego_detail_2['on_merchantApproval'] == false %}
+                                {% set can_approve_negotiation_2 = false %}
+                                {# No action needed #}
+                            {% else %}
+                                {% set can_approve_negotiation_2 = true %}
+                                {% if (nego_batch_2 % 2) != 0 and data_nego_detail_2['on_merchantApproval'] == false %}
+                                {% elseif nego_batch_2 >= 5 and data_nego_detail_2['on_merchantApproval'] == true %}
+                                    {% set is_nego_buyer = true %}
+                                {% else %}
+                                    {% set is_nego_buyer = true %}
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+                    <div>
+                        <h5>Keterangan</h5>
+
+                        {% if user_type == 'seller' %}
+                            {% if is_nego_buyer != true and is_nego_seller == true %}
+                                {% set nego_type = 'nego_on_seller' %}
+                            {% else %}
+                                {% set nego_type = 'nego_on_buyer' %}
+                            {% endif %}
+                        {% else %}
+                            {% if is_nego_buyer == true and is_nego_seller != true %}
+                                {% if data_nego_detail_2['on_merchantApproval'] == true %}
+                                    {% set nego_type = 'nego_on_buyer_approve_seller' %}
+                                {% else %}
+                                    {% set nego_type = 'nego_on_buyer' %}
+                                {% endif %}
+                            {% else %}
+                                {% set nego_type = 'nego_on_seller' %}
+                            {% endif %}
+                        {% endif %}
+                        
+                        
+                        {% if order['o_status'] == 'confirmed' or order['o_status'] == 'new_order' %}
+                            <p>{{ get_parameter('ket_order_statuses')[nego_type][user_type] }}</p>
+                        {% elseif order['o_status'] == 'paid' %}
+                            {% if disbursement_data is not empty and disbursement_data.getStatus() != 'pending' %}
+                                {% set status_disbursement = 'disbursement_' ~ disbursement_data.getStatus() %}
+                            {% else %}
+                                {% set status_disbursement = order['o_status'] %}
+                            {% endif %}
+                            <p>{{ get_parameter('ket_order_statuses')[status_disbursement][user_type] }} </p>
+                        {% else %}
+                            <p>
+                                {{ get_parameter('ket_order_statuses')[order['o_status']][user_type] }} 
+                                {% if order['o_status'] == 'cancel' or order['o_status'] == 'cancel_request' %}
+                                    {{ order['o_cancel_reason']|default()}}
+                                {% endif %}
+                            </p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="dc12">
+        <div class="ccp ccp__box" style="padding-bottom: 60px;">
+            <div class="ccp__section">
+                <p class="ccp__price">
+                    {% if order['o_shippingCourier'] == 'free_delivery' %}
+                        {{ 'label.self_pick_up_alt'|trans }}
+                        {% if order['o_shippingService'] == 'self_pick_up_2' %}
+                            <b>[{{ 'message.info.self_pick_up_address_2'|trans }}]</b>
+                        {% elseif order['o_shippingService'] == 'self_pick_up_3' %}
+                            <b>[{{ 'message.info.self_pick_up_address_3'|trans }}]</b>
+                        {% else %}
+                            <b>[{{ 'message.info.self_pick_up_address'|trans }}]</b>
+                        {% endif %}
+                        Rp. 0
+                    {% else %}
+                        {% if order['u_role'] == 'ROLE_USER_GOVERNMENT' %}
+                            {% set nego_batch = 0 %}
+                            {% set nego_shipping_price = 0 %}
+                            {% if order['o_negotiatedProducts']|length > 0 %}
+                                {% for temp_nego_data in order['o_negotiatedProducts'] %}
+                                    {% set nego_batch = temp_nego_data['on_batch'] %}
+                                {% endfor %}
+
+                                {% for product in order['o_products'] %}
+                                    {% for product_nego in order['o_negotiatedProducts'] %}
+                                        {% if (product_nego['p_id'] == product['p_id']) and (product_nego['on_batch'] == nego_batch) %}
+                                            {% set nego_shipping_price = product_nego['on_negotiatedShippingPrice'] %}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endfor %}
+                            {% endif %}
+
+                            {% if order['o_negotiationStatus'] == 'none' %}
+                                {% set initial_shipping_cost = order['o_shippingPrice'] %}
+                            {% else %}
+                                {% set initial_shipping_cost = get_base_price(order['o_shippingPriceBackup'], tax_value) %}
+                            {% endif %}
+
+                            {% if order['o_shipped_method'] == 'self_courier' %}
+                                <b>{{ get_parameter('shipped_method_options')['self_courier'] }}</b>
+                            {% else %}
+                            {{ 'label.courier'|trans }}
+                                <b>{{ order['o_shippingCourier'] }} [{{ order['o_shippingService'] }}]</b>
+                            {% endif %}
+
+                            <div style="float: right;">
+                                <table>
+                                    <tr>
+                                        <td>Biaya Pengiriman</td>
+                                        <td>:&nbsp;</td>
+                                        <td> Rp. {{ nego_shipping_price|number_format }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <br>
+
+                        {% else %}
+                            {% if order['o_shipped_method'] == 'self_courier' %}
+                                <b>{{ get_parameter('shipped_method_options')['self_courier'] }}</b>
+                            {% else %}
+                                {{ 'label.courier'|trans }}
+                                <b>{{ order['o_shippingCourier'] }} [{{ order['o_shippingService'] }}]</b>
+                            {% endif %}
+                            Rp. {{ order['o_shippingPrice']|number_format }}
+                        {% endif %}
+
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="dc12">
+        {# TABEL INFO PERUBAHAN TERAKHIR #}
+        <div class="table-wrapper">
+            <div class="inner">
+                <table class="nego">
+                    <tr class="thead_n">
+                        <td colspan="7" class="c">
+                            <b> Data Pengiriman Batch {{ order['o_batch'] }} </b>
+                        </td>
+                    </tr>
+                    <tr class="thead">
+                        <td>{{ 'label.number'|trans }}</td>
+                        <td>{{ 'label.sku'|trans }}</td>
+                        <td>{{ 'label.product_name'|trans }}</td>
+                        <td>{{ 'label.qty'|trans }}</td>
+                        <td>{{ 'label.unit_alt'|trans }}</td>
+                        <td>{{ 'label.selling_price'|trans }}
+                            (Rp.)</td>
+                        <td>{{ 'label.count'|trans }}</td>
+                    </tr>
+	                {% set sub_total_nego_price = 0 %}
+	                {% set sub_total_ppn_price = 0 %}
+                    {% set numbering = 1 %}
+                    {% set initial_with_shipping = true %}
+                    {% for product in order['o_products'] %}
+                        {% for product_nego in order['o_negotiatedProducts'] %}
+                            {% if (product_nego['p_id'] == product['p_id']) and (product_nego['on_batch'] == nego_batch) %}
+                                {% set nego_price = (product_nego['on_negotiatedPrice'] * product['op_quantity'])|number_format %}
+                                {% set sub_total_nego_price = sub_total_nego_price + (product_nego['on_negotiatedPrice'] * product['op_quantity']) %}
+                                {% if initial_with_shipping == true %}
+                                    {% set sub_total_ppn_price = sub_total_ppn_price + (product_nego['on_taxNominalPrice'] * product['op_quantity']) + product_nego['on_taxNominalShipping'] %}
+                                {% else %}
+                                    {% set sub_total_ppn_price = sub_total_ppn_price + (product_nego['on_taxNominalPrice'] * product['op_quantity']) %}
+                                {% endif %}
+                                {% set initial_with_shipping = false %}
+
+                                {% set nego_shipping_price = product_nego['on_negotiatedShippingPrice'] %}
+                                {% set product_url = 'javascript:void(0);' %}
+
+                                {% if product['p_slug'] is not empty and product['s_slug'] is not empty %}
+                                    {% set product_url = path('store_product_page', {
+                                        'store': product['s_slug'],
+                                        'product': product['p_slug'],
+                                    }) %}
+                                {% endif %}
+                                <tr>
+                                    <td class="number">
+                                        <b>{{ numbering }}</b>
+                                    </td>
+                                    <td>{{ product['p_sku'] }}</td>
+                                    <td>
+                                        <b><a href="{{product_url}}" target="blank">{{ product['p_name'] }}</a></b>
+                                    </td>
+                                    <td class="c">
+                                        <b>{{ product['op_quantity'] }}</b>
+                                    </td>
+                                    <td class="c">{{ product['p_unit'] }}</td>
+                                    <td class="text_r">Rp.
+                                        {{ product_nego['on_negotiatedPrice']|number_format }}</td>
+                                    <td class="text_r">Rp.
+                                        {{ nego_price }}</td>
+                                </tr>
+                                {% set numbering = numbering + 1 %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endfor %}
+                    <tr>
+                        <td colspan="5" rowspan="5"></td>
+                        <td class="t_price">
+                            <b>{{ 'label.total_price_of_goods'|trans }}</b>
+                        </td>
+                        <td class="text_r">Rp.
+                            {{ sub_total_nego_price|number_format }}</td>
+                    </tr>
+                    <tr>
+                        <td class="t_price">
+                            <b>{{ 'label.delivery_fee'|trans }}</b>
+                        </td>
+                        <td class="text_r">Rp.
+                            {{ nego_shipping_price|number_format }}</td>
+                    </tr>
+                    <tr>
+                        <td class="t_price">
+                            <b>{{ 'label.sub_total'|trans }}</b>
+                        </td>
+                        <td class="text_r">Rp.
+                            {{ (sub_total_nego_price + nego_shipping_price)|number_format }}</td>
+                    </tr>
+                    <tr>
+                        <td class="t_price">
+                            <b>{{ 'label.ppn'|trans }}</b>
+                        </td>
+                        {# {% set sub_total_ppn_price = sub_total_nego_price >= 2000000 ? (sub_total_nego_price + nego_shipping_price) * (11 / 100) : 0 %} #}
+                        <td class="text_r">Rp.
+                            {{ sub_total_ppn_price|round|number_format }}</td>
+                    </tr>
+                    <tr>
+                        <td class="t_price">
+                            <b>{{ 'label.total'|trans }}</b>
+                        </td>
+                        <td class="text_r">Rp.
+                            {{ (sub_total_nego_price + nego_shipping_price + sub_total_ppn_price)|round|number_format }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    
+
+        <hr>
+        <br>
+        <h5> Riwayat Pengiriman </h5>
+
+        {% for order_partial in order_partials %}
+            {% set sub_total_nego_price = 0 %}
+            {% set numbering = 1 %}
+            {% set initial_with_shipping = false %}
+            <div class="table-wrapper">
+                <div class="inner">
+                    <table class="nego">
+                        <tr class="thead_n">
+                            <td colspan="7" class="c">
+                                <b> Pengiriman Batch {{ order_partial['o_batch'] }} - ({{ order_partial['date_format'] }}) </b>
+                            </td>
+                        </tr>
+                        <tr class="thead">
+                            <td>{{ 'label.number'|trans }}</td>
+                            <td>{{ 'label.sku'|trans }}</td>
+                            <td>{{ 'label.product_name'|trans }}</td>
+                            <td>{{ 'label.qty'|trans }}</td>
+                            <td>{{ 'label.unit_alt'|trans }}</td>
+                            <td>{{ 'label.selling_price'|trans }}
+                                (Rp.)</td>
+                            <td>{{ 'label.count'|trans }}</td>
+                        </tr>
+                        
+                        
+                        {% set sub_total_nego_price = 0 %}
+                        {% set sub_total_ppn_price = 0 %}
+                        {% set numbering = 1 %}
+                        {% set initial_with_shipping = true %}
+                        {% for product in order['o_products'] %}
+                            {% for product_nego in order['o_negotiatedProducts'] %}
+                                {% if (product_nego['p_id'] == product['p_id']) and (product_nego['on_batch'] == nego_batch) %}
+                                    {% set nego_price = (product_nego['on_negotiatedPrice'] * product['op_quantity'])|number_format %}
+                                    {% set sub_total_nego_price = sub_total_nego_price + (product_nego['on_negotiatedPrice'] * product['op_quantity']) %}
+                                    {% if initial_with_shipping == true %}
+                                        {% set sub_total_ppn_price = sub_total_ppn_price + (product_nego['on_taxNominalPrice'] * product['op_quantity']) + product_nego['on_taxNominalShipping'] %}
+                                    {% else %}
+                                        {% set sub_total_ppn_price = sub_total_ppn_price + (product_nego['on_taxNominalPrice'] * product['op_quantity']) %}
+                                    {% endif %}
+                                    {% set initial_with_shipping = false %}
+
+                                    {% set nego_shipping_price = product_nego['on_negotiatedShippingPrice'] %}
+                                    {% set product_url = 'javascript:void(0);' %}
+
+                                    {% if product['p_slug'] is not empty and product['s_slug'] is not empty %}
+                                        {% set product_url = path('store_product_page', {
+                                            'store': product['s_slug'],
+                                            'product': product['p_slug'],
+                                        }) %}
+                                    {% endif %}
+                                    <tr>
+                                        <td class="number">
+                                            <b>{{ numbering }}</b>
+                                        </td>
+                                        <td>{{ product['p_sku'] }}</td>
+                                        <td>
+                                            <b><a href="{{product_url}}" target="blank">{{ product['p_name'] }}</a></b>
+                                        </td>
+                                        <td class="c">
+                                            <b>{{ product['op_quantity'] }}</b>
+                                        </td>
+                                        <td class="c">{{ product['p_unit'] }}</td>
+                                        <td class="text_r">Rp.
+                                            {{ product_nego['on_negotiatedPrice']|number_format }}</td>
+                                        <td class="text_r">Rp.
+                                            {{ nego_price }}</td>
+                                    </tr>
+                                    {% set numbering = numbering + 1 %}
+                                {% endif %}
+                            {% endfor %}
+                        {% endfor %}
+                        <tr>
+                            <td colspan="5" rowspan="5"></td>
+                            <td class="t_price">
+                                <b>{{ 'label.total_price_of_goods'|trans }}</b>
+                            </td>
+                            <td class="text_r">Rp.
+                                {{ sub_total_nego_price|number_format }}</td>
+                        </tr>
+                        <tr>
+                            <td class="t_price">
+                                <b>{{ 'label.delivery_fee'|trans }}</b>
+                            </td>
+                            <td class="text_r">Rp.
+                                {{ nego_shipping_price|number_format }}</td>
+                        </tr>
+                        <tr>
+                            <td class="t_price">
+                                <b>{{ 'label.sub_total'|trans }}</b>
+                            </td>
+                            <td class="text_r">Rp.
+                                {{ (sub_total_nego_price + nego_shipping_price)|number_format }}</td>
+                        </tr>
+                        <tr>
+                            <td class="t_price">
+                                <b>{{ 'label.ppn'|trans }}</b>
+                            </td>
+                            {# {% set sub_total_ppn_price = sub_total_nego_price >= 2000000 ? (sub_total_nego_price + nego_shipping_price) * (11 / 100) : 0 %} #}
+                            <td class="text_r">Rp.
+                                {{ sub_total_ppn_price|round|number_format }}</td>
+                        </tr>
+                        <tr>
+                            <td class="t_price">
+                                <b>{{ 'label.total'|trans }}</b>
+                            </td>
+                            <td class="text_r">Rp.
+                                {{ (sub_total_nego_price + nego_shipping_price + sub_total_ppn_price)|round|number_format }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        {% endfor %}
+
+        {% if order['o_status'] == 'confirmed' %}
+            {% include '@__main__/public/user/order/fragments/order_action.html.twig' %}
+        {% endif %}
+    </div>
+</div>

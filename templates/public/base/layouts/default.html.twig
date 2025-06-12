@@ -1,0 +1,15 @@
+{% extends '@__main__/public/base/layouts/base.html.twig' %}
+
+{% set class = is_homepage is defined and is_homepage == true ? 'home' : '' %}
+
+{% block body %}
+    <div id="top-wrapper" class="{{ class }}">
+        {% include '@__main__/public/base/partials/header.html.twig' %}
+        {% if red_box == true %}<div class="red-box"></div>{% endif %}
+        {% block content %}{% endblock %}
+        <div class="push"></div>
+    </div>
+    {% include '@__main__/public/user/fragments/bela_access.html.twig' %}
+    {% include '@__main__/public/base/partials/footer.html.twig' %}
+    {% include '@__main__/public/base/partials/popup.html.twig' %}
+{% endblock %}

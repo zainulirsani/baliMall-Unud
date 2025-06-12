@@ -1,0 +1,103 @@
+{% extends '@__main__/admin/base/layouts/default.html.twig' %}
+
+{% set page_method = app.request.get('_controller') %}
+{% set page_header = page_title|trans %}
+{% set index_route = 'admin_' ~ page_section ~ '_index' %}
+{% set save_route = 'admin_' ~ page_section ~ '_save' %}
+{% set page_action = path(save_route) %}
+{% set satker_id = form_data.getId|default(0) %}
+
+
+{% if page_method[1] is defined and page_method[1] == 'edit' %}
+    {% set trans_parameter = {'%name%': form_data.getSatkerName} %}
+    {% set page_header = page_title|trans(trans_parameter) %}
+    {% set update_route = 'admin_' ~ page_section ~ '_update' %}
+    {% set page_action = path(update_route, {id: satker_id}) %}
+{% endif %}
+
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="box box-primary">
+                <form id="voucher-form" accept-charset="UTF-8" method="post" action="{{ page_action }}">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">{{ page_header }}</h3>
+                    </div>
+                    <div class="box-body">
+                        {{ csrf_field(token_id) }}
+                        <div class="panel-body">
+                            <div class="nav-tabs-custom">
+                                <ul class="nav nav-tabs voucher-tabs">
+                                    <li class="active voucher-tab-data">
+                                        <a href="#tab-data" data-toggle="tab" data-tab="data">{{ 'label.data'|trans }}</a>
+                                    </li>
+                                </ul>
+                                <div class="tab-content tab-voucher-content">
+                                    <div id="tab-data" class="tab-pane fade in active">
+                                        <div class="m-top-15"></div>
+                                        <div class="form-group {% if errors['satker_name']|default() %}has-error{% endif %}">
+                                            <label for="input-name">{{ 'label.satker_name'|trans }}</label>
+                                            {% if errors['satker_name']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['satker_name'] }}</span>
+                                            {% endif %}
+                                            <input id="input-name" class="form-control" name="satker_name" value="{{ form_data.getSatkerName|default() }}" required>
+                                        </div>
+                                        <div class="form-group {% if errors['id_lpse']|default() %}has-error{% endif %}">
+                                            <label for="input-id-lpse">ID LPSE</label>
+                                            {% if errors['id_lpse']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['id_lpse'] }}</span>
+                                            {% endif %}
+                                            <input id="input-id-lpse" class="form-control" name="id_lpse" value="{{ form_data['id_lpse']|default() }}" required>
+                                        </div>
+                                        <div class="form-group {% if errors['id_satker']|default() %}has-error{% endif %}">
+                                            <label for="input-id-satker">ID Satker</label>
+                                            {% if errors['id_satker']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['id_satker'] }}</span>
+                                            {% endif %}
+                                            <input id="input-id-satker" class="form-control" name="id_satker" value="{{ form_data['id_satker']|default() }}" required>
+                                        </div>
+
+                                        {# <div class="form-group {% if errors['user_pp']|default() %}has-error{% endif %}">
+                                            <label for="input-name">User PP</label>
+                                            {% if errors['user_pp']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['user_pp'] }}</span>
+                                            {% endif %}
+                                            <select name="user_pp" required>
+                                                <option>Pilih User PP</option>
+                                                {% for item in user_pp %}
+                                                    {% set selected =  '' %}
+                                                    {% if item['u_id']  ==  form_data.getUser.getId|default() %}
+                                                        {% set selected = 'selected' %}
+                                                    {% endif %}
+                                                    <option value="{{ item['u_id'] }}" {{ selected }}>{{ item['u_username'] }} ({{ item['u_email'] }})</option>
+                                                    
+                                                {% endfor %}
+                                            </select>
+                                        </div> #}
+                                    </div>
+                                </div>
+                                <div>
+                                    {# <input id="input-id" type="hidden" name="k_id" value="{{ k_id }}"> #}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box-footer">
+                        <div id="button-tab-data" class="button-tabs-store" style="display: inline;">
+                            <button type="submit" class="btn btn-primary" name="btn_action" value="save">
+                                {{ 'button.save'|trans }}
+                            </button>
+                            <button type="submit" class="btn btn-primary" name="btn_action" value="save_exit">
+                                {{ 'button.save_exit'|trans }}
+                            </button>
+                        </div>
+                        <div style="display: inline;">
+                            <a href="{{ path(index_route) }}" class="btn btn-default">{{ 'button.cancel'|trans }}</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

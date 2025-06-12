@@ -1,0 +1,236 @@
+{% set user_name = app.user.firstName ~ ' ' ~ app.user.lastName %}
+{% set user_photo_profile = app.user.photoProfile %}
+{% set admin_role = '' %}
+{% if app.user.role == 'ROLE_USER_SELLER' %}
+    {% if app.session.has('admin_merchant') %}
+        {% set admin_role = app.session.get('admin_merchant').getRole %}
+    {% endif %}
+{% endif %}
+
+<div class="dc3 desktop-only">
+    <div class="sidebar">
+        <div class="box">
+            <div class="sidebar__profile">
+                <figure>
+                    <img src="{{ user_photo_profile is not empty ? path('sftp_show_file', {'path': user_photo_profile}) :  asset('dist/img/no-image.png') }}" alt="">
+                </figure>
+                <h5>{{ user_name|raw }}</h5>
+
+                {% if admin_role is not empty %}
+                    <h6>{{ ('label.'~(admin_role|lower))|trans }}</h6>
+                {% endif %}
+            </div>
+            {# {% if app.user.subRole != 'TREASURER' %} #}
+                <div class="sidebar__group">
+                    <h6>{{ 'label.personal_info'|trans }}</h6>
+                    <div class="db-nav">
+
+                        {% if app.user.subRole != 'TREASURER' and app.user.subRole != 'PPK' %}
+                            <div class="input">
+                                <a href="{{ path('user_dashboard') }}">
+                                    <i class="fas fa-home"></i> {{ 'menu.dashboard'|trans }}
+                                </a>
+                            </div>
+                        {% endif %}
+
+                        <div class="input">
+                            <a href="{{ path('user_profile') }}">
+                                <i class="fas fa-cog"></i> {{ 'label.edit_profile'|trans }}
+                            </a>
+                        </div>
+                        {% if app.user.subRole == 'TREASURER' or app.user.subRole == 'PPK' %}
+                        <div class="input">
+                            <a href="{{ path('user_requestbinding_index') }}">
+                                <i class="fas fa-plus"></i> {{ 'label.request_binding'|trans }}
+                            </a>
+                        </div>
+                        {% endif %}
+
+                        {% if enable_chat and (app.user.role == 'ROLE_USER_SELLER' or app.user.role == 'ROLE_USER_GOVERNMENT') and app.user.subRole != 'TREASURER' %}
+                            <div class="input">
+                                <a href="{{ path('user_chat_index') }}" class="">
+                                    <i class="fas fa-envelope"></i> {{ 'label.message'|trans }}
+                                </a>
+                            </div>
+                        {% endif %}
+                        {% if store_owner == false %}
+                            {% if app.user.subRole != 'TREASURER' %}
+                                <div class="input">
+                                    <a href="{{ path('user_address_index') }}">
+                                        <i class="fas fa-map-marker-alt"></i> {{ 'label.address'|trans }}
+                                    </a>
+                                </div>
+                            {% endif %}
+                            
+                            {% if (app.user.role == 'ROLE_USER' or app.user.role == 'ROLE_USER_GOVERNMENT' or app.user.role == 'ROLE_USER_BUSINESS') and app.user.subRole != 'TREASURER' %}
+                                <div class="input">
+                                    <a href="{{ path('user_tax_index') }}">
+                                        <i class="fas fa-database"></i> {{ 'label.tax_document'|trans }}
+                                    </a>
+                                </div>
+                                {# <div class="input">
+                                    <a href="{{ path('user_pic_index') }}">
+                                        <i class="fas fa-user-tie"></i> {{ 'label.data_pic'|trans }}
+                                    </a>
+                                </div> #}
+                                {# <div class="input">
+                                    <a href="{{ path('user_ppk_index', {'type': 'ppk'}) }}">
+                                        <i class="fas fa-user-tie"></i> {{ 'label.data_ppk'|trans }}
+                                    </a>
+                                </div> #}
+
+                                {# <div class="input">
+                                    <a href="{{ path('user_ppk_index', {'type': 'treasurer'}) }}">
+                                        <i class="fas fa-user-tie"></i> {{ 'label.data_treasurer'|trans }}
+                                    </a>
+                                </div> #}
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            {# {% endif %} #}
+{#            <hr>#}
+{#            <div class="sidebar__group">#}
+{#                {% if store_owner == true %}#}
+{#                    <h6>{{ 'title.page.admin_merchant'|trans }}</h6>#}
+{#                    <div class="db-nav">#}
+{#                        <div class="input">#}
+{#                            <a href="{{ path('user_operator_index') }}">#}
+{#                                <i class="fas fa-user-alt"></i> {{ 'button.manage_admin_merchant'|trans }}#}
+{#                            </a>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                {% else %}#}
+{#                    <h6>{{ 'title.page.workunit'|trans }}</h6>#}
+{#                    <div class="db-nav">#}
+{#                        <div class="input">#}
+{#                            <a href="{{ path('user_operator_index') }}">#}
+{#                                <i class="fas fa-user-alt"></i> {{ 'button.manage_workunit'|trans }}#}
+{#                            </a>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                {% endif %}#}
+{#            </div>#}
+            {% if (app.user.role == 'ROLE_USER' or app.user.role == 'ROLE_USER_GOVERNMENT' or app.user.role == 'ROLE_USER_BUSINESS') and app.user.subRole != 'TREASURER' %}
+                <hr>
+                <div class="sidebar__group">
+                {% if app.user.subRole != 'PPK' and app.user.subRole != 'TREASURER'  %}
+                    <h6>Data Pelaksana Pengadaan</h6>
+                    <div class="db-nav">
+                        {# <div class="input">
+                            <a href="{{ path('user_ppktreasurer_dashboard') }}">
+                                <i class="fas fa-home"></i> Dashboard
+                            </a>
+                        </div> #}
+                                    <div class="input">
+                                        <a href="{{ path('user_ppk_index', {'type': 'ppk'}) }}">
+                                            <i class="fas fa-user-tie"></i> Data PPK
+                                        </a>
+                                    </div>
+                                    <div class="input">
+                                        <a href="{{ path('user_ppk_index', {'type': 'treasurer'}) }}">
+                                            <i class="fas fa-user-tie"></i> {{ 'label.data_treasurer'|trans }}
+                                        </a>
+                                    </div>
+                                    <div class="input">
+                                        <a href="{{ path('user_pic_index') }}">
+                                            <i class="fas fa-user-tie"></i> {{ 'label.data_pic'|trans }}
+                                        </a>
+                                    </div>
+                                
+                                    <div class="input">
+                                        <a href="{{ path('user_satker_index') }}">
+                                            <i class="fas fa-university"></i> Data Satker
+                                        </a>
+                                    </div>
+                                
+                                
+                            {# {% endif %} #}
+                    </div>
+                {% endif %}
+                </div>
+            {% endif %}
+            {% if store_owner == true %}
+                <hr>
+                <div class="sidebar__group">
+                    <h6>{{ 'title.page.store'|trans }}</h6>
+                    <div class="db-nav">
+                        <div class="input">
+                            <a href="{{ path('user_store_edit') }}">
+                                <i class="fas fa-user-cog"></i> {{ 'label.manage_store'|trans }}
+                            </a>
+                        </div>
+                        <div class="input">
+                            <a href="{{ path('user_product_index') }}">
+                                <i class="fas fa-database"></i> {{ 'label.manage_product'|trans }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                {% if app.user.role == 'ROLE_USER_SELLER' %}
+                    <hr>
+                    <div class="sidebar__group">
+                        <h6>{{ 'title.page.store'|trans }}</h6>
+                        <div class="db-nav">
+                            <div class="input">
+                                <a href="{{ path('user_store_apply') }}">
+                                    <i class="fas fa-user-cog"></i> {{ 'label.reg_store'|trans }}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endif %}
+
+            {% if app.user.subRole == 'TREASURER' or app.user.subRole == 'PPK' or app.user.role == 'ROLE_USER_SELLER' or app.user.subRole == null %}
+                <hr>
+                <div class="sidebar__group">
+                    <h6>Data Riwayat</h6>
+                    <div class="db-nav">
+                        {% if app.user.subRole == 'TREASURER' or app.user.subRole == 'PPK' %}
+                            <div class="input">
+                                <a href="{{ path('user_ppktreasurer_dashboard') }}">
+                                    <i class="fas fa-list"></i> Data Transaksi
+                                </a>
+                            </div>
+                        {% endif %}
+                        
+                        {% if app.user.role == 'ROLE_USER_SELLER' %}
+                            <div class="input">
+                                <a href="{{ path('user_order_index') }}">
+                                    <i class="fas fa-list"></i> Data Negosiasi
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if app.user.subRole == 'TREASURER' %}
+                <hr>
+                <div class="sidebar__group">
+                    <h6>Data Virtual Account</h6>
+                    <div class="db-nav">
+                        <div class="input">
+                            <a href="{{ path('user_bnipayment_dashboard') }}">
+                                <i class="fas"><img src="{{asset('assets/img/bni_logo.png')}}" style="max-width: 30px" /></i> VA BNI Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <hr>
+            <div class="sidebar__group">
+                <div class="db-nav">
+                    <div class="input">
+                        <a href="{{ path('logout') }}" class="act-logout">
+                            <i class="fas fa-sign-out-alt"></i> {{ 'button.logout'|trans }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

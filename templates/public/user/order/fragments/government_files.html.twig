@@ -1,0 +1,152 @@
+{% if order is defined %}
+{% set separator = false %}
+{% if order['o_bastFile'] is not empty %}
+    {% set separator = true %}
+    <div id="bast-file" style="display: inline-grid;">
+        <center>
+            <a href="{{ asset('uploads/' ~ order['o_bastFile']) }}" title="{{ 'button.download'|trans }}" target="_blank">
+                <img src="{{ asset('dist/img/doc-placeholder.jpg') }}" alt="" width="100px">
+            </a>
+            <br>
+            <label>{{ 'label.bast'|trans }}</label>
+        </center>
+    </div>
+{% endif %}
+{% if order['o_deliveryPaperFile'] is not empty %}
+    {% set separator = true %}
+    <div id="delivery-paper-file" style="display: inline-grid;">
+        <center>
+            <a href="{{ asset('uploads/' ~ order['o_deliveryPaperFile']) }}" title="{{ 'button.download'|trans }}" target="_blank">
+                <img src="{{ asset('dist/img/doc-placeholder.jpg') }}" alt="" width="100px">
+            </a>
+            <br>
+            <label>{{ 'label.delivery_paper'|trans }}</label>
+        </center>
+    </div>
+{% endif %}
+{% if order['o_taxInvoiceFile'] is not empty %}
+    {% set separator = true %}
+    <div id="tax-invoice-file" style="display: inline-grid;">
+        <center>
+            <a href="{{ asset('uploads/' ~ order['o_taxInvoiceFile']) }}" title="{{ 'button.download'|trans }}" target="_blank">
+                <img src="{{ asset('dist/img/doc-placeholder.jpg') }}" alt="" width="100px">
+            </a>
+            <br>
+            <label>{{ 'label.tax_invoice'|trans }}</label>
+        </center>
+    </div>
+{% endif %}
+{% if order['o_receiptFile'] is not empty %}
+    {% set separator = true %}
+    <div id="receipt-file" style="display: inline-grid;">
+        <center>
+            <a href="{{ asset('uploads/' ~ order['o_receiptFile']) }}" title="{{ 'button.download'|trans }}" target="_blank">
+                <img src="{{ asset('dist/img/doc-placeholder.jpg') }}" alt="" width="100px">
+            </a>
+            <br>
+            <label>{{ 'label.receipt'|trans }}</label>
+        </center>
+    </div>
+{% endif %}
+{% if order['o_workOrderLetterFile'] is not empty %}
+    {% set separator = true %}
+    <div id="work-order-letter-file" style="display: inline-grid;">
+        <center>
+            <a href="{{ asset('uploads/' ~ order['o_workOrderLetterFile']) }}" title="{{ 'button.download'|trans }}" target="_blank">
+                <img src="{{ asset('dist/img/doc-placeholder.jpg') }}" alt="" width="100px">
+            </a>
+            <br>
+            <label>{{ 'label.work_order_letter'|trans }}</label>
+        </center>
+    </div>
+{% endif %}
+{% if order['o_withholdingTaxSlipFile'] is not empty %}
+    {% set separator = true %}
+    <div id="withholding-tax-slip-file" style="display: inline-grid;">
+        <center>
+            <a href="{{ asset('uploads/' ~ order['o_withholdingTaxSlipFile']) }}" title="{{ 'button.download'|trans }}" target="_blank">
+                <img src="{{ asset('dist/img/doc-placeholder.jpg') }}" alt="" width="100px">
+            </a>
+            <br>
+            <label>{{ 'label.withholding_tax'|trans }}</label>
+        </center>
+    </div>
+{% endif %}
+{% if order['o_spkFile'] is not empty %}
+    {% set separator = true %}
+    <div id="spk-file" style="display: inline-grid;">
+        <center>
+            <a href="{{ asset('uploads/' ~ order['o_spkFile']) }}" title="{{ 'button.download'|trans }}" target="_blank">
+                <img src="{{ asset('dist/img/doc-placeholder.jpg') }}" alt="" width="100px">
+            </a>
+            <br>
+            <label>SPK</label>
+        </center>
+    </div>
+{% endif %}
+{% if order['o_bapdFile'] is not empty %}
+    {% set separator = true %}
+    <div id="bapd-file" style="display: inline-grid;">
+        <center>
+            <a href="{{ asset('uploads/' ~ order['o_bapdFile']) }}" title="{{ 'button.download'|trans }}" target="_blank">
+                <img src="{{ asset('dist/img/doc-placeholder.jpg') }}" alt="" width="100px">
+            </a>
+            <br>
+            <label>BAPD</label>
+        </center>
+    </div>
+{% endif %}
+{% if order['o_invoiceFile'] is not empty %}
+    {# File Invoice yang di upload oleh governtment (yang sudah di TTD) #}
+    <div id="invoice-file" style="display: inline-grid;">
+        {#<a href="{{ path('user_order_print', {'id': order['o_id'], 'type': 'invoice'}) }}">
+            <img src="{{ asset('dist/img/doc-placeholder.jpg') }}" alt="" width="100px">
+        </a>
+        <label>{{ 'label.invoice'|trans }}</label>#}
+        <center>
+            <a href="{{ asset('uploads/' ~ order['o_invoiceFile']) }}" title="{{ 'button.download'|trans }}" target="_blank">
+                <img src="{{ asset('dist/img/doc-placeholder.jpg') }}" alt="" width="100px">
+            </a>
+            <br>
+            <label>{{ 'label.invoice'|trans }}</label>
+        </center>
+    </div>
+{% endif %}
+{% if order['o_spk_letter'] is not empty %}
+    {% set separator = true %}
+    <div id="spk-letter-file" style="display: inline-grid;">
+        <center>
+            <a href="{{ asset('uploads/' ~ order['o_spk_letter']) }}" title="{{ 'button.download'|trans }}" target="_blank">
+                <img src="{{ asset('dist/img/doc-placeholder.jpg') }}" alt="" width="100px">
+            </a>
+            <br>
+            <label>{{ 'label.spk_letter'|trans }}</label>
+        </center>
+    </div>
+{% endif %}
+{% if order['o_handover_letter'] is not empty %}
+    {% set separator = true %}
+    <div id="handover-letter-file" style="display: inline-grid;">
+        <center>
+            <a href="{{ asset('uploads/' ~ order['o_handover_letter']) }}" title="{{ 'button.download'|trans }}" target="_blank">
+                <img src="{{ asset('dist/img/doc-placeholder.jpg') }}" alt="" width="100px">
+            </a>
+            <br>
+            <label>{{ 'label.handover_letter'|trans }}</label>
+        </center>
+    </div>
+{% endif %}
+{% if order['o_handover_certificate'] is not empty %}
+    {% set separator = true %}
+    <div id="handover-certificate-file" style="display: inline-grid;">
+        <center>
+            <a href="{{ asset('uploads/' ~ order['o_handover_certificate']) }}" title="{{ 'button.download'|trans }}" target="_blank">
+                <img src="{{ asset('dist/img/doc-placeholder.jpg') }}" alt="" width="100px">
+            </a>
+            <br>
+            <label>{{ 'label.handover_certificate'|trans }}</label>
+        </center>
+    </div>
+{% endif %}
+{% if (separator == true and order['u_role'] == 'ROLE_USER_GOVERNMENT') or (order['o_invoiceFile'] is not empty and order['u_role'] != 'ROLE_USER_GOVERNMENT') %}<hr>{% endif %}
+{% endif %}

@@ -1,0 +1,92 @@
+{% set page_title = page_title|default('title.page.default') %}
+{% set page_title_parameter = trans_parameter|default({}) %}
+{% set token_parameter = get_parameter('ajax_csrf_token_id') %}
+
+<meta charset="utf-8">
+<meta http-equiv="content-type" content="text/html">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="author" content="{{ get_parameter('app_name') }}">
+
+<title>{{ page_title|trans(page_title_parameter) }}</title>
+<link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}" >
+
+{#{% include '@__main__/shared/anti_click_jack.html.twig' %}#}
+
+<script>
+    BASE_URL = '{{ base_url }}';
+    LANG = '{{ locale }}';
+    TOKEN = {'_csrf_token': '{{ csrf_token(token_parameter["public"]) }}', '_csrf_token_id': '{{ token_parameter["public"] }}'};
+    TRACKING_ID = '{{ get_parameter("analytics_tracking_id") }}';
+    HOWUKU_TRACKING_ID = '{{ get_parameter("howuku_tracking_id") }}';
+    GTM_TRACKING_ID = '{{ get_parameter("gtm_tracking_id") }}';
+    FB_PIXEL_CODE = '{{ get_parameter("fb_pixel_code") }}';
+    {% if text_editor is defined and text_editor == true %}CKEDITOR_BASEPATH = BASE_URL+'/vendor/ckeditor/';{% endif %}
+    MSG_CONFIRMATION = '{{ "message.info.confirmation"|trans }}';
+    MSG_CONFIRMATION_B2G = '{{ "message.info.confirmation_b2g"|trans }}';
+    MSG_PAGU_ANGGARAN = '{{ "message.info.pagu_anggaran"|trans }}';
+    MSG_NO_PRODUCT = '{{ "message.info.no_product"|trans }}';
+    MSG_NON_USER_CART_INFO = '{{ "message.info.non_user_cart_info"|trans }}';
+    MSG_CART_NO_ADDRESS = '{{ "message.info.cart_no_address"|trans }}';
+    MSG_ORDER_INCOMPLETE = '{{ "message.info.order_incomplete"|trans }}';
+    MSG_REASON_CANCEL = '{{ "message.info.reason_cancel"|trans }}';
+    MSG_ORDER_PROCESSED = '{{ "message.info.processed"|trans }}';
+    MSG_ADD_TO_CART = '{{ "message.success.add_to_cart"|trans }}';
+    MSG_REMOVE_FROM_CART = '{{ "message.success.remove_from_cart"|trans }}';
+    MSG_NO_COURIER = '{{ "message.error.no_courier"|trans }}';
+    MSG_COURIER_NETWORK_ERROR = '{{ "message.error.courier_network_error"|trans }}';
+    MSG_NO_PHONE = '{{ "message.error.no_phone"|trans }}';
+    MSG_CSRF = '{{ "message.error.csrf"|trans }}';
+    MSG_ERROR_500 = '{{ "message.error.500"|trans }}';
+    MSG_SELECT_METHOD_PAY = '{{ "message.error.payment_method_not_choice"|trans }}';
+    MSG_SELECT_PPK = '{{ "message.error.select_ppk_not_choice"|trans }}';
+    MSG_SELECT_TREASURER = '{{ "message.error.select_treasurer_not_choice"|trans }}';
+    MSG_SELECT_SOURCE = '{{ "message.error.select_source_not_choice"|trans }}';
+    MSG_SELECT_PIC = '{{ "message.error.pic_not_choice"|trans }}';
+    MSG_SELECT_METHOD_SHIP = '{{ "message.error.shipped_method_not_choice"|trans }}';
+    MSG_UNIT = '{{ "message.error.unit_required"|trans }}';
+    MSG_MAX_SIZE = '{{ "message.error.max_size"|trans }}';
+    MSG_MISSING_BAST = '{{ "message.error.missing_bast"|trans }}';
+    MSG_MISSING_DELIVERY_PAPER = '{{ "message.error.missing_delivery_paper"|trans }}';
+    MSG_MISSING_TAX_INVOICE = '{{ "message.error.missing_tax_invoice"|trans }}';
+    MSG_HAS_COMPLAIN = '{{ "message.error.has_complain"|trans }}';
+    MSG_CHECK_NEGOTIATION_FIELDS = '{{ "message.error.check_negotiation_fields"|trans }}';
+    MSG_SELECT_ADDRESS = '{{ "order.select_address"|trans({}, "validators") }}';
+    MSG_SELECT_COURIER = '{{ "order.select_courier"|trans({}, "validators") }}';
+    MSG_SELECT_SERVICE = '{{ "order.select_service"|trans({}, "validators") }}';
+    MSG_SELECT_TAX_DOCUMENT = '{{ "order.select_tax_document"|trans({}, "validators") }}';
+    MSG_ACCEPT_TNC = '{{ "order.accept_tnc"|trans({}, "validators") }}';
+    LABEL_CLOSE = '{{ "button.close"|trans }}';
+    LABEL_SELECT_OPTION = '{{ "label.select_option"|trans }}';
+    LABEL_RATE = '{{ "label.rate"|trans }}';
+    LABEL_RATE_PRODUCT = '{{ "label.rate_product"|trans }}';
+    LABEL_INPUT_WAYBILL = '{{ "label.input_waybill"|trans }}';
+    LABEL_CONTINUE_ORDER = '{{ "label.continue_transaction"|trans }}';
+    LABEL_PRICE = '{{ "label.price"|trans }}';
+    LABEL_ESTIMATION = '{{ "label.estimation"|trans }}';
+    LABEL_DAY = '{{ "label.day"|trans }}';
+    LABEL_QUERY_NOT_EMPTY = '{{ "search.query_not_empty"|trans({}, "validators") }}';
+    LABEL_MSG_EMPTY = '{{ "global.message_empty"|trans({}, "validators") }}';
+    GTM_PRODUCT_DATA = {};
+    GOOGLE_MAP_API_KEY = '{{ get_parameter('google_map_api_key') }}'
+    LEAFLET_ACCESS_TOKEN = '{{ get_parameter('leaflet_access_token') }}'
+    MSG_SEND_ITEM_REQ = '{{ 'message.info.send_item_requirements'|trans }}'
+    MSG_MISSING_WORKUNIT = '{{ "message.error.missing_workunit"|trans }}'
+    TAX_VALUE = {{ get_parameter('tax_value')/100 }}
+    B2G_MSG_CHECKOUT = '{{ 'message.info.b2g_checkout_message'|trans }}'
+</script>
+
+{% if get_parameter('analytics_tracking_id') is not empty %}
+    {% include '@__main__/shared/analytics.html.twig' %}
+{% endif %}
+
+{% if get_parameter('gtm_tracking_id') is not empty %}
+    {% include '@__main__/shared/gtm_head.html.twig' %}
+{% endif %}
+
+{% if get_parameter('howuku_tracking_id') is not empty %}
+    {% include '@__main__/shared/howuku.html.twig' %}
+{% endif %}
+
+{% if get_parameter('google_map_api_key') is not empty%}
+    {% include '@__main__/shared/google_map.html.twig' %}
+{% endif %}

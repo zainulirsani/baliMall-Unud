@@ -1,0 +1,199 @@
+{% set on_click = "$(this).parents('.popup').fadeOut();" %}
+
+{% if app.request.hasPreviousSession %}
+    {% for label, messages in app.flashes %}
+        {% set label_title = 'label.notice'|trans %}
+        {% set message_new = [] %}
+        {% set link = '' %}
+        {% for message in messages %}
+            {% if message == 'Kami akan melakukan verifikasi terlebih dahulu.' %}
+                {% set label_title = 'label.thank_you'|trans %}
+            {% endif %}
+            {% if message not in message_new %}
+                {% if 'http' == message|slice(0, 4) %}
+                    {% set link = message %}
+                    {% set message = 'Produk berhasil diubah, Silahkan melakukan copy ulang link produk dibawah ini' %}
+                {% endif %}
+                
+                {% set message_new = message_new|merge([message]) %}
+            {% endif %}
+        {% endfor %}
+        <div class="popup general" title="general" style="display: block;">
+            <div class="wh100">
+                <div class="popup-wrapper">
+                    <div class="inner">
+                        <a href="javascript:void(0);" class="close-btn" onclick="{{ on_click|raw }}"></a>
+                        <h3>{{ label_title }}</h3>
+                        {% for key,message in message_new %}
+                                <p>{{ message }}</p>
+                        {% endfor %}
+                        <div class="btn-wrapper">
+                            {% if link is not empty %}
+                                <button type="button" class="sBtn red btn-salin-clip" onclick="{{ 'navigator.clipboard.writeText(`' ~ link ~ '`);$(this).html(`Tercopy`);'|raw }}">
+                                    Copy
+                                </button>
+                            {% endif %}
+                            <a href="javascript:void(0);" class="sBtn red" onclick="{{ on_click|raw }}">
+                                {{ 'button.close'|trans }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<div id="popup-general" class="popup general" title="general">
+    <div class="wh100">
+        <div class="popup-wrapper">
+            <div class="inner">
+                <a href="javascript:void(0);" class="close-btn" onclick="{{ on_click|raw }}"></a>
+                <h3 class="popup-general-title"></h3>
+                <p class="popup-general-content"></p>
+                <div class="btn-wrapper"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="popup-confirm" class="popup general" title="confirm">
+    <div class="wh100">
+        <div class="popup-wrapper">
+            <div class="inner">
+                <a href="javascript:void(0);" class="close-btn" onclick="{{ on_click|raw }}"></a>
+                <h3 class="popup-confirm-title"></h3>
+                <p class="popup-confirm-content"></p>
+                <div class="btn-wrapper">
+                    <a id="popup-confirm-btn" href="javascript:void(0);" class="sBtn red">
+                        {{ 'button.confirm'|trans }}
+                    </a>
+                    <a href="javascript:void(0);" class="gBtn red" onclick="{{ on_click|raw }}">
+                        {{ 'button.close'|trans }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="popup-confirm-register" class="popup general" title="confirm">
+    <div class="wh100">
+        <div class="popup-wrapper">
+            <div class="inner">
+                <a href="javascript:void(0);" class="close-btn" onclick="{{ on_click|raw }}"></a>
+                <h3 class="popup-confirm-title-register"></h3>
+                <p class="popup-confirm-content-register"></p>
+                <div class="btn-wrapper">
+                    <a id="popup-confirm-btn" href="javascript:void(0);" class="sBtn red">
+                        {{ 'button.confirm'|trans }}
+                    </a>
+                    <a href="javascript:void(0);" class="gBtn red" onclick="{{ on_click|raw }}">
+                        {{ 'button.continue'|trans }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="popup-form" class="popup general" title="form">
+    <div class="wh100">
+        <div class="popup-wrapper">
+            <div class="inner">
+                <a href="javascript:void(0);" class="close-btn" onclick="{{ on_click|raw }}"></a>
+                <h3 class="popup-form-title"></h3>
+                <div class="popup-form-content"></div>
+                <div class="btn-wrapper">
+                    <button id="popup-form-btn" type="submit" class="sBtn red">
+                        {{ 'button.submit'|trans }}
+                    </button>
+                    <a href="javascript:void(0);" class="gBtn red" onclick="{{ on_click|raw }}" id="closeButton">
+                        {{ 'button.close'|trans }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="popup-cancel-order" class="popup general" title="cancel-order">
+    <div class="wh100">
+        <div class="popup-wrapper">
+            <div class="inner">
+                <a href="javascript:void(0);" class="close-btn" onclick="{{ on_click|raw }}"></a>
+                <h3 class="popup-cancel-order-title"></h3>
+                <div class="popup-cancel-order-content"></div>
+                <div class="btn-wrapper">
+                    <button id="popup-cancel-order-btn" type="submit" class="sBtn red">
+                        {{ 'button.submit'|trans }}
+                    </button>
+                    <a href="javascript:void(0);" class="gBtn red" onclick="{{ on_click|raw }}" id="closeButton">
+                        {{ 'button.close'|trans }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="popup-order-review" class="popup general" title="form">
+    <div class="wh100">
+        <div class="popup-wrapper">
+            <div class="inner">
+                <a href="javascript:void(0);" class="close-btn" onclick="{{ on_click|raw }}"></a>
+                <h3 class="popup-order-review-title"></h3>
+                <div class="popup-order-review-content"></div>
+                <div class="btn-wrapper">
+                    <button id="popup-order-review-btn" type="submit" class="sBtn red">
+                        {{ 'button.submit'|trans }}
+                    </button>
+                    <a href="javascript:void(0);" class="gBtn red" onclick="{{ on_click|raw }}">
+                        {{ 'button.close'|trans }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="popup-cart" class="popup general" title="form">
+    <div class="wh100">
+        <div class="popup-wrapper">
+            <div class="inner">
+                <a href="javascript:void(0);" class="close-btn" onclick="{{ on_click|raw }}"></a>
+                <h3 class="popup-cart-title"></h3>
+                <div class="popup-cart-content"></div>
+                <div class="btn-wrapper hide">
+                    <a href="javascript:void(0);" class="sBtn red" onclick="{{ on_click|raw }}">
+                        {{ 'button.close'|trans }}
+                    </a>
+                    <a href="{{ path('cart_index') }}" class="gBtn red">
+                        {{ 'button.view_cart'|trans }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if app.user %}
+    <div id="popup-logout" class="popup general" title="general">
+        <div class="wh100">
+            <div class="popup-wrapper">
+                <div class="inner">
+                    <a href="javascript:void(0);" class="close-btn" onclick="{{ on_click|raw }}"></a>
+                    <p class="ct">{{ 'message.info.confirm_logout'|trans }}</p>
+                    <div class="btn-wrapper">
+                        <a href="javascript:void(0);" class="sBtn red" onclick="{{ on_click|raw }}">
+                            {{ 'label.no'|trans }}
+                        </a>
+                        <a href="{{ path('logout') }}" class="gBtn red">
+                            {{ 'label.yes'|trans }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}

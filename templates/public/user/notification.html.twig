@@ -1,0 +1,58 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% block content %}
+    <style>
+        .box-notification {
+            margin-bottom: 10px !important;
+        }
+    </style>
+    <main class="pdl">
+        {% include '@__main__/public/base/partials/breadcrumb.html.twig' %}
+        <section>
+            <div class="container">
+                <div class="box">
+                    <div class="row">
+                        {% include '@__main__/public/user/fragments/menu.html.twig' %}
+                        <div class="dc9 tc12">
+                            <div class="sub-title">
+                                <div class="text">
+                                    <h3>{{ page_title|trans }}</h3>
+                                </div>
+                                <div class="clear"></div>
+                            </div>
+                            <div class="pr-card">
+                                <div class="row">
+                                    <div class="dc12">
+                                        {% if notifications['count'] > 0 %}
+                                            {% for notification in notifications['data'] %}
+                                                {% set order_id = order_id_from_invoice(notification['n_content']) %}
+                                                {% set url = order_id > 0 ? path('user_order_detail', {'id': order_id}) : 'javascript:void(0);' %}
+                                                {% set url_style = order_id > 0 ? '' : 'pointer-events: none;' %}
+                                                <div class="box pr-card__1 box-notification">
+                                                    <div class="top">
+                                                        <div class="text"><h6>{{ notification['n_title'] }}</h6></div>
+                                                    </div>
+                                                    <div class="info">
+                                                        <div>
+                                                            {% if notification['n_createdAt'] is not empty %}
+                                                                <span><b>[{{ notification['n_createdAt']|date('d F Y H:i') }}]</b></span>
+                                                            {% endif %}
+                                                            <span>{{ notification['n_content'] }}</span>
+                                                        </div>
+                                                        <a href="{{ url }}" class="sBtn red" style="{{ url_style }}">
+                                                            {{ 'label.detail'|trans }}
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}

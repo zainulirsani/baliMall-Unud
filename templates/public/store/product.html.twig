@@ -1,0 +1,307 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% set store_url = path('store_page', {'store': store_data.getSlug}) %}
+{% set rating_count = 0 %}
+{% set thumb_image = 'dist/img/no-image.png' %}
+{% set able_to_buy = is_buyer %}
+
+{% if product.getRatingCount > 0 and total_reviews > 0 %}
+    {% set rating_count = (product.getRatingCount / total_reviews)|round(0, 'floor') %}
+{% endif %}
+
+{% if store_data.getUser is not empty and store_data.getUser.getPhotoProfile is not empty %}
+    {% set thumb_image = store_data.getUser.getPhotoProfile %}
+{% endif %}
+
+{#{% if app.user and app.user.role == 'ROLE_USER_GOVERNMENT' %}#}
+{#    {% set able_to_buy = store_data.isVerified and store_data.isPKP %}#}
+{#{% endif %}#}
+
+{#{% if app.user and app.user.role == 'ROLE_USER' and store_data.isPKP %}#}
+{#    {% set able_to_buy = false %}#}
+{#{% endif %}#}
+
+{#{% if app.user and app.user.getLkppRole != 'PP' and app.user.getLkppRole != 'PPK' %}#}
+{#    {% set able_to_buy = false %}#}
+{#{% endif %}#}
+
+{# {% set rating_remaining = 5 - avg_rating | to_float %} #}
+{% set full_stars = avg_rating | round(0, 'floor') %}
+{% set has_half_star = (avg_rating - full_stars) >= 0.5 %}
+{% set empty_stars = 5 - full_stars - (has_half_star ? 1 : 0) %}
+
+{% block content %}
+    <main class="dtl-prd">
+        {% include '@__main__/public/base/partials/breadcrumb.html.twig' %}
+        <section>
+
+            <div id="pdp" class="container">
+                <div class="box">
+                    <div class="row">
+                        <div class="dc6 tc12">
+                            <div class="img">
+                                <div class="dtl-s swiper-container">
+                                    <div class="swiper-wrapper">
+                                        {% for file in product_files %}
+                                            <div class="swiper-slide">
+                                                <img src="{{ path('sftp_show_file', {'path': file['filePath']}) }}" alt="">
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="img-2">
+                                <div class="dtl-t swiper-container">
+                                    <div class="swiper-wrapper">
+                                        {% for file in product_files %}
+                                            <div class="swiper-slide">
+                                                <img src="{{ path('sftp_show_file', {'path': file['filePath']}) }}" alt="">
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="dc6 tc12">
+                            <div class="prd-info">
+                                <h2>{{ product.getName }}</h2>
+                                <h3 class="price">
+                                    {# {% set product_price = store_data.getIsPKP|to_bool ? (product.getPrice + (product.getPrice * 0.1)) : product.getPrice %} #}
+                                    <b>Rp. {{ product.getPrice|number_format }}</b>
+                                    <span style="font-size: 10px; color: black">{{ 'label.price_exclude_tax'|trans }}</span>
+                                </h3>
+                                <p class="price">
+                                    <b>{{ 'label.quantity_alt'|trans ~ ': ' ~ product.getQuantity ~ ' ' ~ product.getUnit|trans }}</b>
+                                </p>
+                                <div class="text">
+                                    <h6>{{ 'label.product_description'|trans }}</h6>
+                                    {{ product.getDescription|raw }}
+                                </div>
+                                <div class="rnt">
+                                    <span class="rate-wrp">
+                                        {#<b>{{ total_reviews ~ ' ' ~ 'label.reviews'|trans }}</b>#}
+                                        {# {{ dump(empty_stars) }} #}
+                                        {% if avg_rating > 0 %}
+                                            {# Full stars #}
+                                            {% for i in 1..full_stars %}<i class="fas fa-star"></i>{% endfor %}
+
+                                            {# Half star #}
+                                            {% if has_half_star %}<i style="color: #FFEE00" class="fas fa-star-half-alt"></i>{% endif %}
+
+                                            {# Empty stars #}
+                                            {% for j in empty_stars %}<i class="far fa-star"></i>{% endfor %}
+                                        {% else %}
+                                            {# Show 5 empty stars if there's no rating #}
+                                            {% for j in 1..5 %}<i class="far fa-star"></i>{% endfor %}
+                                        {% endif %}
+                                    </span>
+                                    <div class="right-side">
+                                        <span><i class="fas fa-tag"></i> {{ total_reviews }}</span>
+                                        <span><i class="fas fa-eye"></i> {{ product.getViewCount }}</span>
+                                        <span><i class="fas fa-star"></i> {{ avg_rating }}</span>
+                                    </div>
+                                    <div class="clear"></div>
+                                </div>
+                                <div class="seller">
+                                    <figure>
+                                        <img src="{{ path('sftp_show_file', {'path': thumb_image }) }}" alt="">
+                                    </figure>
+                                    <div class="seller-info">
+
+                                        {% set store_pkp = product.getStore.getIsPKP|to_bool %}
+                                        <h4>{{ store_data.getName|raw }}</h4>
+                                        <p style="color: #999;font-size: 10px;font-weight: 600;">{{ store_pkp ? 'PKP' : 'Non PKP' }}</p>
+                                        <p>{{ store_data.getCity }}</p>
+                                    </div>
+                                    <a href="{{ store_url }}" class="gBtn">{{ 'label.visit_store'|trans }}</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="rvw-list">
+                        <h4>{{ 'label.review_for'|trans ~ ' ' ~ product.getName }}</h4>
+                        {% if product_reviews|length < 1 %}
+                            <p class="sgd-text-center">{{ 'message.info.no_reviews'|trans }}</p>
+                        {% else %}
+                            {% for review in product_reviews %}
+                                {% set avatar = review['u_photoProfile'] is empty ? 'dist/img/user.jpg' : review['u_photoProfile'] %}
+                                {% set remaining = 5 - review['pr_rating'] %}
+                                <div class="rvw">
+                                    <figure><img src="{{ path('sftp_show_file', {'path': avatar }) }}" alt=""></figure>
+                                    <div class="user">
+                                        <h6>{{ review['u_firstName'] ~ ' ' ~ review['u_lastName'] }}</h6>
+                                        {#<small>Kota Denpasar</small>#}
+                                    </div>
+                                    <div class="fb">
+                                         {% if remaining > 0 -%}{% for j in 1..remaining -%}<i class="far fa-star"></i>{%- endfor %}{%- endif %}
+                                         {% for i in 1..review['pr_rating'] -%}<i class="fas fa-star"></i>{%- endfor %}
+                                    </div>
+                                    <div class="clear"></div>
+                                    <div class="rvw-body">
+                                        <p>{{ review['pr_review'] }}</p>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                            {% if pagination is not empty and pagination.getNbResults > pagination.getMaxPerPage %}{{ html|raw }}{% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="item-list">
+                <div class="container">
+                    <div class="box">
+                        <h4>{{ 'label.related_products'|trans }}</h4>
+                        <div class="row">
+                            {% if related_products|length > 0 %}
+                                {% for related in related_products %}
+                                    {% set related_rating_count = 0 %}
+                                    {% set store_verified = store_data.isVerified %}
+                                    {% set store_pkp = product.getStore.getIsPKP|to_bool %}
+                                    {% set umkm_category = product.getStore.getUmkmCategory|replace({'_':' '})|title %}
+                                    {% set product_url = path('store_product_page', {
+                                        'store': store_data.getSlug,
+                                        'product': related['p_slug'],
+                                    }) %}
+                                    {% set product_id = related['id']|default(0) %}
+                                    {% set text_pkp = store_pkp ? 'PKP':'Non PKP' %}
+                                    {% set text_product = 'label.products'|trans %}
+                                    {% set text_pdn = product.getIsPdn == null ? 'label.pdn_product' : 'label.' ~ product.getIsPdn ~ '_product' %}
+
+                                    {% if related['p_ratingCount'] > 0 and related['pr_total'] > 0 %}
+                                        {% set related_rating_count = related['p_ratingCount'] / related['pr_total']|round(0, 'floor') %}
+                                    {% endif %}
+                                    <div class="dc3 tc6 mc12 single-item-detail">
+                                        <div class="box">
+                                            <figure>
+                                                <a href="{{ product_url }}" class="btn-gtm-bm" data-id="{{ product_id }}">
+                                                    <img src="{{ path('sftp_show_file', {'path': product_main_image(related['p_id']|default(0))}) }}" alt="">
+                                                </a>
+                                            </figure>
+                                            {#<a href="javascript:void(0);" class="wishlist-btn">
+                                                <i class="fas fa-heart"></i>
+                                                <i class="far fa-heart"></i>
+                                            </a>#}
+                                            <div class="description">
+                                                <h6><a href="{{ product_url }}" class="btn-gtm-bm" data-id="{{ product_id }}">{{ related['p_name'] }}</a></h6>
+                                                <span style="color: #999;font-size: 10px">{{ product.getSku }}</span>
+                                                <p>
+                                                    <span style="color: #999;font-size: 10px">{{ text_pdn|trans }}</span>
+                                                </p>
+                                                <p>
+                                                    {# {% set related_price = store_data.getIsPKP|to_bool ? (related['p_price'] + (related['p_price'] * 0.1)) : related['p_price'] %} #}
+                                                    <strong>Rp. {{ related['p_price']|number_format }}</strong>
+                                                    <span style="font-size: 10px">{{ 'label.price_exclude_tax'|trans }}</span>
+                                                    <br>
+                                                    {{ store_data.getCity }}
+                                                </p>
+                                                <div class="stat-wrapper row">
+                                                    <p class="dc4"><i class="fas fa-tag"></i> {{ related['pr_total'] }}</p>
+                                                    <p class="dc4"><i class="fas fa-eye"></i> {{ related['p_viewCount'] }}</p>
+                                                    <p class="dc4"><i class="fas fa-star"></i> {{ related['avg_rating'] | round(1) }}</p>
+                                                </div>
+                                            </div>
+                                            <div class="vendor-info">
+                                                <p><a href="{{ store_url }}">{{ store_data.getName|raw }}</a></p>
+                                                <p>
+                                                    <span style="color: #999;font-size: 10px">{{ text_pkp }} | {{umkm_category}}</span>
+                                                </p>
+                                                {% if enable_chat and app.user and is_buyer and is_government and store_verified %}
+                                                    <a href="javascript:void(0);" class="chat" data-slug="{{ store_data.getSlug }}">
+                                                        <i class="fas fa-envelope"></i>
+                                                    </a>
+                                                {% endif %}
+                                                <div class="clear"></div>
+                                            </div>
+                                            <div>
+                                                <input id="gtm-pc-name-{{ product_id }}" type="hidden" value="{{ related['p_name'] }}">
+                                                <input id="gtm-pc-id-{{ product_id }}" type="hidden" value="{{ product_id }}">
+                                                <input id="gtm-pc-price-{{ product_id }}" type="hidden" value="{{ related['p_price']|number_format(2, '.', '') }}">
+                                                <input id="gtm-pc-brand-{{ product_id }}" type="hidden" value="{{ store_data.getName }}">
+                                                <input id="gtm-pc-category-{{ product_id }}" type="hidden" value="{{ product_category_name(product_id) }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="dc12 single-item-detail">
+                                    <h5 class="sgd-text-center">{{ 'message.info.no_product'|trans }}</h5>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <input id="pdp-main" type="hidden" value="{{ product.getSlug }}">
+                            <input id="pdp-sub" type="hidden" value="{{ product.getDirSlug }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% if able_to_buy == true %}
+                {% set buy_title = 'label.buy'|trans ~ ' ' ~ product.getName %}
+                {% set buy_title = buy_title|length > 55 ? buy_title|slice(0, 55) ~ '...' : buy_title %}
+                <div class="buy-wrapper">
+                    <div class="container">
+                        <div class="left-side">
+                            <h5>{{ buy_title }}</h5>
+                            <p>{{ store_data.getName|raw }}</p>
+                        </div>
+                        <div class="right-side">
+                            {% if product.getQuantity > 0 %}
+                                <b class="desktop-only">{{ 'label.quantity'|trans }}</b>
+                                <b class="block-mobile">{{ 'label.qty'|trans }}</b>
+                                <div class="input input--mm">
+                                    <input id="input-cart-qty" type="text" value="1" title="">
+                                    <button class="min minus-qty" data-min="1">-</button>
+                                    <button class="max plus-qty" data-max="{{ product.getQuantity }}">+</button>
+                                </div>
+                                <button id="btn-add-to-cart" class="sBtn red btn-gtm-bm-atc" data-hash="{{ product_hash_id(product.getId) }}">
+                                    <i class="fas fa-shopping-cart"></i> {{ 'label.add_to_cart'|trans }}
+                                </button>
+                            {% else %}
+                                <button class="sBtn red">{{ 'label.no_stock'|trans }}</button>
+                            {% endif %}
+                        </div>
+                        <div class="clear"></div>
+                    </div>
+                </div>
+            {% endif %}
+        </section>
+    </main>
+    <script>
+        GTM_PRODUCT_DATA = {
+            'name': '{{ product.getName }}',
+            'id': '{{ product.getId }}',
+            'price': '{{ product.getPrice|number_format(2, '.', '') }}',
+            'brand': '{{ store_data.getName }}',
+            'category': '{{ product_category }}',
+            'variant': '',
+            'position': 1
+        };
+    </script>
+{% endblock %}
+{% block javascripts %}
+    <script>
+        if (GTM_TRACKING_ID !== '') {
+            dataLayer.push({ ecommerce: null });
+            dataLayer.push({
+                'ecommerce': {
+                    'detail': {
+                        'actionField': {},
+                        'products': [GTM_PRODUCT_DATA]
+                    }
+                }
+            });
+        }
+
+        if ($('#input-cart-qty').length) {
+            $('#input-cart-qty').on('change', function () {
+                var selector = $(this);
+                var max = $('.plus-qty').attr('data-max')
+                if (parseInt(selector.val()) > parseInt(max)) {
+                    selector.val(max)
+                }
+            })
+        }
+    </script>
+{% endblock %}
+

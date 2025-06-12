@@ -1,0 +1,679 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% set step_status = [
+    'dist/img/s-paid.png',
+    'dist/img/s-confirmation.png',
+    'dist/img/s-proccessed.png',
+    'dist/img/s-shipped.png',
+] %}
+
+{% set step_status_b2g = [
+    'dist/img/s-confirmation.png',
+    'dist/img/s-proccessed.png',
+    'dist/img/s-shipped.png',
+    'dist/img/s-paid.png',
+    'dist/img/s-paid.png',
+] %}
+
+{% set step_status_text = ['paid', 'confirmed', 'processed', 'shipped'] %}
+{% set step_status_text_b2g = ['confirmed', 'processed', 'shipped', 'payment_process', 'paid'] %}
+{% set order_vouchers_list = order_vouchers(shared_id) %}
+{% set order_vouchers_lists = order_vouchers(shared_id, 'no') %}
+{% set order_payment_accounts = get_parameter('order_payment_accounts') %}
+{% set order_with_tax = false %}
+{% set disable_payment_confirmation = false %}
+{% set b2g_transaction = false %}
+{% set grand_total = 0 %}
+{% set is_pending_order = 0 %}
+{% set is_paid_order = 0 %}
+{% set is_payment_process_order = 0 %}
+{% set is_confirmed_order = 0 %}
+{% set is_processed_order = 0 %}
+{% set is_shipped_order = 0 %}
+{% set is_received_order = 0 %}
+{% set is_cancel_order = 0 %}
+{% set total_order_items = orders|length %}
+{% set b2g_can_pay = false %}
+{% set total_nego_price = 0 %}
+{% set total_shipping_costs = 0 %}
+
+{% set order_sub_total = 0 %}
+{% set total_shipping_costs = 0 %}
+
+{% set grand_total_ppn = 0 %}
+{% set with_tax = false %}
+{% set total_ppn = 0 %}
+
+{% set product_tax_nominal = 0 %}
+{% set is_pkp = 0 %}
+{% set total_items = 0 %}
+{% set type_user_submited = '' %}
+
+{% if app.user.role == 'ROLE_USER_GOVERNMENT' %}
+    {% set type_user_submited = 'buyer' %}
+{% elseif app.user.role == 'ROLE_USER_SELLER' %}
+    {% set type_user_submited = 'seller' %}
+{% endif %}
+
+{% set tax_value = 0 %}
+
+
+{% block content %}
+    <main class="pdl">
+        {% include '@__main__/public/base/partials/breadcrumb.html.twig' %}
+        <section>
+            <div class="container">
+                <div class="box">
+                    <div class="row">
+                        {% include '@__main__/public/user/fragments/menu.html.twig' %}
+                        <div id="buyer-trx-shared-detail" class="dc9 tc12" data-id="{{ shared_id }}" data-version="v2">
+                            <h3>{{ orders[0]['o_sharedInvoice'] }}</h3>
+                            <hr>
+
+                            {% if orders[0]['o_workUnit'] is defined and orders[0]['o_workUnit'] is not empty %}
+                                <div class="ccp__section ccp__box">
+                                    <div class="row">
+                                        <div class="dc4 tc12">
+                                            <h5>{{ 'label.work_unit'|trans }}</h5>
+                                            <p>{{ orders[0]['o_workUnit']['fullname'] }} | {{ orders[0]['o_workUnit']['address'] }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr>
+                            {% endif %}
+
+                            <div class="ccp">
+                                {% for order in orders %}
+                                    {% set order_sub_total = 0 %}
+
+                                    {% if order['u_role'] == 'ROLE_USER_GOVERNMENT' %}
+                                        {% set b2g_transaction = true %}
+                                    {% endif %}
+{#                                    {% if order['o_taxDocumentFile'] is not null %}#}
+
+                                    {% for product in order['o_products'] %}
+                                        {% if product['op_withTax'] == true %}
+                                            {% set with_tax = true %}
+                                            {% set tax_value = product['op_taxValue'] %}
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% set initial_with_shipping = true %}
+
+
+                                    {% set order_status = order_step_status(order['o_status'], order['u_role']) %}
+
+                                    {% if b2g_transaction == true %}
+                                        {% set nego_batch = 0 %}
+                                        {% set index_product = 0 %}
+                                        {% for product in order['o_products'] %}
+                                            {% if order['o_negotiatedProducts']|length > 0 %}
+                                                {% for temp_nego_data in order['o_negotiatedProducts'] %}
+                                                    {% set data_nego_detail = temp_nego_data %}
+                                                    {% set data_nego_last_response = temp_nego_data['on_submittedAs'] %}
+                                                    {% set nego_batch = temp_nego_data['on_batch'] %}
+                                                {% endfor %}
+                                            {% endif %}
+                                            {% for product_nego in order['o_negotiatedProducts'] %}
+                                                {% if (product_nego['p_id'] == product['p_id']) and (product_nego['on_batch'] == nego_batch) %}
+                                                    {% if index_product == 0 %}
+                                                        {% set total_shipping_costs = total_shipping_costs + product_nego['on_negotiatedShippingPrice'] %}
+                                                    {% else %}
+                                                    {% endif %}
+
+                                                    {% set order_sub_total = get_base_price(order['o_total'], tax_value) + get_base_price(product_nego['on_negotiatedShippingPrice'], tax_value) %}
+                                                    {% if order['o_negotiationStatus'] == 'finish' %}
+                                                        {% if initial_with_shipping == true %}
+                                                            {% set grand_total_ppn =  grand_total_ppn + product['op_taxNominal'] + product_nego['on_taxNominalShipping'] %}
+                                                        {% else %}
+                                                            {% set grand_total_ppn = grand_total_ppn + product['op_taxNominal'] %}
+                                                        {% endif %}
+                                                        {% set initial_with_shipping = false %}
+                                                    {% else %}
+                                                        {% if initial_with_shipping == true %}
+                                                            {% set grand_total_ppn = grand_total_ppn + (product_nego['on_taxNominalPrice'] * product['op_quantity'] ) + product_nego['on_taxNominalShipping'] %}
+                                                        {% else %}
+                                                            {% set grand_total_ppn = grand_total_ppn + (product_nego['on_taxNominalPrice'] * product['op_quantity'] ) %}
+                                                        {% endif %}
+                                                        {% set initial_with_shipping = false %}
+                                                    {% endif %}
+                                                    {% set index_product = index_product + 1 %}
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% endfor %}
+
+                                    {% else %}
+                                        {% if with_tax == true %}
+                                            {% set order_sub_total = order_sub_total + order['o_total'] + get_base_price(order['o_shippingPrice'], tax_value) %}
+                                            {% set total_shipping_costs = total_shipping_costs + order['o_shippingPrice'] %}
+                                        {% else %}
+                                            {% set order_sub_total = order_sub_total + order['o_total'] + order['o_shippingPrice'] %}
+                                            {% set total_shipping_costs = total_shipping_costs + order['o_shippingPrice'] %}
+                                        {% endif %}
+                                    {% endif %}
+
+                                    {% set grand_total = grand_total + order_sub_total %}
+
+
+                                    {% if order['o_status'] == 'pending' %}
+                                        {% set is_pending_order = is_pending_order + 1 %}
+                                    {% elseif order['o_status'] == 'pending_payment' %}
+                                        {% if order['u_role'] == 'ROLE_USER_GOVERNMENT' %}
+                                            {% set b2g_can_pay = true %}
+                                        {% endif %}
+                                        {% set is_pending_order = is_pending_order + 1 %}
+                                    {% elseif order['o_status'] == 'paid' %}
+                                        {% set is_paid_order = is_paid_order + 1 %}
+                                    {% elseif order['o_status'] == 'payment_process' %}
+                                        {% set is_payment_process_order = is_payment_process_order + 1 %}
+                                    {% elseif order['o_status'] == 'confirmed' %}
+                                        {% set is_confirmed_order = is_confirmed_order + 1 %}
+                                    {% elseif order['o_status'] == 'confirmed' %}
+                                        {% set is_confirmed_order = is_confirmed_order + 1 %}
+                                    {% elseif order['o_status'] == 'processed' %}
+                                        {% set is_processed_order = is_processed_order + 1 %}
+                                    {% elseif order['o_status'] == 'shipped' %}
+                                        {% set is_shipped_order = is_shipped_order + 1 %}
+                                    {% elseif order['o_status'] == 'received' %}
+                                        {#{% set b2g_can_pay = true %}#}
+                                        {% set is_received_order = is_received_order + 1 %}
+                                    {% elseif order['o_status'] == 'cancel' %}
+                                        {% set is_cancel_order = is_cancel_order + 1 %}
+                                    {% endif %}
+                                    <div class="ccp__section">
+                                        <div class="sub-title">
+                                            <div class="text">
+                                                <h4>{{ 'label.invoice'|trans ~ ' ' ~ order['o_invoice'] }}</h4>
+                                                <a href="{{ path('user_order_detail', {'id': order['o_id']}) }}" class="sBtn small red">
+                                                    {{ 'label.detail'|trans }}
+                                                </a>
+                                                {#<a href="{{ path('user_order_print', {'id': order['o_id'], 'type': 'invoice'}) }}" class="sBtn small red">
+                                                    {{ 'label.invoice'|trans }}
+                                                </a>#}
+                                            </div>
+                                            <div class="right-side">
+                                                {#<div class="status-step">
+                                                    {% if order['u_role'] == 'ROLE_USER_GOVERNMENT' %}
+                                                        {% for key, step in step_status_b2g %}
+                                                            {% set status_text = 'label.' ~ step_status_text_b2g[key] %}
+                                                            {% set status_text = status_text|trans %}
+                                                            <div class="{% if order_status < 9 and key <= order_status %}active{% endif %}">
+                                                                <img src="{{ asset(step) }}" title="{{ status_text }}" alt="{{ status_text }}">
+                                                            </div>
+                                                        {% endfor %}
+                                                    {% else %}
+                                                        {% for key, step in step_status %}
+                                                            {% set status_text = 'label.' ~ step_status_text[key] %}
+                                                            {% set status_text = status_text|trans %}
+                                                            <div class="{% if order_status < 9 and key <= order_status %}active{% endif %}">
+                                                                <img src="{{ asset(step) }}" title="{{ status_text }}" alt="{{ status_text }}">
+                                                            </div>
+                                                        {% endfor %}
+                                                    {% endif %}
+                                                </div>
+                                                <p class="ct">{{ status_label|trans }}</p>#}
+                                            </div>
+                                            <div class="clear"></div>
+                                        </div>
+                                        <div class="pr-card">
+                                            <div class="row">
+                                                {% set with_shipping = true %}
+                                                {% for product in order['o_products'] %}
+                                                    {% if b2g_transaction == true %}
+                                                        {% set sub_total = product['p_price'] * product['op_quantity'] %}
+                                                    {% else %}
+                                                        {% set sub_total = product['op_totalPrice'] %}
+                                                        {% set product_tax_nominal = product_tax_nominal + product['op_taxNominal']%}
+                                                    {% endif %}
+
+                                                    {% set nego_price = 0 %}
+                                                    {% set nego_shipping_price = 0 %}
+                                                    {% set nego_batch = 0 %}
+
+                                                    {% if product['op_withTax'] == 1 %}
+                                                        {% set is_pkp = is_pkp + 1 %}
+                                                    {% endif %}
+
+                                                    {% if b2g_transaction == true %}
+                                                        {% if order['o_negotiatedProducts']|length > 0 %}
+                                                            {% if order['o_negotiationStatus'] == 'finish' %}
+                                                                {% set sub_total = product['op_priceBeforeNegotiation'] * product['op_quantity'] %}
+                                                            {% endif %}
+
+                                                            {% for temp_nego_data in order['o_negotiatedProducts'] %}
+                                                                {% set data_nego_detail = temp_nego_data %}
+                                                                {% set data_nego_last_response = temp_nego_data['on_submittedAs'] %}
+                                                                {% set nego_batch = temp_nego_data['on_batch'] %}
+                                                            {% endfor %}
+                                                        {% endif %}
+                                                        {% for product_nego in order['o_negotiatedProducts'] %}
+                                                            {% if (product_nego['p_id'] == product['p_id']) and (product_nego['on_batch'] == nego_batch) %}
+                                                                {% set nego_price = product_nego['on_negotiatedPrice'] %}
+                                                                {% set nego_shipping_price = product_nego['on_taxNominalShipping'] %}
+                                                                {% if with_shipping == true %}
+                                                                    {% set total_nego_price = total_nego_price + (nego_price * product['op_quantity']) + product_nego['on_negotiatedShippingPrice'] %}
+                                                                {% else %}
+                                                                    {% set total_nego_price = total_nego_price + (nego_price * product['op_quantity']) %}
+                                                                {% endif %}
+                                                                {% set with_shipping = false %}
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    {% endif %}
+
+                                                    {% set total_items = total_items + 1 %}
+
+
+                                                    <div class="dc12">
+                                                        <div class="box pr-card__1 pr-card--detail">
+                                                            <div class="top">
+                                                                <figure>
+                                                                    <img src="{{ asset(product_main_image(product['p_id']|default(0))) }}" alt="">
+                                                                </figure>
+                                                                <div class="text">
+                                                                    <h6>{{ product['p_name'] }}</h6>
+                                                                    <p>{{ order['s_name']|raw }}</p>
+                                                                </div>
+                                                                <div class="info">
+                                                                    <div>
+                                                                        <span>
+                                                                            {{ 'label.qty'|trans|upper }}
+                                                                            <b>{{ product['op_quantity'] }}</b>
+                                                                        </span>
+                                                                        <span>
+                                                                            {% if b2g_transaction == true %}
+                                                                                <table>
+                                                                                    <tr>
+                                                                                        <td>{{ 'label.original_price'|trans|upper }}</td>
+                                                                                        <td>:&nbsp;</td>
+                                                                                        <td>
+                                                                                            <i class="fas fa-wallet"></i> Rp. {{ sub_total|number_format }}
+                                                                                        </td>
+
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td>{{ 'label.negotiated_price'|trans|upper }}</td>
+                                                                                        <td>:&nbsp;</td>
+                                                                                        <td><i class="fas fa-wallet"></i> Rp. {{ (nego_price * product['op_quantity'])|number_format }}</td>
+                                                                                    </tr>
+                                                                                </table>
+                                                                                {# {% set grand_total_ppn = grand_total_ppn + nego_shipping_price %} #}
+                                                                            {% else %}
+                                                                                {% if with_tax == true %}
+                                                                                    <i class="fas fa-wallet"></i> Rp. {{ sub_total|number_format }}
+                                                                                    {% set grand_total_ppn = grand_total_ppn + get_ppn(sub_total, get_ppn_percentage(order['o_products'][0]['s_umkm_category'])) %}
+                                                                                {% else %}
+                                                                                    <i class="fas fa-wallet"></i> Rp. {{ sub_total|number_format }}
+                                                                                    {% set grand_total_ppn = grand_total_ppn + 0 %}
+                                                                                {% endif %}
+                                                                            {% endif %}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+{#                                                            {% include '@__main__/public/user/order/fragments/order_action_v2_partial.html.twig' %}#}
+                                                            {% if order['o_status'] == 'received' and order['u_role'] != 'ROLE_USER_GOVERNMENT' %}
+                                                                {# {% include '@__main__/public/user/order/fragments/product_rating_v2.html.twig' %} #}
+                                                            {% endif %}
+                                                            {% if order['u_role'] == 'ROLE_USER_GOVERNMENT' %}
+                                                                {% if order['o_status'] in ['payment_process', 'paid'] %}
+                                                                    {# {% include '@__main__/public/user/order/fragments/product_rating_v2.html.twig' %} #}
+                                                                {% endif %}
+{#                                                                {% include '@__main__/public/user/order/fragments/order_complaint_message.html.twig' %}#}
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        <div class="ccp__section ccp__box">
+                                            <div class="row">
+                                                <div class="dc6 tc12">
+                                                    <h5>{{ 'label.delivery_address'|trans }}</h5>
+                                                    <p>{{ order['o_address'] }}</p>
+                                                    {% if order['o_note'] is not empty %}
+                                                        <strong>{{ 'label.note'|trans }}</strong>:
+                                                        <p>{{ order['o_note'] }}</p>
+                                                    {% endif %}
+                                                    <h6>{{ order['o_city'] ~ ', ' ~ order['o_province'] ~ ' - ' ~ order['o_postCode'] }}</h6>
+                                                </div>
+                                                <div class="dc6 tc12">
+                                                    <h5>{{ 'label.order_status'|trans }}</h5>
+                                                    <div id="order-content-status">
+                                                        {% if order['o_status'] == 'pending' %}
+                                                            <div class="badges" style="color: #FFC107;">
+                                                                <span>
+                                                                    <i class="fas fa-exclamation-triangle"></i>
+                                                                    <span>{{ 'label.pending'|trans }}</span> ({{ order['o_createdAt']|date('d/m/Y - H:i') }})
+                                                                </span>
+                                                            </div>
+                                                        {% elseif order['o_status'] == 'pending_approve' %}
+                                                            <div class="badges" style="color: #FFC107;">
+                                                                <span>
+                                                                    <i class="fas fa-exclamation-triangle"></i>
+                                                                    <span>{{ 'label.pending_approve'|trans }}</span> ({{ order['o_createdAt']|date('d/m/Y - H:i') }})
+                                                                </span>
+                                                            </div>
+                                                        {% elseif order['o_status'] == 'pending_payment' %}
+                                                            <div class="badges red">
+                                                                <span>
+                                                                    <i class="fas fa-exclamation-circle"></i>
+                                                                    <span>{{ 'label.pending_payment'|trans }}</span> ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})
+                                                                </span>
+                                                            </div>
+                                                            {# <p><span>{{ 'label.pending'|trans }}</span> ({{ order['o_createdAt']|date('d/m/Y - H:i') }})</p> #}
+                                                        {% elseif order['o_status'] == 'paid' %}
+                                                            <div class="badges green">
+                                                                <span>
+                                                                    <i class="fas fa-check-circle"></i>
+                                                                    <span>{{ 'label.paid'|trans }}</span> ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})
+                                                                </span>
+                                                            </div>
+                                                            {# <p><span>{{ 'label.paid'|trans }}</span> ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</p> #}
+                                                        {% elseif order['o_status'] == 'payment_process' %}
+                                                            <div class="badges blue">
+                                                                <span>
+                                                                    <i class="fas fa-clock"></i>
+                                                                    <span>{{ 'label.payment_process'|trans }}</span> ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})
+                                                                </span>
+                                                            </div>
+                                                            {# <p><span>{{ 'label.payment_process'|trans }}</span> ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</p> #}
+                                                        {% elseif order['o_status'] == 'confirmed' %}
+                                                            <div class="badges blue">
+                                                                <span>
+                                                                    <i class="fas fa-check-circle"></i>
+                                                                    <span>{{ 'label.confirmed'|trans }}</span> ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})
+                                                                </span>
+                                                            </div>
+                                                            {# <p><span>{{ 'label.confirmed'|trans }}</span> ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</p> #}
+                                                        {% elseif order['o_status'] == 'processed' %}
+                                                            <div class="badges green">
+                                                                <span>
+                                                                    <i class="fas fa-check-circle"></i>
+                                                                    <span>{{ 'label.processed'|trans }}</span> ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})
+                                                                </span>
+                                                            </div>
+                                                            {# <p><span>{{ 'label.processed'|trans }}</span> ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</p> #}
+                                                        {% elseif order['o_status'] == 'partial_delivery' %}
+                                                            <div class="badges green">
+                                                                <span>
+                                                                    <i class="fas fa-check-circle"></i>
+                                                                    <span>{{ 'label.partial_delivery'|trans }}</span> ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})
+                                                                </span>
+                                                            </div>
+                                                        {% elseif order['o_status'] == 'shipped' %}
+                                                            <div class="badges green">
+                                                                <span>
+                                                                    <i class="fas fa-check-circle"></i>
+                                                                    <span>{{ 'label.shipped'|trans }}</span> ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})
+                                                                    {% if order['o_shippingCourier'] != 'gosend' %}
+                                                                        <h6>{{ 'label.tracking_code'|trans ~ ': ' ~ order['o_trackingCode'] }}</h6>
+                                                                    {% endif%}
+                                                                </span>
+                                                            </div>
+                                                            {# <p><span>{{ 'label.shipped'|trans }}</span> ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                                                            <h6>{{ 'label.tracking_code'|trans ~ ': ' ~ order['o_trackingCode'] }}</h6> #}
+                                                        {% elseif order['o_status'] == 'received' %}
+                                                            <div class="badges green">
+                                                                <span>
+                                                                    <i class="fas fa-check-circle"></i>
+                                                                    <span>{{ 'label.received'|trans }}</span> ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})
+                                                                </span>
+                                                            </div>
+                                                            {# <p><span>{{ 'label.received'|trans }}</span> ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</p> #}
+                                                        {% elseif order['o_status'] == 'cancel' %}
+                                                            <div class="badges red">
+                                                                <span><i class="fas fa-times-circle"></i>
+                                                                    <span>{{ 'label.cancelled'|trans }}</span> ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})
+                                                                </span>
+                                                            </div>
+                                                            {# <p><span>{{ 'label.cancelled'|trans }}</span> ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</p> #}
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% if order['u_role'] == 'ROLE_USER_GOVERNMENT' %}
+                                            {% include '@__main__/public/user/order/fragments/order_complaint_detail.html.twig' %}
+                                        {% endif %}
+                                        <div class="ccp__section">
+                                            <p class="ccp__price">
+                                                {% if order['o_shippingCourier'] == 'free_delivery' %}
+                                                    {{ 'label.self_pick_up_alt'|trans }}
+                                                    {% if order['o_shippingService'] == 'self_pick_up_2' %}
+                                                        <b>[{{ 'message.info.self_pick_up_address_2'|trans }}]</b>
+                                                    {% elseif order['o_shippingService'] == 'self_pick_up_3' %}
+                                                        <b>[{{ 'message.info.self_pick_up_address_3'|trans }}]</b>
+                                                    {% else %}
+                                                        <b>[{{ 'message.info.self_pick_up_address'|trans }}]</b>
+                                                    {% endif %}
+                                                    Rp. 0
+                                                {% else %}
+                                                    {% if b2g_transaction == true %}
+                                                        {% if order['o_negotiationStatus'] == 'none' %}
+                                                            {% set initial_shipping_cost = order['o_shippingPrice'] %}
+                                                        {% else %}
+                                                            {% set initial_shipping_cost = order['o_shippingPriceBackup'] %}
+                                                        {% endif %}
+
+
+                                                        {% if order['o_shipped_method'] == 'self_courier' %}
+                                                            <b>{{ get_parameter('shipped_method_options')['self_courier'] }}</b>
+                                                        {% else %}
+                                                            {{ 'label.courier'|trans }}
+                                                            <b>{{ order['o_shippingCourier'] }} [{{ order['o_shippingService'] }}]</b>
+                                                        {% endif %}
+                                                        <div style="float: right;">
+                                                            <table>
+                                                                <tr>
+                                                                    <td>{{ 'label.initial_shipping_costs'|trans }}</td>
+                                                                    <td>:&nbsp;</td>
+                                                                    <td> Rp. {{ initial_shipping_cost|number_format }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>{{ 'label.negotiation_shipping'|trans }}</td>
+                                                                    <td>:&nbsp;</td>
+                                                                    <td> Rp. {{ total_shipping_costs|number_format }}</td>
+                                                                </tr>
+                                                            </table>
+                                                        </div>
+                                                        {# {% set grand_total_ppn = grand_total_ppn + get_ppn(order['o_shippingPrice']) %} #}
+                                                    {% else %}
+                                                        
+                                                        {% if order['o_shipped_method'] == 'self_courier' %}
+                                                            <b>{{ get_parameter('shipped_method_options')['self_courier'] }}</b>
+                                                        {% else %}
+                                                            {{ 'label.courier'|trans }}
+                                                            {% if with_tax == true %}
+                                                                <b>{{ order['o_shippingCourier'] }} [{{ order['o_shippingService'] }}]</b>
+                                                                Rp. {{ order['o_shippingPrice']|number_format }}
+                                                                {% set grand_total_ppn = grand_total_ppn + get_ppn(order['o_shippingPrice'], get_ppn_percentage(order['o_products'][0]['s_umkm_category'])) %}
+                                                            {% else %}
+                                                                <b>{{ order['o_shippingCourier'] }} [{{ order['o_shippingService'] }}]</b>
+                                                                Rp. {{ order['o_shippingPrice']|number_format }}
+                                                                {% set grand_total_ppn = grand_total_ppn + 0 %}
+                                                            {% endif %}
+                                                        {% endif %}
+                                                    {% endif %}
+
+                                                {% endif %}
+                                            </p>
+                                            <h5 class="ccp__price">
+                                                <div style="float: left;">
+                                                    <table>
+                                                        <tr>
+                                                            <td><span>{{ 'label.invoice_total'|trans }}</span></td>
+                                                            <td>:&nbsp;</td>
+                                                            {% if b2g_transaction == true %}
+                                                                {% if order['o_negotiationStatus'] == 'none' %}
+                                                                    {% set total_nego_price = order['o_total'] + order['o_shippingPrice'] %}
+                                                                {% endif %}
+                                                                <td><input type="text" class="detail-grand-total" title="" value="Rp. {{ total_nego_price|number_format }}" disabled></td>
+                                                            {% else %}
+                                                                <td><input type="text" class="detail-grand-total" title="" value="Rp. {{ order_sub_total|number_format }}" disabled></td>
+                                                            {% endif %}
+                                                         </tr>
+                                                        <tr>
+
+                                                            {% if order['u_role'] != 'ROLE_USER_GOVERNMENT' and is_pkp == total_items and is_pkp_order %}
+{#                                                            {% if order['u_role'] != 'ROLE_USER_GOVERNMENT' and is_pkp == total_items %}#}
+{#                                                                {% set grand_total_ppn = generate_ppn(order_sub_total - order['o_shippingPrice']) %}#}
+                                                                {% set grand_total_ppn = generate_ppn(order_sub_total,order['o_products'][0]['s_umkm_category']) %}
+                                                                {% set total_ppn = total_ppn + grand_total_ppn %}
+                                                            {% endif %}
+                                                            <td><span>{{ 'label.ppn'|trans|upper }}</span></td>
+                                                            <td>:&nbsp;</td>
+                                                            <td><input type="text" class="detail-grand-total" value="Rp. {{ grand_total_ppn|number_format }}" disabled></td>
+                                                        </tr>
+                                                    </table>
+                                                </div>
+                                            </h5>
+                                        </div>
+                                    </div>
+                                    <br>
+                                    <hr>
+                                {% endfor %}
+                            </div>
+                            <br>
+                            <br>
+                            <br>
+                            <div class="ccp">
+                                <div class="ccp__section">
+                                    {% if order_vouchers_list|length > 0 %}
+                                        {% set total_order_amount = 0 %}
+                                        {% set total_voucher_amount = 0 %}
+                                        {% set o_lists = [] %}
+                                        {% set v_lists = [] %}
+                                        <p class="ccp__price">
+                                            {% for voucher_list in order_vouchers_lists %}
+                                                {% if voucher_list['vul_orderId'] not in o_lists %}
+                                                    {% set total_order_amount = total_order_amount + voucher_list['vul_orderAmount'] %}
+                                                    {% set o_lists = o_lists|merge([voucher_list['vul_orderId']]) %}
+                                                {% endif %}
+                                                {% if voucher_list['v_code'] not in v_lists %}
+                                                    {% set total_voucher_amount = total_voucher_amount + voucher_list['v_amount'] %}
+                                                    {{ 'menu.voucher'|trans }}
+                                                    <b>{{ voucher_list['v_code'] }}</b>
+                                                    Rp. {{ voucher_list['v_amount']|number_format }}<br>
+                                                    {% set v_lists = v_lists|merge([voucher_list['v_code']]) %}
+                                                {% endif %}
+                                            {% endfor %}
+                                        </p>
+                                    {% endif %}
+                                    <h3 class="ccp__price">
+                                        {{ 'label.order_total'|trans }}
+                                        {% if order_vouchers_list|length > 0 %}
+                                            {% if b2g_transaction == true %}
+                                                {% set grand_total = (total_nego_price + total_shipping_costs) - total_voucher_amount %}
+                                            {% else %}
+                                                {% set grand_total = total_order_amount + product_tax_nominal - total_voucher_amount %}
+                                            {% endif %}
+
+                                            {% set grand_total_value = 'Rp. ' ~ grand_total|number_format %}
+
+                                            {% if grand_total < 0 %}
+                                                {% set disable_payment_confirmation = true %}
+{#                                                {% set grand_total = (grand_total * -1) %}#}
+{#                                                {% set grand_total_value = '(Rp. ' ~ grand_total|number_format ~ ')' %}#}
+                                                {% set grand_total_value = 'Rp. 0' %}
+                                            {% endif %}
+                                            {% if grand_total == 0 %}{% set disable_payment_confirmation = true %}{% endif %}
+                                            <span class="red">{{ grand_total_value }}</span>
+                                        {% else %}
+                                            {% if b2g_transaction ==  true %}
+                                                <span class="red">Rp. {{ (total_nego_price + grand_total_ppn)|number_format }}</span>
+                                            {% else %}
+                                                {% if is_pkp == total_items %}
+                                                    <span class="red">Rp. {{ ( grand_total + total_ppn)|number_format }}</span>
+                                                {% else %}
+                                                    <span class="red">Rp. {{ ( grand_total + grand_total_ppn)|number_format }}</span>
+                                                {% endif %}
+                                            {% endif %}
+                                        {% endif %}
+                                    </h3>
+                                </div>
+                                <div id="order-content-buttons" class="ccp__section">
+                                    {% include '@__main__/public/user/order/fragments/order_action_v2.html.twig' %}
+                                    {% if is_able_to_cancel_order == true %}
+                                        <a href="javascript:void(0);" class="sBtn small red" id="cancel-order-by-user" data-orderId="{{ orders[0]['o_sharedId'] }}" data-status="request" data-submited-by="{{ type_user_submited }}">
+                                            {{ 'label.cancel_order'|trans }}
+                                        </a>
+                                    {% endif %}
+
+                                    {% if orders[0]['o_cancellationStatus'] == 'requested' %}
+                                        <div class="badges red">
+                                            <span>
+                                                <i class="fas fa-exclamation-circle"></i>
+                                                {{ 'label.cancel_order_requested'|trans }}
+                                            </span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <template id="product-review-form-template">
+        <div class="input rating">
+            <a href="javascript:void(0);" id="star-1" class="star rate-star" data-value="1"><i class="fas fa-star"></i></a>
+            <a href="javascript:void(0);" id="star-2" class="star rate-star" data-value="2"><i class="fas fa-star"></i></a>
+            <a href="javascript:void(0);" id="star-3" class="star rate-star" data-value="3"><i class="fas fa-star"></i></a>
+            <a href="javascript:void(0);" id="star-4" class="star rate-star" data-value="4"><i class="fas fa-star"></i></a>
+            <a href="javascript:void(0);" id="star-5" class="star rate-star" data-value="5"><i class="fas fa-star"></i></a>
+            <p id="rating-error" class="error"></p>
+        </div>
+        <div class="input">
+            <textarea id="buyer-rate-review" class="no-resize" title="" placeholder="{{ 'label.write_review_alt'|trans }}" style="border: 1px solid black;"></textarea>
+            <p id="review-error" class="error"></p>
+        </div>
+        <div class="input">
+            <div class="pfl-pic">
+                <a href="javascript:void(0);" class="mask product-review-attachment">
+                    <span class="fas fa-plus-circle product-review-attachment"></span>
+                </a>
+                <div class="pra-tools" style="display: none;">
+                    <a href="javascript:void(0);" class="fas fa-trash-alt delete-pra"></a>
+                </div>
+                <img id="product-review-attachment-src" class="product-review-attachment" src="{{ asset('dist/img/user.jpg') }}" alt="">
+            </div>
+            <p id="attachment-error" class="error"></p>
+        </div>
+        <div>
+            <input id="buyer-rate-rating" type="hidden">
+            <input id="buyer-rate-attachment" type="hidden">
+            <input id="buyer-rate-pid" type="hidden" value="**pid**">
+            <input id="buyer-rate-oid" type="hidden" value="**oid**">
+        </div>
+    </template>
+
+    {% if b2g_transaction == true %}
+        <div id="popup-order-complain" class="popup general" title="complain">
+            <div class="wh100">
+                <div class="popup-wrapper">
+                    <div class="inner">
+                        <form id="buyer-order-complain-form" method="POST" accept-charset="UTF-8" action="">
+                            <a href="javascript:void(0);" class="close-btn" onclick="$(this).parents('.popup').fadeOut();"></a>
+                            <h3 class="popup-order-complain-title">{{ 'label.order_complain'|trans }}</h3>
+                            <div class="input">
+                                <textarea id="buyer-order-complain-description" name="description" class="no-resize" title="" placeholder="{{ 'label.message'|trans }}" style="border: 1px solid black;"></textarea>
+                                <p id="buyer-order-complain-description-error" class="error"></p>
+                            </div>
+                            <div class="btn-wrapper">
+                                {{ csrf_field('b2g_order_complain') }}
+                                <input id="popup-order-complain-btn" type="submit" class="sBtn red" value="{{ 'button.submit'|trans }}">
+                                <a href="javascript:void(0);" class="gBtn red" onclick="$(this).parents('.popup').fadeOut();">
+                                    {{ 'button.close'|trans }}
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <div><input id="dz-pra-uploader" type="file" style="display: none;"></div>
+{% endblock %}

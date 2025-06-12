@@ -1,0 +1,116 @@
+<style>
+    .logo-qr{
+        position: relative;
+        margin-top: 10px;
+        z-index: 4;
+        .qris-logo{
+            width: 100px;
+            height: auto;
+            float: left;
+            z-index: 6;
+        }
+        
+    }
+    .logo-qr p{
+        font-weight: 800;
+    }
+    .gpn-logo{
+        width: 60px;
+        height: auto;
+        position: absolute;
+        top: -20px;
+        right: 0;
+        z-index: 5;
+    }
+    .btn-ppk-red-border {
+        background-color: transparent;
+        font-size: 14px;
+        padding: 15px 73px;
+        text-align: center;
+        border-radius: 5px;
+        color: #4b85cc;
+        border: 1px solid #4b85cc;
+        margin: 2px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: .5s;
+    }
+    .btn-ppk-red-border:hover{
+        background-color: #4b85cc;
+        color: #fff;
+        transition: .5s;
+    }
+</style>
+<main class="payment-qris">
+    <section>
+        <div class="container">
+            <div class="row">
+                <div class="dc5 tc8 mc11 auto">
+                    <div class="box box-qris">
+                        {% if qris_payment_data['qrImage'] is defined and qris_payment_data['qrImage'] is not empty %}
+                            <div class="step">
+                                <h6 class="title">A. Pembayaran Dengan QRIS</h6>
+                                <ol class="nostep">
+                                    <li>Login aplikasi yang akan digunakan untuk proses pembayaran QRIS seperti Mobile Banking BPD Bali/Mobile Banking bank lain yang memiliki fitur Kartu Kredit Indonesia (KKI) Segmen Pemerintah (KKPD), atau Dompet Digital seperti OVO, GoPay, dan lainnya.</li>
+                                    <li>Pilih pembayaran melalui <strong>QRIS</strong>.</li>
+                                    <li>Scan QRCode yang muncul dibawah ini</li>
+                                    <li>Pastikan nominal tagihan yang tertera sudah sesuai</li>
+                                    <li>Masukkan Password atau PIN.</li>
+                                    <li>Transaksi melalui QRIS berhasil.</li>
+                                    <li>Selesai.</li>
+                                </ol>
+                                <hr>
+                            </div>
+                        {% endif %}
+                        <div class="inner-qris">
+                            <figure class="logo-qr">
+                                <img src="{{ asset('assets/img/qris/QRIS-Logo.png') }}" class="qris-logo" alt="QRIS Logo">
+                                <p>
+                                    QR Code Standar
+                                    <br>
+                                    Pembayaran Nasional
+                                </p>
+                                <img src="{{ asset('assets/img/qris/GPN-Logo.png') }}" class="gpn-logo" alt="GPN Logo">
+                            </figure>
+                            <h4 class="nama">{{ qris_pay['merchant_name'] }}</h4>
+                            <h5 class="id">nmid: {{ qris_pay['nmid'] }}</h5>
+                            {% if qris_payment_data['error'] is defined %}
+                                <div class="qr sgd-text-center">
+                                    <p>Terjadi kesalahan saat meminta data pembayaran.</p>
+                                </div>
+                                <p class="info sgd-text-center">
+                                    <a href="{{ path('user_order_pay_with_channel', {'channel': 'qris', 'id': shared_id}) }}" class="sBtn red">{{ 'label.reload'|trans }}</a>
+                                </p>
+                            {% elseif qris_payment_data['qrImage'] is defined and qris_payment_data['qrImage'] is not empty %}
+                                <div class="qr">
+                                    <img src="{{ qris_payment_data['qrImage'] }}" alt="">
+                                </div>
+                                <p class="info">Dicetak oleh: {{ qris_pay['merchant_pan_print'] }}</p>
+                                <img src="{{ asset('dist/img/segitiga1.png') }}" class="shape1" alt="shape decor">
+                                <img src="{{ asset('dist/img/segitiga2.png') }}" class="shape2" alt="shape decor">
+                            {% endif %}
+                        </div>
+                        {% if qris_payment_data['qrImage'] is defined and qris_payment_data['qrImage'] is not empty %}
+                            <div class="step">
+                                <div class="payment-info">
+                                    <p class="info">Rp. {{ nominal|number_format }}</p>
+                                    <p class="info">Nomor Tagihan: {{ qris_payment_data['billNumber'] }}</p>
+                                    <p class="info">Expired: {{ qris_payment_data['expiredDate'] }}</p>
+                                </div>
+                                <hr>
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% if qris_payment_data['qrImage'] is defined and qris_payment_data['qrImage'] is not empty %}
+                        <p class="info sgd-text-center">
+                            <i>Setelah melakukan pembayaran,silahkan klik tombol kembali untuk melihat status pembayaran</i>
+                        </p>
+                    {% endif %}
+                    <p class="info sgd-text-center" style="margin-top: 40px;">
+                        <a href="{{ path('user_ppktreasurer_detail', {'id': order_id, 'back_qris': true}) }}" class="btn-ppk-red-border">Kembali</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>

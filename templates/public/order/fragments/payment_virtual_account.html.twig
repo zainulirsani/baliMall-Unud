@@ -1,0 +1,100 @@
+<style>
+    .img-100 { width: 100px; }
+    .mt-60 { margin-top: 60px; }
+    .list-upper-alpha { list-style: upper-alpha; }
+    .list-item { padding-bottom: 5px; border-bottom: 1px solid #eaeaea; }
+    .p-bold { font-weight: bold; }
+    .list-decimal { list-style: decimal; }
+    .list-decimal li { text-align: justify; }
+</style>
+<main class="cr-page">
+    <section>
+        <div class="container">
+            <div class="sc-cart row">
+                <div class="dc6 tc12 auto box">
+                    <div class="ct">
+                        <p>
+                            {{ va_pay['merchant_name'] }}
+                        </p>
+                    </div>
+                    {% if va_payment_data['error'] is defined %}
+                        <div class="mt-60 sgd-text-center">
+                            <p>Terjadi kesalahan saat meminta data pembayaran.</p>
+                        </div>
+                        <p class="info sgd-text-center">
+                            <a href="{{ path('user_order_pay_with_channel', {'channel': 'virtual-account', 'id': shared_id}) }}" class="sBtn red">{{ 'label.reload'|trans }}</a>
+                        </p>
+                    {% elseif va_payment_data[0]['No Tagihan'] is defined and va_payment_data[0]['No Tagihan'] is not empty %}
+                        {% set va_bill_number = va_payment_data[0]['No Tagihan'] %}
+                        <div class="mt-60 sgd-text-center">
+                            <p>
+                                Nomor ID/Tagihan:<br>
+                                <b>{{ va_bill_number }}</b>
+                            </p>
+                            <p>
+                                FORMAT VIRTUAL ACCOUNT BALIMALL:<br>
+                                <b>129 [Kode Bank BPD Bali] + 5222 [Kode Prefik BALIMALL] + {{ va_bill_number }} [Nomor ID/Tagihan]</b>
+                            </p>
+                        </div>
+                        <div class="ct">
+                            <p>
+                                Nominal:<br>
+                                <b>Rp. {{ nominal|number_format }}</b>
+                            </p>
+                        </div>
+                        <hr>
+                        <div>
+                            <ul class="list-upper-alpha">
+                                <li class="list-item">
+                                    <p class="p-bold">PEMBAYARAN DARI BPD BALI</p>
+                                    <ol class="list-decimal">
+                                        <li>Masukkan username dan password / PIN pada aplikasi Mobile / Internet Banking.</li>
+                                        <li>Pilih menu "<b>Pembayaran</b>"</li>
+                                        <li>Pilih "<b>E-Commerce</b>"</li>
+                                        <li>Pilih Input Nomor ID lalu Pilih Produk "<b>BaliMall</b>"</li>
+                                        <li>Input Nomor ID/tagihan <b>{{ va_bill_number }}</b></li>
+                                        <li>Input PIN untuk melanjutkan transaksi.</li>
+                                        <li>Selesai.</li>
+                                    </ol>
+                                </li>
+                                <li class="list-item">
+                                    <p class="p-bold">PEMBAYARAN DARI ATM BERSAMA</p>
+                                    <ol class="list-decimal">
+                                        <li>Pilih Bahasa</li>
+                                        <li>Masukkan PIN</li>
+                                        <li>Pilih "<b>Transaksi Lainnya</b>"</li>
+                                        <li>Pilih "<b>Transfer</b>"</li>
+                                        <li>Pilih "<b>Ke Rekening Bank Lain ATM Bersama/Link</b>"</li>
+                                        <li>Masukkan nomor rekening tujuan <b>Virtual Account 1295222{{ va_bill_number }}</b>, lalu tekan "<b>Benar</b>"</li>
+                                        <li>Silakan isi atau kosongkan nomor referensi transfer kemudian tekan "<b>Benar</b>"</li>
+                                        <li>Muncul Layar Konfirmasi Transfer yang berisi nomor rekening tujuan bank beserta jumlah yang dibayar,</li>
+                                        <li>Jika sudah benar, Tekan "<b>Benar</b>".</li>
+                                        <li>Selesai</li>
+                                    </ol>
+                                </li>
+                                <li class="list-item">
+                                    <p class="p-bold">PEMBAYARAN DARI E-BANKING BANK LAIN</p>
+                                    <ol class="list-decimal">
+                                        <li>Login pada alamat internet Banking Anda</li>
+                                        <li>Pilih menu "<b>Transfer</b>"</li>
+                                        <li>Pilih menu "<b>Transfer Antar Bank</b>"</li>
+                                        <li>Pilih bank tujuan "<b>Bank BPD Bali</b>"</li>
+                                        <li>Masukkan nomor rekening tujuan <b>Virtual Account 1295222{{ va_bill_number }}</b></li>
+                                        <li>Input nominal yang ingin ditransfer sesuai harga tiket di atas, lalu tekan "<b>Benar</b>"</li>
+                                        <li>Muncul Layar Konfirmasi Transfer yang berisi nomor rekening tujuan bank beserta jumlah yang dibayar</li>
+                                        <li>Masukkan Password atau PIN</li>
+                                        <li>Selesai</li>
+                                    </ol>
+                                </li>
+                            </ul>
+                        </div>
+                    {% endif %}
+                    <div class="ct">
+                        <p>Support By</p>
+                        <img src="{{ asset('assets/img/qris/BPD-Logo.png') }}" class="img-100" alt="BPD Logo">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>

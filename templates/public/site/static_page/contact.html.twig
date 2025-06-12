@@ -1,0 +1,47 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% block content %}
+    <main class="nothing-page">
+        <section>
+            <div class="container">
+                <div class="row">
+                    <div class="dc6 mc12 auto">
+                        <div class="box login-wrapper">
+                            <h1 class="ct">{{ 'title.page.contact'|trans }}</h1>
+                            <form id="contact-us-form" action="" method="post" accept-charset="UTF-8">
+                                {% set error = errors['[name]'] is defined ? 'error' : null %}
+                                <div class="input {{ error }}">
+                                    <input type="text" name="name" value="{{ form_data['name']|default('') }}" title="" placeholder="{{ 'label.name'|trans }}">
+                                    {% if error %}<p class="{{ error }}">{{ errors['[name]']|trans({}, 'validators') }}</p>{% endif %}
+                                </div>
+                                {% set error = errors['[email]'] is defined ? 'error' : null %}
+                                <div class="input {{ error }}">
+                                    <input type="text" name="email" value="{{ form_data['email']|default('') }}" title="" placeholder="{{ 'label.email'|trans }}">
+                                    {% if error %}<p class="{{ error }}">{{ errors['[email]']|trans({}, 'validators') }}</p>{% endif %}
+                                </div>
+                                {% set error = errors['[phone]'] is defined ? 'error' : null %}
+                                <div class="input {{ error }}">
+                                    <input type="text" name="phone" value="{{ form_data['phone']|default('') }}" title="" placeholder="{{ 'label.phone'|trans }}">
+                                    {% if error %}<p class="{{ error }}">{{ errors['[phone]']|trans({}, 'validators') }}</p>{% endif %}
+                                </div>
+                                {% set error = errors['[message]'] is defined ? 'error' : null %}
+                                <div class="input {{ error }}">
+                                    <textarea name="message" class="no-resize" title="" placeholder="{{ 'label.type_message'|trans }}">{{ form_data['message']|default() }}</textarea>
+                                    {% if error %}<p class="{{ error }}">{{ errors['[message]']|trans({}, 'validators') }}</p>{% endif %}
+                                </div>
+                                <div class="input">
+                                    <input type="hidden" name="_csrf_token" value="{{ csrf_token(token_id) }}">
+                                    <input type="hidden" name="_csrf_token_id" value="{{ token_id }}">
+                                </div>
+                                <div class="input">
+                                    <input type="submit" value="{{ 'button.submit'|trans }}" class="sBtn red">
+                                    <div class="clear"></div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}

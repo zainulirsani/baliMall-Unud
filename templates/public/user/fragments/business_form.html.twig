@@ -1,0 +1,20 @@
+{% set error = errors['nik'] is defined ? 'error' : null %}
+<div class="input {{ error }}">
+    <input id="input-nik" type="text" name="nik" value="{{ form_data['u_nik']|default() }}" title="" placeholder="{{ 'label.nik'|trans }}">
+    {% if error %}<p class="{{ error }}">{{ errors['nik'] }}</p>{% endif %}
+</div>
+{% set error = errors['title'] is defined ? 'error' : null %}
+<div class="input {{ error }}">
+    <input id="input-company-name" type="text" name="company_name" value="{{ form_data['u_companyName']|default() }}" title="" placeholder="{{ 'label.company_name'|trans }}">
+    {% if error %}<p class="{{ error }}">{{ errors['title'] }}</p>{% endif %}
+</div>
+{% set error = errors['companyPhone'] is defined ? 'error' : null %}
+<div class="input {{ error }}">
+    <input id="input-company-phone" type="text" name="company_phone" value="{{ form_data['u_companyPhone']|default() }}" title="" placeholder="{{ 'label.company_phone'|trans }}">
+    {% if error %}<p class="{{ error }}">{{ errors['companyPhone'] }}</p>{% endif %}
+</div>
+{% set error = errors['companyRole'] is defined ? 'error' : null %}
+<div class="input {{ error }}">
+    <input id="input-company-role" type="text" name="company_role" value="{{ form_data['u_companyRole']|default() }}" title="" placeholder="{{ 'label.company_role'|trans }}">
+    {% if error %}<p class="{{ error }}">{{ errors['companyRole'] }}</p>{% endif %}
+</div>

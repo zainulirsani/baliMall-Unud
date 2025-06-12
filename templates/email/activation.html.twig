@@ -1,0 +1,11 @@
+{% extends '@__main__/public/base/layouts/email.html.twig' %}
+
+{% block body %}
+    <div class="text">
+        <h1>Hi, {{ name }}!</h1>
+        <h3>Selamat! Akun Anda telah aktif.</h3>
+        <p>
+            Gunakan tautan berikut untuk masuk ke dalam beranda akun Anda: <a href="{{ link }}" target="_blank">Masuk</a>
+        </p>
+    </div>
+{% endblock %}

@@ -1,0 +1,13 @@
+<table id="data-table" class="table table-bordered table-hover table-striped" style="width:100%">
+    
+    <thead>
+        <tr>
+            {% for header in data_table.getHeaders %}
+                {% set tbl_label = 'label.' ~ header %}
+                <th>{% if header == 'id' %}<input type="checkbox" class="check-all" title="">{% else %}{{ tbl_label|trans }}{% endif %}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>

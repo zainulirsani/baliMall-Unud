@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="{{ locale }}'">
+    <head>
+        {% include '@__main__/admin/base/partials/metadata.html.twig' %}
+        {% block meta %}{% endblock %}
+        {% include '@__main__/admin/base/partials/css.html.twig' %}
+        {% block stylesheets %}{% endblock %}
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+        <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+        <![endif]-->
+        <script src="{{ asset('dist/compiled/jquery.js') }}"></script>
+    </head>
+    <body class="hold-transition skin-blue sidebar-mini">
+        <div class="wrapper">
+            {% block body %}{% endblock %}
+        </div>
+        {% include '@__main__/admin/base/partials/js.html.twig' %}
+        {% block javascripts %}{% endblock %}
+    </body>
+</html>

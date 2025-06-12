@@ -1,0 +1,445 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% block stylesheets %}
+<style>
+    .temp-btn {
+        min-width: 120px;
+        text-align: center;
+        height: 24px;
+        line-height: 24px;
+        border-radius: 8px;
+    }
+    .styled-table {
+        border-collapse: collapse;
+        margin: 25px 0;
+        font-size: 0.9em;
+        font-family: sans-serif;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+    }
+    .styled-table thead tr {
+        background-color: #4b85cc;
+        color: #ffffff;
+        text-align: left;
+    }
+    .styled-table th,
+    .styled-table td {
+        padding: 12px 15px;
+    }
+    .styled-table tbody tr {
+        border-bottom: 1px solid #dddddd;
+    }
+
+    .styled-table tbody tr:nth-of-type(even) {
+        background-color: #f3f3f3;
+    }
+
+    .styled-table tbody tr:last-of-type {
+        border-bottom: 2px solid #4b85cc;
+    }
+    .styled-table tbody tr.active-row {
+        font-weight: bold;
+        color: #4b85cc;
+    }
+    .badge-orange {
+        background-color: #FEF2E5;
+        font-size: 12px;
+        padding: 5px 10px;
+        text-align: center;
+        border-radius: 10px;
+        color: #CD6200;
+        border: 1px solid #CD6200;
+    }
+    .badge-green {
+        background-color: #EBF9F1;
+        font-size: 12px;
+        padding: 5px 10px;
+        text-align: center;
+        border-radius: 10px;
+        color: #1F9254;
+        border: 1px solid #1F9254;
+    }
+    .badge-red {
+        background-color: #ffa5a582;
+        font-size: 12px;
+        padding: 5px 10px;
+        text-align: center;
+        border-radius: 10px;
+        color: #4b85cc;
+        border: 1px solid #4b85cc;
+    }
+    .badge-blue {
+        background-color: #008ae838;
+        font-size: 12px;
+        padding: 5px 10px;
+        text-align: center;
+        border-radius: 10px;
+        color: #008ae8;
+        border: 1px solid #008ae8;
+    }
+    .btn-send-red,.btn-send-red:hover {
+        background-color: #4b85cc;
+        font-size: 14px;
+        padding: 5px 10px;
+        text-align: center;
+        border-radius: 5px;
+        color: #fff;
+        border: 1px solid #4b85cc;
+        margin: 2px;
+        cursor: pointer;
+        text-decoration: none;
+    }
+    .btn-send-red-border,.btn-send-red-border:hover {
+        background-color: transparent;
+        font-size: 14px;
+        padding: 5px 10px;
+        text-align: center;
+        border-radius: 5px;
+        color: #4b85cc;
+        border: 1px solid #4b85cc;
+        margin: 2px;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .input input[type=text] {
+        background-color: #FFF;
+        border: 1.5px solid #ededed;
+    }
+
+    .btn-search-ppk,.btn-search-ppk:hover {
+        background-color: #4b85cc;
+        font-size: 14px;
+        padding: 14px 18px;
+        text-align: center;
+        border-radius: 5px;
+        color: #fff;
+        border: 1px solid #4b85cc;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .btn-info-ppk,.btn-info-ppk:hover {
+        background-color: #0dcaf0;
+        font-size: 14px;
+        padding: 14px 18px;
+        text-align: center;
+        border-radius: 5px;
+        color: #fff;
+        border: 1px solid #0dcaf0;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .table_ppk_status tr,.table_ppk_status td {
+        padding: 10px;
+    }
+
+    .text-center {text-align:center;}
+    ::-webkit-scrollbar {
+    -webkit-appearance: none;
+        width: 7px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        border-radius: 4px;
+        background-color: rgba(0, 0, 0, .5);
+        box-shadow: 0 0 1px rgba(255, 255, 255, .5);
+    }
+    .fake-scroll-div {
+        overflow-x: scroll !important;
+        height: 20px !important;
+        margin-bottom: 0px !important;
+    }
+
+    .btn-search-ppk,.btn-search-ppk:hover {
+        background-color: #4b85cc;
+        font-size: 14px;
+        padding: 14px 18px;
+        text-align: center;
+        border-radius: 5px;
+        color: #fff;
+        border: 1px solid #4b85cc;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .btn-send-red-border{
+        background-color: transparent;
+        font-size: 14px;
+        padding: 14px 18px;
+        text-align: center;
+        border-radius: 5px;
+        color: #4b85cc;
+        border: 1px solid #4b85cc;
+        margin: 2px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: 0.5s;
+    }
+
+    .btn-send-red-border:hover {
+        background-color: #4b85cc;
+        color: #fff;
+        transition: 0.5s;
+    }
+
+    .text-note {
+        margin-top: 10px;
+        border: 1px solid #dcdcdc;
+        padding: 10px;
+        font-size: 14px;
+        border-radius: 4px;
+        overflow-y: auto;
+        height: 100px; /* or any desired height */
+        width: 100%; /* or any desired width */
+        resize: vertical; /* allows vertical resizing */
+    }
+
+</style>
+
+{% endblock stylesheets %}
+
+{% block content %}
+
+<main class="pdl dbu">
+    <section>
+        <div class="container">
+            <div class="box">
+                <div  class="row">
+
+                    <div class="dc12 tc12 center" style="margin: 0 auto;" >
+                        <div style="display:flex; justify-content: space-between; align-items: center;">
+                            <h4>Data Konfirmasi Order</h4>
+                            <a href="{{ path('user_pemesanan') }}">Kembali</a>
+                        </div>
+                        <div class="pr-card">
+                                {% set product_list = order['o_products'] %}
+                                {% set product_qty = order['o_products'][0]['op_quantity'] %}
+                                {% set product_price = order['o_products'][0]['op_price'] %}
+                                {% set product_total = product_qty * product_price %}
+                                {% set date_order = order_date_day %}
+                            
+                            <p>Daftar persetujuan pengiriman yang telah dilakukan.</p>
+
+                            <br>
+
+                            <h4>Informasi Pesanan</h4>
+                            <div class="row">
+                                <div class="dc6">
+                                    <p>Nomor Pesanan:
+                                        {{ order['o_id'] }}</p>
+                                    <p>Tanggal Pesanan:
+                                        {{ date_order }}</p>
+                                </div>
+                                <div class="dc6">
+                                    <p>Total Harga: Rp.{{ product_total|number_format }}</p>
+                                    <p>
+                                        Status:  {{ get_parameter('order_statuses')[order['o_status']]|trans }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <br>
+                            <form action="{{ path('user_ppktreasurer_shipping_partial_proccess') }}" id="form-modal-done" enctype="multipart/form-data" method="POST">
+                                {{ csrf_field(token_id) }}
+
+                                <input type="hidden" name="order_id" value="{{ order['o_id'] }}">
+                                <h4>List Pesanan</h4>
+                                <div style="padding: 10px; overflow-x: scroll; width: 100%;">
+                                    <table class="styled-table" width="100%">
+                                        <thead>
+                                            <tr>
+                                                <th>No</th>
+                                                <th>Product Name</th>
+                                                <th>Base Price</th>
+                                                <th>Quantity</th>
+                                                <th>Total Price</th>
+                                                <th>Barang disetujui kirim</th>
+                                                <th>Sisa Barang</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% set total_qty = 0 %}
+                                            {% for key, item in product_list %}
+
+                                                {% set total_qty =  total_qty + item.op_quantityToSend %}
+                                                <tr>
+                                                    <td>{{ loop.index }}</td>
+                                                    <td>{{ item.op_originalName }}</td>
+                                                    <td>
+                                                        Rp.{{ item.op_price|number_format }}
+                                                    </td>
+                                                    <td>
+                                                        {{ item.op_quantity|number_format }}
+                                                    </td>
+                                                    <td>
+                                                        Rp.{{ item.op_totalPrice|number_format }}
+                                                    </td>
+                                                    <td>
+                                                        <input type="hidden" name="order_products[{{ key }}][id]" value="{{ item.op_id }}">
+                                                        <input type="number" {{ item.op_quantityToSend == 0 ? 'disabled' : '' }} class="form-control" style="width: 100%; padding: 5px; border-radius: 5px; border: 1px solid #ccc;" name="order_products[{{ key }}][quantity_to_send]" min="0" max="{{ item.op_quantityToSend == 0 ? 0 : item.op_quantityToSend }}" value="0">
+                                                    </td>
+                                                    <td>
+                                                        {{  item.op_quantityToSend == 0 ? 'Habis' : item.op_quantityToSend }}
+                                                    </td>
+                                                    {# <td>
+                                                        <button class="btn-product-red action-send-product-btn">Aksi</button>
+                                                        <button class="btn-product-red confirm-received-product-btn">Konfirmasi</button>
+                                                    </td> #}
+                                                </tr>
+                                            {% endfor %}
+
+                                            
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <br>
+                                {% if total_qty > 0 %}
+                                    <div class="input-group mb-3">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">Catatan Pengiriman:</span>
+                                        </div>
+                                        <textarea id="note" class="form-control text-note" name="note" rows="5" style="resize: none; width: 100%;" placeholder="Masukkan catatan pengiriman..."></textarea>
+                                    </div>
+                                    <br>
+                                    <div style="text-align: right;">
+                                        <button type="button" class="btn-send-red" id="popup-approve-pengiriman-btn" style="padding: 12px">Setujui Pengiriman</button>
+                                    </div>
+                                {% endif %}
+                            </form>
+
+                            <hr>
+                            <h4>Riwayat Pengiriman</h4>
+                            <div style="padding: 10px; overflow-x: scroll; width: 100%;">
+                                <table class="styled-table" width="100%">
+                                    <thead>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>Tanggal Dibuat</th>
+                                            <th>Total Transaksi</th>
+                                            <th>Total Qty</th>
+                                            <th>Status</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for key, item in order_partials %}
+                                            <tr>
+                                                <td>{{ key + 1 }}</td>
+                                                <td>{{ item['date_format'] }}</td>
+                                                <td>
+                                                    Rp. {{ item['o_total']|number_format }}
+                                                </td>
+
+                                                <td>
+                                                    {{ item['total_qty']  }}
+                                                </td>
+
+                                                <td>
+                                                    {% if item['o_status'] == 'processed' %}
+                                                        <div class="badge-orange"> Menunggu Pengiriman </div>
+                                                    {% elseif item['o_status'] == 'confirm_order_ppk' %}
+                                                        <div class="badge-orange">Menunggu Konfirmasi PPK</div>
+                                                    {% elseif item['o_status'] == 'shipped' %}
+                                                        <div class="badge-orange"> Menunggu Konfirmasi Penerimaan </div>
+                                                    {% elseif item['o_status'] == 'received' or item['o_status'] == 'pending_payment' %}
+                                                        <div class="badge-orange"> Menunggu Pembayaran </div>
+                                                    {% elseif (item['o_status'] == 'pending_payment' or item['o_status'] == 'payment_process') %}
+                                                        <div class="badge-orange"> Menunggu Verifikasi Pembayaran </div>
+                                                    {% elseif item['o_status'] == 'paid' %}
+                                                        <div class="badge-green"> Selesai </div>
+                                                    {% elseif item['o_status'] == 'cancel' %}
+                                                        <div class="badge-red"> Transaksi Dibatalkan </div>
+                                                    {% endif %}
+                                                    
+                                                </td>
+                                                
+                                                <td>
+                                                    <a target="_blank" href="{{ path('user_ppktreasurer_detail', {id: item['o_id']}) }}">
+                                                        <button type="button" class="btn-send-red">Detail</button>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+
+
+                                        {% if order_partials|length == 0 %}
+
+                                            <tr>
+                                                <td colspan="7" style="text-align: center;">Tidak ada data</td>
+                                            </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<div id="popup-approve-pengiriman" class="popup general" title="approve_pengiriman">
+    <div class="wh100">
+        <div class="popup-wrapper">
+            <div class="inner">
+                    <a href="javascript:void(0);" class="close-btn" onclick="$(this).parents('.popup').fadeOut();"></a>
+                    <h3>Konfirmasi</h3>
+                    <p>Apakah anda yakin ingin menyetujui pengiriman?</p>
+                    
+                    <div style="display: flex; align-items: center; justify-content: center; ">
+                        <div class="btn-wrapper" style="margin-top: 0; margin-right: 15px;">
+                            <input id="approve-pengiriman-btn" type="submit" class="sBtn red"
+                                value="Setuju Pengiriman">
+                        </div>
+                        <a href="javascript:void(0);" class="gBtn red"
+                        onclick="$(this).parents('.popup').fadeOut();">
+                            {{ 'button.close'|trans }}
+                        </a>
+                    </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+ <script>
+    {# document.querySelector('#shipping-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        console.log(formData);
+        console.log(`quantity_to_send: ${formData.get('quantity_to_send')}`);
+    }); #}
+
+    $('#popup-approve-pengiriman-btn').click(function(e) {
+        e.preventDefault();
+
+        $('#popup-approve-pengiriman').show();
+    });
+    $('#approve-pengiriman-btn').click(function(e) {
+        e.preventDefault();
+
+        $('#popup-approve-pengiriman').hide();
+
+        $('#form-modal-done')[0].submit();
+        
+    });
+</script >                      
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+                                
+
+   

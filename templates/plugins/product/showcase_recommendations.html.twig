@@ -1,0 +1,104 @@
+<div id="req-box" class="box box-req">
+    <h6 class="title">{{ 'title.page.recommendation'|trans }}</h6>
+</div>
+<div class="row">
+    {% for product in products|slice(0,8) %}
+        {% set store_name = 'N/A' %}
+        {% set store_city = 'N/A' %}
+        {% set store_slug = '' %}
+        {% set store_url = 'javascript:void(0);' %}
+        {% set store_pkp = false %}
+        {% set product_url = 'javascript:void(0);' %}
+        {% set rating_count = 0 %}
+        {% set store_verified = false %}
+        {% set product_id = product.getId|default(0) %}
+
+        {% if product.getStore is not empty %}
+            {% set store_name = product.getStore.getName %}
+            {% set store_city = product.getStore.getCity %}
+            {% set store_slug = product.getStore.getSlug %}
+            {% set store_verified = product.getStore.getIsVerified|to_bool %}
+            {% set store_url = path('store_page', {'store': store_slug}) %}
+            {% set store_pkp = product.getStore.getIsPKP|to_bool %}
+            {% set umkm_category = product.getStore.getUmkmCategory|replace({'_':' '})|title %}
+            {% set product_url = path('store_product_page', {
+                'store': store_slug,
+                'product': product.getSlug,
+            }) %}
+            {% set text_pkp = store_pkp ? 'PKP':'Non PKP' %}
+            {% set text_product = 'label.products'|trans %}
+            {% set text_pdn = product.getIsPdn == null ? 'label.pdn_product' : 'label.' ~ product.getIsPdn ~ '_product' %}
+        {% endif %}
+
+        {% if product.getRatingCount > 0 and product.getReviewTotal > 0 %}
+            {% set rating_count = product.getRatingCount / product.getReviewTotal|round(0, 'floor') %}
+        {% endif %}
+
+        <div class="dc3 tc6 single-item-detail">
+            <div class="box">
+                <figure>
+                    <a href="{{ product_url }}" class="btn-gtm-bm" data-id="{{ product_id }}">
+                        <img src="{{ path('sftp_show_file', {'path': product_main_image(product.getId|default(0))}) }}" alt="">
+                    </a>
+                </figure>
+                <div class="description">
+                    <h6>
+                        <a href="{{ product_url }}" class="btn-gtm-bm" data-id="{{ product_id }}">{{ product.getName }}</a>
+                    </h6>
+                    <span style="color: #999;font-size: 10px">{{ product.getSku }}</span>
+                    <p>
+                        <span style="color: #999;font-size: 10px">{{ text_pdn|trans }}</span>
+                    </p>
+                    <p>
+                        {# {% set product_price = store_pkp ? (product.getPrice + (product.getPrice * 0.1)) : product.getPrice %} #}
+                        <strong>Rp. {{ product.getPrice|number_format }}</strong>
+                        <span style="font-size: 10px">{{ 'label.price_exclude_tax'|trans }}</span>
+                        <br>
+                        {{ store_city }}
+                    </p>
+                    <div class="stat-wrapper row">
+                        <p class="dc4">
+                            <i class="fas fa-tag"></i> {{ product.getReviewTotal }}
+                        </p>
+                        <p class="dc4">
+                            <i class="fas fa-eye"></i> {{ product.getViewCount }}
+                        </p>
+                        <p class="dc4">
+                            <i class="fas fa-star"></i> {{ product.getRatingCount }}
+                        </p>
+                    </div>
+                </div>
+                <div class="vendor-info">
+                    <p>
+                        <a href="{{ store_url }}">
+                            {% if store_verified %}
+                                {# <i class="fas fa-store"><span>{{ 'label.verified_merchant'|trans }}</span></i> #}
+                            {% endif %}
+                            {{ store_name|raw }}
+                        </a>
+                    </p>
+                    <p>
+                        <span style="color: #999;font-size: 10px">{{ text_pkp }} | {{umkm_category}}</span>
+                    </p>
+                    {% if enable_chat and app.user and is_buyer and is_government and store_verified %}
+                        <a href="javascript:void(0);" class="chat" data-slug="{{ store_slug }}">
+                            <i class="fas fa-envelope"></i>
+                        </a>
+                    {% endif %}
+                    <div class="clear"></div>
+                </div>
+                <div>
+                    <input id="gtm-pc-name-{{ product_id }}" type="hidden" value="{{ product.getName }}">
+                    <input id="gtm-pc-id-{{ product_id }}" type="hidden" value="{{ product_id }}">
+                    <input id="gtm-pc-price-{{ product_id }}" type="hidden" value="{{ product.getPrice|number_format(2, '.', '') }}">
+                    <input id="gtm-pc-brand-{{ product_id }}" type="hidden" value="{{ store_name }}">
+                    <input id="gtm-pc-category-{{ product_id }}" type="hidden" value="{{ product_category_name(product_id) }}">
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<div class="button">
+    <a href="{{ path('search') }}" class="btn">{{ 'message.info.view_another_product'|trans }}</a>
+</div>

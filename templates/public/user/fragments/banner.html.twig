@@ -1,0 +1,5 @@
+{% set user_banner_profile = app.user.bannerProfile is not empty ? app.user.bannerProfile : 'dist/img/user-banner.jpg' %}
+
+<div class="new-banner">
+    <img src="{{ asset(user_banner_profile) }}" alt="">
+</div>

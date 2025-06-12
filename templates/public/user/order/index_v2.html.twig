@@ -1,0 +1,274 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% set step_status = [
+    'dist/img/s-paid.png',
+    'dist/img/s-confirmation.png',
+    'dist/img/s-proccessed.png',
+    'dist/img/s-shipped.png',
+] %}
+{% set step_status_b2g = [
+    'dist/img/s-confirmation.png',
+    'dist/img/s-deal.png',
+    'dist/img/s-proccessed.png',
+    'dist/img/s-shipped.png',
+    'dist/img/s-document.png',
+    'dist/img/s-invoice.png',
+    'dist/img/s-paid.png',
+    'dist/img/s-paid.png',
+] %}
+{% set step_status_text = ['payment_process', 'paid', 'processed', 'shipped'] %}
+{% set step_status_text_b2g = ['confirmed', 'processed', 'shipped', 'document', 'tax_invoice','payment_process', 'paid'] %}
+
+{% block content %}
+    <main class="pdl">
+        {% include '@__main__/public/base/partials/breadcrumb.html.twig' %}
+        <section>
+            <div class="container">
+                <div class="box">
+                    <div class="row">
+                        {% include '@__main__/public/user/fragments/menu.html.twig' %}
+                        <div class="dc9 tc12">
+                            <div class="sub-title">
+                                <div class="text">
+                                    <h3>{{ 'label.order_history'|trans }}</h3>
+                                </div>
+                                <div class="clear"></div>
+                            </div>
+                            {% include '@__main__/public/user/order/fragments/order_filter.html.twig' %}
+                            <div id="user-order-list" class="pr-card" data-id="{{ app.user.id }}">
+                                <div class="row">
+                                    {% if orders is empty %}
+                                        <div style="text-align: center">
+                                            <h2 style="color:#8593A9">Hasil tidak ditemukan!</h2>
+                                        </div>
+                                    {% else %}
+                                        {% for order in orders %}
+				                        {% set tax_value = order['o_products'][0]['op_taxValue']|to_int %}
+                                            {% set grand_total = order['o_total'] + order['o_shippingPrice'] %}
+                                            {% if order['o_isB2gTransaction'] == true %}
+                                                {# nilai total backup di db tidak include ppn sehingga di tambah ppn nya, kalau ongkir di db sudah otomatis include ppn #}
+                                                {% if order['o_negotiationStatus'] == 'none' %}
+                                                    {% set grand_total = order['o_totalBackup'] + order['o_shippingPriceBackup'] %}
+                                                {% else %}
+                                                    {% set is_pkp_order = order['o_products'][0]['op_withTax'] is defined ? order['o_products'][0]['op_withTax']|to_bool : false %}
+                                                    {% if is_pkp_order %}
+                                                        {% set grand_total = (order['o_totalBackup'] + generate_ppn(order['o_totalBackup'], order['o_products'][0]['s_umkm_category'], tax_value)) + order['o_shippingPriceBackup'] %}
+                                                    {% else %}
+                                                        {% set grand_total = order['o_totalBackup'] + order['o_shippingPriceBackup'] %}
+                                                    {% endif %}
+                                                {% endif %}
+                                            {% else %}
+                                                {% for product in order['o_products'] %}
+                                                    {% set grand_total = grand_total + product['op_taxNominal'] %}
+                                                {% endfor %}
+                                            {% endif %}
+                                            {% set order_status = order_step_status(order['o_status'] == 'pending_approve' ? 'shipped': order['o_status'], order['u_role']) %}
+                                            {% set order_groups = order_related(order['o_sharedId'], order['o_id']) %}
+                                            {% set order_products_list = order_products(order['o_id']) %}
+                                            {% set order_vouchers_list = order_vouchers(order['o_sharedId']) %}
+                                            {% set order_vouchers_lists = order_vouchers(order['o_sharedId'], 'no') %}
+                                            {% set order_negotiation_style = '' %}
+                                            {% if order['u_role'] == 'ROLE_USER_GOVERNMENT' and order['o_negotiationStatus'] in ['pending', 'fail'] %}
+                                                {% set order_negotiation_style = 'border: 1px solid red;' %}
+                                            {% endif %}
+                                            {% set last_nego_price = 0 %}
+                                            {% set total_nego_shipping = 0 %}
+                                            {% set initial_with_shipping = true %}
+                                            <div class="dc12">
+                                                <div class="box" style="{{ order_negotiation_style }}">
+                                                    <h5>
+                                                        {{ 'menu.order'|trans }}
+                                                        <span class="red">{{ order['o_sharedInvoice'] }}</span>
+                                                    </h5>
+                                                    <div class="pr-card__1">
+                                                        <div class="top">
+                                                            <div class="text">
+                                                                <h6>
+                                                                    {{ 'label.invoice'|trans }}
+                                                                    <b>{{ order['o_invoice'] }}</b>
+                                                                </h6>
+                                                                <p>{{ order_products_list|length ~ ' ' ~ 'menu.product'|trans }}</p>
+                                                                <p>
+                                                                    <a href="{{ path('user_order_detail', {'id': order['o_id']}) }}" class="sBtn small red">
+                                                                        {{ 'label.detail'|trans }} Invoice
+                                                                    </a>
+                                                                </p>
+                                                            </div>
+                                                            <div class="status-step">
+                                                                {% if order['u_role'] == 'ROLE_USER_GOVERNMENT' %}
+                                                                    {% for key, step in step_status_b2g %}
+                                                                        {% set status_text = 'label.' ~ step_status_text_b2g[key] %}
+                                                                        {% set status_text = status_text|trans %}
+                                                                        <div class="{% if order_status < 9 and key <= order_status %}active{% endif %}" {% if step_status_text_b2g[key] == 'tax_invoice' and (order['o_ppk_payment_method'] != 'pembayaran_langsung') %} style="display:none;" {% endif %}
+                                                                        >
+                                                                            <img src="{{ asset(step) }}" title="{{ status_text }}" alt="{{ status_text }}">
+                                                                        </div>
+                                                                    {% endfor %}
+                                                                {% else %}
+                                                                    {% for key, step in step_status %}
+                                                                        {% set status_text = 'label.' ~ step_status_text[key] %}
+                                                                        {% set status_text = status_text|trans %}
+                                                                        <div class="{% if order_status < 9 and key <= order_status %}active{% endif %}">
+                                                                            <img src="{{ asset(step) }}" title="{{ status_text }}" alt="{{ status_text }}">
+                                                                        </div>
+                                                                    {% endfor %}
+                                                                {% endif %}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    {% if order_groups|length > 0 %}
+                                                        {% for order_group in order_groups %}
+                                                            {% set order_group_status = order_step_status(order_group['o_status'], order_group['u_role']) %}
+                                                            {% set order_products_list = order_products(order_group['o_id']) %}
+                                                            {% set grand_total = grand_total + (order_group['o_total'] + order_group['o_shippingPrice']) %}
+                                                            {% for product_group in order_products_list %}
+                                                                {% set grand_total = grand_total + product_group['op_taxNominal'] %}
+                                                            {% endfor %}
+                                                            <div class="pr-card__1">
+                                                                <div class="top">
+                                                                    <div class="text">
+                                                                        <h6>
+                                                                            {{ 'label.invoice'|trans }}
+                                                                            <b>{{ order_group['o_invoice'] }}</b>
+                                                                        </h6>
+                                                                        <p>{{ order_products_list|length ~ ' ' ~ 'menu.product'|trans }}</p>
+                                                                        <p>
+                                                                            <a href="{{ path('user_order_detail', {'id': order_group['o_id']}) }}" class="sBtn small red">
+                                                                                {{ 'label.detail'|trans }} Invoice
+                                                                            </a>
+                                                                        </p>
+                                                                    </div>
+                                                                    <div class="status-step">
+                                                                        {% if order_group['u_role'] == 'ROLE_USER_GOVERNMENT' %}
+                                                                            {% for key, step in step_status_b2g %}
+                                                                                {% set status_text = 'label.' ~ step_status_text_b2g[key] %}
+                                                                                {% set status_text = status_text|trans %}
+                                                                                <div class="{% if order_group_status < 9 and key <= order_group_status %}active{% endif %}">
+                                                                                    <img src="{{ asset(step) }}" title="{{ status_text }}" alt="{{ status_text }}">
+                                                                                </div>
+                                                                            {% endfor %}
+                                                                        {% else %}
+                                                                            {% for key, step in step_status %}
+                                                                                {% set status_text = 'label.' ~ step_status_text[key] %}
+                                                                                {% set status_text = status_text|trans %}
+                                                                                <div class="{% if order_group_status < 9 and key <= order_group_status %}active{% endif %}">
+                                                                                    <img src="{{ asset(step) }}" title="{{ status_text }}" alt="{{ status_text }}">
+                                                                                </div>
+                                                                            {% endfor %}
+                                                                        {% endif %}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        {% endfor %}
+                                                    {% endif %}
+                                                    <div class="info rt">
+                                                        {% set order_detail_path = 'javascript:void(0);' %}
+                                                        {% if order['o_sharedInvoice'] is defined and order['o_sharedInvoice'] is not empty %}
+                                                            {% set order_detail_path = path('user_order_shared', {'id': order['o_sharedInvoice']|base64_encode}) %}
+                                                        {% endif %}
+                                                        <a href="{{ order_detail_path }}" class="sBtn red">
+                                                            {{ 'label.order_detail'|trans }}
+                                                        </a>
+                                                        <h6 class="left-side">
+                                                            {{ 'label.grand_total'|trans }}
+                                                            {% if order['u_role'] == 'ROLE_USER_GOVERNMENT' %}
+                                                                {% set nego_batch = 0 %}
+                                                                {% if order['o_negotiatedProducts']|length > 0 %}
+                                                                    {% for temp_nego_data in order['o_negotiatedProducts'] %}
+                                                                        {% set nego_batch = temp_nego_data['on_batch'] %}
+                                                                    {% endfor %}
+                                                                {% endif %}
+
+                                                                {% for product in order['o_products'] %}
+                                                                    {% for product_nego in order['o_negotiatedProducts'] %}
+                                                                        {% if (product_nego['p_id'] == product['p_id']) and (product_nego['on_batch'] == nego_batch) %}
+                                                                            {% if initial_with_shipping == true %}
+                                                                                {% set last_nego_price = ((product_nego['on_negotiatedPrice'] * product['op_quantity']) + product_nego['on_negotiatedShippingPrice']) + ((product_nego['on_taxNominalPrice'] * product['op_quantity']) + (product_nego['on_taxNominalShipping'])) %}
+                                                                            {% else %}
+                                                                                {% set last_nego_price = last_nego_price + (product_nego['on_negotiatedPrice'] * product['op_quantity']) + (product_nego['on_taxNominalPrice'] * product['op_quantity']) %}
+                                                                            {% endif %}
+                                                                            {% set initial_with_shipping = false %}
+                                                                        {% endif %}
+                                                                    {% endfor %}
+                                                                {% endfor %}
+
+                                                                {% if order_vouchers_list|length > 0 %}
+                                                                    {% set total_order_amount = 0 %}
+                                                                    {% set total_voucher_amount = 0 %}
+                                                                    {% set o_lists = [] %}
+                                                                    {% set v_lists = [] %}
+
+                                                                    {% for voucher_list in order_vouchers_lists %}
+                                                                        {% if voucher_list['vul_orderId'] not in o_lists %}
+                                                                            {% set total_order_amount = total_order_amount + voucher_list['vul_orderAmount'] %}
+                                                                            {% set o_lists = o_lists|merge([voucher_list['vul_orderId']]) %}
+                                                                        {% endif %}
+                                                                        {% if voucher_list['v_code'] not in v_lists %}
+                                                                            {% set total_voucher_amount = total_voucher_amount + voucher_list['v_amount'] %}
+                                                                            {% set v_lists = v_lists|merge([voucher_list['v_code']]) %}
+                                                                        {% endif %}
+                                                                    {% endfor %}
+
+                                                                    {% set grand_total_with_voucher = grand_total - total_voucher_amount %}
+                                                                    {#                                                                {% set grand_total_with_voucher = total_order_amount - total_voucher_amount %}#}
+                                                                    {% set grand_total_with_voucher_value = 'Rp. ' ~ grand_total_with_voucher|number_format %}
+                                                                    {% if grand_total_with_voucher < 0 %}
+                                                                        {#                                                                    {% set grand_total_with_voucher = (grand_total_with_voucher * -1) %}#}
+                                                                        {#                                                                    {% set grand_total_with_voucher_value = '(Rp. ' ~ grand_total_with_voucher|number_format ~ ')' %}#}
+                                                                        {% set grand_total_with_voucher_value = 'Rp. 0' %}
+                                                                    {% endif %}
+                                                                    <span class="red">&nbsp;{{ 'label.original_price'|trans|upper }}&nbsp;{{ grand_total_with_voucher_value }}</span>&nbsp;|
+                                                                    <span class="red">&nbsp;{{ 'label.negotiated_price'|trans|upper }}&nbsp;{{ last_nego_price|number_format }}</span>
+                                                                {% else %}
+                                                                    <span class="red">&nbsp;{{ 'label.original_price'|trans|upper }}&nbsp;{{ grand_total|number_format }}</span>&nbsp;|
+                                                                    <span class="red">&nbsp;{{ 'label.negotiated_price'|trans|upper }}&nbsp;{{ last_nego_price|number_format }}</span>
+                                                                {% endif %}
+                                                            {% else %}
+                                                                {% if order_vouchers_list|length > 0 %}
+                                                                    {% set total_order_amount = 0 %}
+                                                                    {% set total_voucher_amount = 0 %}
+                                                                    {% set o_lists = [] %}
+                                                                    {% set v_lists = [] %}
+
+                                                                    {% for voucher_list in order_vouchers_lists %}
+                                                                        {% if voucher_list['vul_orderId'] not in o_lists %}
+                                                                            {% set total_order_amount = total_order_amount + voucher_list['vul_orderAmount'] %}
+                                                                            {% set o_lists = o_lists|merge([voucher_list['vul_orderId']]) %}
+                                                                        {% endif %}
+                                                                        {% if voucher_list['v_code'] not in v_lists %}
+                                                                            {% set total_voucher_amount = total_voucher_amount + voucher_list['v_amount'] %}
+                                                                            {% set v_lists = v_lists|merge([voucher_list['v_code']]) %}
+                                                                        {% endif %}
+                                                                    {% endfor %}
+
+                                                                    {% set grand_total_with_voucher = grand_total - total_voucher_amount %}
+                                                                    {#                                                                {% set grand_total_with_voucher = total_order_amount - total_voucher_amount %}#}
+                                                                    {% set grand_total_with_voucher_value = 'Rp. ' ~ grand_total_with_voucher|number_format %}
+                                                                    {% if grand_total_with_voucher < 0 %}
+                                                                        {#                                                                    {% set grand_total_with_voucher = (grand_total_with_voucher * -1) %}#}
+                                                                        {#                                                                    {% set grand_total_with_voucher_value = '(Rp. ' ~ grand_total_with_voucher|number_format ~ ')' %}#}
+                                                                        {% set grand_total_with_voucher_value = 'Rp. 0' %}
+                                                                    {% endif %}
+                                                                    <span class="red">{{ grand_total_with_voucher_value }}</span>
+                                                                {% else %}
+                                                                    <span class="red">{{ grand_total|number_format }}</span>
+                                                                {% endif %}
+                                                            {% endif %}
+
+                                                        </h6>
+                                                        <div class="clear"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% if pagination is not empty and pagination.getNbResults > pagination.getMaxPerPage %}{{ html|raw }}{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}

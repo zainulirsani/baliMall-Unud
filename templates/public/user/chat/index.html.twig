@@ -1,0 +1,63 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% block content %}
+    <main class="pdl">
+        {% include '@__main__/public/base/partials/breadcrumb.html.twig' %}
+        <section>
+            <div class="container">
+                <div class="box">
+                    <div class="row">
+                        {% include '@__main__/public/user/fragments/menu.html.twig' %}
+                        <div class="dc9 tc12">
+                            <div class="sub-title">
+                                <div class="text">
+                                    <h3>{{ 'label.message'|trans }}</h3>
+                                </div>
+                                <div class="clear"></div>
+                            </div>
+                            <div id="user-chat-list" class="pr-card" data-id="{{ app.user.id }}">
+                                {#<div class="input">
+                                    <input type="text" class="input__text" title="" placeholder="Cari Nama User">
+                                </div>#}
+                                <div class="row">
+                                    {% for chat in messages %}
+                                        {% set avatar = chat['p_photoProfile'] is not empty ? chat['p_photoProfile'] : 'dist/img/no-image.png' %}
+                                        {% set recipient_name = chat['p_firstName'] ~ ' ' ~ chat['p_lastName'] %}
+                                        <div class="dc12">
+                                            <div class="box pr-card__1">
+                                                <div class="top">
+                                                    <figure>
+                                                        <img src="{{ asset(avatar) }}" alt="">
+                                                    </figure>
+                                                    <div class="text">
+                                                        <h6>{{ recipient_name|raw }}</h6>
+                                                    </div>
+                                                    {% if chat['recent_chat'] %}
+                                                        <span class="badge blue temp-btn">
+                                                            {{ chat['recent_chat'].getCreatedAt|date('d F Y H:i') }}
+                                                        </span>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="info">
+                                                    <div>
+                                                        {% if chat['recent_chat'] %}
+                                                            <span>{{ chat['recent_chat'].getMessage }}</span>
+                                                        {% endif %}
+                                                    </div>
+                                                    <a href="{{ path('user_chat_detail', {'room': chat['c_room']}) }}" class="sBtn red">
+                                                        {{ 'label.detail'|trans }}
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% if pagination is not empty and pagination.getNbResults > pagination.getMaxPerPage %}{{ html|raw }}{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}

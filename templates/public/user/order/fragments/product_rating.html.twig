@@ -1,0 +1,115 @@
+<style>
+    .publish-review { pointer-events: auto; }
+    .publish-review:hover { color: #4b85cc !important; }
+</style>
+<div class="pr-card">
+    <h5>{{ 'label.rate_product'|trans }}</h5>
+    <div class="row">
+        {% for product in order['o_products'] %}
+            {% set data_action = product['p_id'] ~ '|' ~ order['o_id'] %}
+            {% set data_action_alt = 'pr-' ~ product['p_id'] ~ '-' ~ order['o_id'] %}
+            {% set data_review = product_review(order['o_id']|to_int, product['p_id']|to_int, order['o_ppkId']|to_int) %}
+            <div class="dc12">
+                <div class="box pr-card__1 pr-card--detail">
+                    <div class="top">
+                        <figure>
+                            <img src="{{ path('sftp_show_file', {'path': product_main_image(product['p_id']|default(0))}) }}" alt="">
+                        </figure>
+                        <div class="text">
+                            <h6>{{ product['p_name'] }}</h6>
+                            <p>{{ order['s_name']|raw }}</p>
+                        </div>
+                        <div id="opr-{{ product['p_id'] ~ '-' ~ order['o_id'] }}" class="rating">
+                            {% if data_review['pr_id'] is not defined %}
+                                {% if order['o_isApprovedPPK'] == true  %}
+                                    {% if user_type == 'buyer' and app.user.subRole == 'PPK' %}
+                                        {% if order['u_role'] != 'ROLE_USER_GOVERNMENT' %}
+                                            <a href="javascript:void(0);" class="sBtn red buyer-act-rate" data-action="{{ data_action }}" data-title="{{ product['p_name']|url_encode }}">
+                                                {{ 'label.rate'|trans }}
+                                            </a>
+                                        {% else %}
+                                            {# {% if order['o_status'] == 'paid' %} #}
+                                                <a href="javascript:void(0);" class="sBtn red buyer-act-rate" data-action="{{ data_action }}" data-title="{{ product['p_name']|url_encode }}">
+                                                    {{ 'label.rate'|trans }}
+                                                </a>
+                                            {# {% endif %} #}
+                                        {% endif %}
+                                    {% elseif user_type == 'seller' %}
+                                        <span class="sBtn red" style="cursor: default;">{{ 'label.no_rating'|trans }}</span>
+                                    {% endif %}
+                                {% endif %}
+                            {% else %}
+                                {% set rating = {
+                                    'review': data_review['pr_review'],
+                                    'rating': data_review['pr_rating']
+                                } %}
+                                <div class="dc8" style="margin-top:10px;margin-bottom: 0px">
+                                {% include '@__main__/public/user/order/fragments/product_rating_detail.html.twig' with rating only %}
+                                    <p style="font-size: 10px;margin-top: 10px;margin-left: 15px;margin-bottom: 0;"><b>Review</b></p>
+                                    <p style="margin-left: 15px;">{{ data_review['pr_review']|slice(0, 88) }}{{ data_review['pr_review']|length > 88 ? '...' : '' }}</p>
+                                </div>
+                                <div class="dc4" style="padding-top: 15px;">
+                                    <a id="{{ data_action_alt }}" href="javascript:void(0);" class="sBtn red publish-review" style="width: 140px;min-width:140px;">
+                                        Selengkapnya
+                                    </a>
+                                </div>
+                                
+                                {# {% if user_type == 'seller' and data_review['pr_status'] == 'draft' %} #}
+                                    
+                                    
+                                    <template id="{{ data_action_alt }}-template">
+                                        <div class="input">
+                                            <p>{% if data_review['pr_review'] is not empty %}{{ data_review['pr_review'] }}{% endif %}</p>
+                                        </div>
+                                        <div class="input rating" style="text-align: center;">
+                                            {% for rate in 1..5 %}
+                                                {% set style = rate <= data_review['pr_rating'] ? 'color: red;' : 'color: black;' %}
+                                                <a href="javascript:void(0);" class="star" style="{{ style }}"><i class="fas fa-star"></i></a>
+                                            {% endfor %}
+                                        </div>
+                                        {% if data_review['pr_attachment'] is not empty %}
+                                            <div class="input">
+                                                <a class="pr-cbox" href="{{ asset(data_review['pr_attachment']) }}" title="{{ 'button.view'|trans }}">
+                                                    <img src="{{ asset(data_review['pr_attachment']) }}" alt="" width="100%">
+                                                </a>
+                                            </div>
+                                        {% endif %}
+                                        <div>
+                                            <input id="publish-review-id" type="hidden" value="{{ data_review['pr_id'] }}">
+                                            <input id="publish-review-pid" type="hidden" value="{{ product['p_id'] }}">
+                                            <input id="publish-review-oid" type="hidden" value="{{ order['o_id'] }}">
+                                        </div>
+                                    </template>
+                                {# {% endif %} #}
+                            {% endif %}
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div id="popup-publish-review" class="popup general" title="confirm">
+    <div class="wh100">
+        <div class="popup-wrapper">
+            <div class="inner">
+                <a href="javascript:void(0);" class="close-btn" onclick="$(this).parents('.popup').fadeOut();"></a>
+                <h3 class="popup-publish-review-title"></h3>
+                <p class="popup-publish-review-content"></p>
+                <div class="btn-wrapper">
+                    {% if app.user.role == 'ROLE_USER_SELLER' %}
+                        <a id="popup-publish-review-btn" href="javascript:void(0);" class="sBtn red">
+                            {{ 'button.publish'|trans }}
+                        </a>
+                    {% endif %}
+                    
+                    <a href="javascript:void(0);" class="gBtn red" onclick="$(this).parents('.popup').fadeOut();">
+                        {{ 'button.close'|trans }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

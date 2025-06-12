@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="{{ locale }}">
+    <head>
+        {% include '@__main__/public/base/partials/metadata.html.twig' %}
+        {% include '@__main__/public/base/partials/css.html.twig' %}
+        {% block stylesheets %}{% endblock %}
+        <script src="{{ asset('dist/compiled/jquery.js') }}"></script>
+        {% if get_parameter('fb_pixel_code') is not empty %}
+            {% include '@__main__/shared/fb_pixel.html.twig' %}
+        {% endif %}
+        {% block head_scripts %}{% endblock %}
+    </head>
+    <body>
+    {% if get_parameter('gtm_tracking_id') is not empty %}
+        {% include '@__main__/shared/gtm_body.html.twig' %}
+    {% endif %}
+        {% block body %}{% endblock %}
+        {% include '@__main__/public/base/partials/dz_template.html.twig' %}
+        {% include '@__main__/public/base/partials/js.html.twig' %}
+        {% block javascripts %}{% endblock %}
+        {% if app.request.attributes.get('_route') == 'homepage' %}
+            <script async data-watzapkey="2fsc183" src="https://cdn.watzap.id/widget-api.js"></script>
+        {% endif %}
+    </body>
+</html>

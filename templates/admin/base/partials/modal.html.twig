@@ -1,0 +1,72 @@
+<div class="modal fade" id="modal-global" tabindex="-1" role="dialog" aria-labelledby="modal-global-label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="modal-global-label">{{ 'label.alert'|trans }}</h4>
+            </div>
+            <div class="modal-body"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">{{ 'button.close'|trans }}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal-done" role="dialog" aria-labelledby="modal-done-label" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form action="{{ base_url }}/{{ get_parameter("admin_url") }}/disbursement/done" id="form-modal-done" enctype="multipart/form-data" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modal-done-label">{{ 'label.payment_date_image_alt'|trans }}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    {{ csrf_field('modal-proof') }}
+                    <input type="file" id="payment_date_image_alt" class="form-control" name="payment_proof">
+                    <p style="color: red;font-size: 12px;display:none;" id="pesan-error-file-big">*{{ 'message.error.max_size'|trans }}</p>
+                    <input type="hidden" id="id-modal-done" class="form-control" name="id_modal_done">
+                    <input type="hidden" id="role-modal-done" class="form-control" name="role_modal_done">
+                    <input type="hidden" id="from-click-done" class="form-control" name="from_click_done">
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Upload</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal-edit-status" role="dialog" aria-labelledby="modal-edit-status-label" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form action="{{ base_url }}/{{ get_parameter("admin_url") }}/disbursement/set_status" id="form-modal-edit-status" enctype="multipart/form-data" method="POST">
+                <div class="modal-header">
+                    <div style="display:flex;justify-content:space-between;">
+                        <h5 class="modal-title" id="modal-edit-status-label">{{ 'label.disbursement_status'|trans }}</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    {{ csrf_field('modal-edit-status') }}
+                    <select name="status">
+                        <option value="pending">Pending</option>
+                        <option value="processed">Processed</option>
+                        <option value="done" selected>Done</option>
+                    </select>
+                    {# <p style="color: red;font-size: 12px;display:none;" id="pesan-error-file-big">*{{ 'message.error.max_size'|trans }}</p> #}
+                    <input type="hidden" id="id-modal-edit-status" class="form-control" name="disbursement_id">
+                    <input type="hidden" id="role-modal-edit-status" class="form-control" name="disbursement_role">
+                    {# <input type="hidden" id="from-click-edit-status" class="form-control" name="action_from"> #}
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Change status</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

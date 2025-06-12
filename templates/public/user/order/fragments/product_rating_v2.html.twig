@@ -1,0 +1,26 @@
+{% set data_action = product['p_id'] ~ '|' ~ order['o_id'] %}
+{% set data_review = product_review(order['o_id']|to_int, product['p_id']|to_int, order['u_id']|to_int) %}
+
+<div class="top" style="margin-top: 20px;">
+    {% if data_review['pr_id'] is not defined %}
+        {% if order['u_role'] == 'ROLE_USER_GOVERNMENT' %}
+            {% if order['o_status'] == 'paid' %}
+                <a href="javascript:void(0);" class="sBtn small red buyer-act-rate" data-action="{{ data_action }}" data-title="{{ product['p_name']|url_encode }}">
+                    {{ 'label.rate'|trans }}
+                </a>
+            {% endif %}
+        {% else %}
+            <a href="javascript:void(0);" class="sBtn small red buyer-act-rate" data-action="{{ data_action }}" data-title="{{ product['p_name']|url_encode }}">
+                {{ 'label.rate'|trans }}
+            </a>
+        {% endif %}
+        <div id="opr-{{ product['p_id'] ~ '-' ~ order['o_id'] }}" class="rating"></div>
+    {% else %}
+        <div class="rating">
+            {% for rate in 1..5 %}
+                {% set class = rate <= data_review['pr_rating'] ? 'star active' : 'star' %}
+                <a href="javascript:void(0);" class="{{ class }}" style="pointer-events: none;"><i class="fas fa-star"></i> {{ rate }}</a>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>

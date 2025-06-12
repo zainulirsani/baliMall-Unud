@@ -1,0 +1,76 @@
+{% set sub_index = 0 %}
+{% set sub_child_index = 0 %}
+
+<div class="ctwr">
+    <div class="container">
+        <div class="row">
+            <div class="dc3">
+                <div class="ctwr__main">
+                    <ul>
+                        {% for category in categories %}
+                            {% set category_id = category['id'] %}
+                            <li>
+                                <a id="parent-category-{{ category['id'] }}" href="javascript:void(0);" class="btn-gtm-bm-pcc find-category" data-index="{{ loop.index0 }}" data-id="{{ category['id'] }}" data-parent="0" data-level="0" data-cat="l{{ loop.index }}">
+                                    <i class="fas {{ category['class']|default('fa-concierge-bell') }}"></i> {{ category['text'] }}
+                                </a>
+                                <div>
+                                    <input id="gtm-pcc-name-{{ category_id }}" type="hidden" value="{{ category['text'] }}">
+                                    <input id="gtm-pcc-id-{{ category_id }}" type="hidden" value="{{ category_id }}">
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            <div class="dc9">
+                <div class="ctwr__child">
+                    {% for category in categories %}
+                        {% set active = loop.index == 1 ? 'active' : '' %}
+                        <div class="l{{ loop.index }} {{ active }}">
+                            <h3><i class="fas {{ category['class']|default('fa-concierge-bell') }}"></i> {{ category['text'] }}</h3>
+                            <div class="row">
+                                {% for child in category['children'] %}
+                                    {% if child['status'] == 1 %}
+                                        {% set sub_child = child['children'] %}
+                                        {% set sub_child_category_id = child['id'] %}
+                                        <div class="dc4">
+                                            <h6>
+                                                <a id="sub-category-{{ child['id'] }}" href="javascript:void(0);" class="btn-gtm-bm-pcc find-category" data-index="{{ sub_index }}" data-id="{{ child['id'] }}" data-parent="{{ category['id'] }}" data-level="1">
+                                                    {{ child['text'] }}
+                                                </a>
+                                                <div>
+                                                    <input id="gtm-pcc-name-{{ sub_child_category_id }}" type="hidden" value="{{ child['text'] }}">
+                                                    <input id="gtm-pcc-id-{{ sub_child_category_id }}" type="hidden" value="{{ sub_child_category_id }}">
+                                                </div>
+                                            </h6>
+                                            {% if sub_child|length > 0 %}
+                                                <ul>
+                                                    {% for grand_child in sub_child %}
+                                                        {% if grand_child['status'] == 1 %}
+                                                            {% set grand_child_category_id = grand_child['id'] %}
+                                                            <li>
+                                                                <a href="javascript:void(0);" class="btn-gtm-bm-pcc find-category" data-index="{{ sub_child_index }}" data-id="{{ grand_child['id'] }}" data-parent="{{ child['id'] }}" data-level="2">
+                                                                    - {{ grand_child['text'] }}
+                                                                </a>
+                                                                <div>
+                                                                    <input id="gtm-pcc-name-{{ grand_child_category_id }}" type="hidden" value="{{ grand_child['text'] }}">
+                                                                    <input id="gtm-pcc-id-{{ grand_child_category_id }}" type="hidden" value="{{ grand_child_category_id }}">
+                                                                </div>
+                                                            </li>
+                                                            {% set sub_child_index = sub_child_index + 1 %}
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </ul>
+                                            {% endif %}
+                                        </div>
+                                        {% set sub_index = sub_index + 1 %}
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

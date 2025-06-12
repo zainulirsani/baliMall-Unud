@@ -1,0 +1,252 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% block stylesheets %}
+    <style>
+        #map {
+            height: 500px;
+            z-index: 99;
+        }
+
+        .driver-img {
+            border-radius: 50%;
+            display: inline-block;
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+        }
+
+        .btn-phone-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            margin-left: 7vw;
+            margin-right: 7vw;
+        }
+
+        .btn-phone {
+            position: relative;
+            margin: 0;
+            padding: 5px 12px;
+            height: 60px;
+            width: 210px;
+            outline: none;
+            text-decoration: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            text-transform: uppercase;
+            background-color: #ffffff;
+            border: 1px solid rgb(211, 21, 23);
+            border-radius: 10px;
+            color: #d31517;
+            font-weight: 400;
+            font-size: 20px;
+            font-family: inherit;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        @media screen and (max-width: 500px){
+            .btn-phone {
+                width: 50vw;
+                font-size: 13px;
+            }
+        }
+
+        @media screen and (max-width: 572px){
+            .btn-phone {
+                width: 35vw;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <main class="pdl">
+        {% include '@__main__/public/base/partials/breadcrumb.html.twig' %}
+        <section>
+            <div class="container">
+                <div class="box">
+                    <div class="row">
+                        {% include '@__main__/public/user/fragments/menu.html.twig' %}
+                        <div class="dc9 tc12">
+                            <div class="sub-title">
+                                <div class="text">
+                                    <h4>Order Pickup</h4>
+                                </div>
+                            </div>
+                            <div id="user-order-list" class="pr-card order-id" data-id="{{ order.storeOrderId }}">
+                                <div class="row">
+                                    <div class="dc12">
+                                        <div class="box">
+                                            {% if enableFindNewDriver %}
+                                                <h5>Booking ID : {{ order.orderNo }}</h5>
+                                                <h5>Status: {{ order.status }}</h5>
+                                                {% if order.cancelledBy is not empty %}
+                                                    <h5>{{ 'label.cancelled_by'|trans }} : {{ order.cancelledBy }}</h5>
+                                                {% endif %}
+                                                {% if order.cancelDescription is not empty %}
+                                                    <h5>{{ 'label.reason'|trans }} : {{ order.cancelDescription }}</h5>
+                                                {% endif %}
+                                                <hr>
+                                            {% else %}
+                                                <div style="text-align: center">
+                                                    <figure>
+                                                        {% if order.driverPhoto is not empty %}
+                                                            {% set profile_img = order.driverPhoto %}
+                                                        {% else %}
+                                                            {% set profile_img = asset('assets/img/blank-profile.png') %}
+                                                        {% endif %}
+
+                                                        <img class="driver-img" src="{{ profile_img }}" alt="image">
+                                                    </figure>
+                                                    <br>
+                                                    <h4><b>{{ order.driverName|default }}</b></h4>
+                                                    {% if order.driverPhone is not empty %}
+                                                        <div class="btn-phone-wrapper" style="text-align: center">
+                                                            <button class="btn-phone flex-center">
+                                                                <i class="fa fa-phone-alt"></i>&nbsp;
+                                                                <span>{{ order.driverPhone|default }}</span>
+                                                            </button>
+                                                            {% if order.driverPhone2 is not empty %}
+                                                                <button class="btn-phone">
+                                                                    <i class="fa fa-phone-alt"></i>&nbsp;
+                                                                    <span>{{ order.driverPhone2|default }}</span>
+                                                                </button>
+                                                            {% endif %}
+                                                        </div>
+                                                    {% endif %}
+                                                    <hr>
+                                                </div>
+                                                <h5>{{ 'label.status'|trans }}: {{ order.status }}</h5>
+                                                <hr>
+                                                <div class="pr-card__1">
+                                                    <div class="top">
+                                                        <div class="text">
+                                                            <h5>{{ 'label.booking_detail'|trans }}</h5>
+                                                            <ul style="font-weight: bold">
+                                                                <li>{{ 'label.booking_id'|trans }} : {{ order.orderNo }}</li>
+                                                                <li>{{ 'label.estimated_pickup'|trans }} : {{ order.pickupEta }}</li>
+                                                                <li>{{ 'label.estimated_delivery'|trans }} : {{ order.deliveryEta }}</li>
+                                                                <li>{{ 'label.receiver_name'|trans }} : {{ order.receiverName|default }}</li>
+                                                                {% if order.cancelledBy is not empty %}
+                                                                    <li>{{ 'label.cancelled_by'|trans }} : {{ order.cancelledBy }}</li>
+                                                                {% endif %}
+                                                                {% if order.cancelDescription is not empty %}
+                                                                    <li>{{ 'label.reason'|trans }} : {{ order.cancelDescription }}</li>
+                                                                {% endif %}
+                                                                {% if order.liveTrackingUrl is not empty %}
+                                                                    <li>{{ 'label.tracking_url'|trans }} : <a href="{{ order.liveTrackingUrl }}" target="_blank">{{ order.liveTrackingUrl }}</a></li>
+                                                                {% endif %}
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                            <div class="info rt">
+                                                {% if enableFindNewDriver %}
+                                                    <a href="javascript:void(0);" class="sBtn red retry-pickup-order">
+                                                        {{ 'label.find_driver'|trans }}
+                                                    </a>
+                                                {% elseif enableCancel %}
+                                                    <a href="javascript:void(0);" class="sBtn red cancel-pickup-order">
+                                                        {{ 'label.cancel_pickup_order'|trans }}
+                                                    </a>
+                                                {% endif %}
+                                                <div class="clear"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="map"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        const sellerAddress = {{ sellerAddress|raw }};
+        const buyerAddress = {{ buyerAddress|raw }};
+        const iconLoc = L.icon({iconUrl: "{{ asset('dist/img/marker-icon.png') }}",});
+        const map = L.map('map', {center: sellerAddress, zoom: 11});
+
+        L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+            maxZoom: 18,
+            id: 'mapbox/streets-v11',
+            tileSize: 512,
+            zoomOffset: -1,
+            accessToken: LEAFLET_ACCESS_TOKEN
+        }).addTo(map);
+
+        const sellerMarker = L.marker(sellerAddress, {icon: iconLoc}).addTo(map)
+        const buyerMarker = L.marker(buyerAddress, {icon: iconLoc}).addTo(map)
+
+        const popupSeller = L.popup()
+            .setLatLng(sellerAddress)
+            .setContent('Lokasi Penjual')
+            .addTo(map);
+
+        const popupBuyer = L.popup()
+            .setLatLng(buyerAddress)
+            .setContent('Lokasi Pembeli')
+            .addTo(map);
+
+        sellerMarker.bindPopup(popupSeller)
+        buyerMarker.bindPopup(popupBuyer)
+
+        $('.cancel-pickup-order').on('click', function () {
+            elementLoading.show();
+
+            const orderId = $('.order-id').attr('data-id');
+
+            $.ajax({
+                url: `${BASE_URL}/user/order/gosend-booking/${orderId}/cancel`,
+                type: 'PUT',
+                success: function (result) {
+                    console.log(result)
+                    window.location = `${BASE_URL}/user/order/${orderId}`;
+                    elementLoading.hide()
+
+                },
+                error: function (result) {
+                    console.log(result)
+                    elementLoading.hide()
+
+                    showGeneralPopup(result);
+                }
+            })
+
+        })
+
+        $('.retry-pickup-order').on('click', function () {
+            elementLoading.show();
+
+            const orderId = $('.order-id').attr('data-id');
+
+            $.ajax({
+                url: `${BASE_URL}/user/order/gosend-booking/${orderId}`,
+                type: 'PUT',
+                success: function (result) {
+                    console.log(result)
+                    setTimeout(function () {
+                        elementLoading.hide();
+                        window.location.reload()
+                    }, 3000)
+                },
+                error: function (result) {
+                    console.log(result)
+                    showGeneralPopup(MSG_ERROR_500)
+                    elementLoading.hide();
+                }
+            })
+
+        })
+    </script>
+{% endblock %}

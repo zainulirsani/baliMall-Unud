@@ -1,0 +1,25 @@
+{% extends '@__main__/admin/base/layouts/base.html.twig' %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('dist/compiled/login.css') }}">
+{% endblock %}
+
+{% block body %}
+    <div class="login">
+        <div class="logo"></div>
+        {% if error %}
+            <span class="error">{{ error.messageKey|trans(error.messageData, 'security') }}</span>
+        {% endif %}
+        <form class="form" method="post" action="{{ path(login_path) }}">
+            <input type="text" name="_username" class="form-control" title="" placeholder="{{ 'label.email'|trans }}" value="{{ last_username }}" required autofocus>
+            <input type="password" name="_password" class="form-control" title="" placeholder="{{ 'label.password'|trans }}" required>
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+            <button class="btn btn-lg btn-primary btn-block btn-login" type="submit">
+                <i class="fa fa-sign-in"></i> {{ 'button.login'|trans }}
+            </button>
+        </form>
+        <div class="alert alert-info info">
+            <p>{{ 'message.info.login'|trans }}</p>
+        </div>
+    </div>
+{% endblock %}

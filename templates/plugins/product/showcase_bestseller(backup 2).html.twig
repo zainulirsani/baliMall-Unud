@@ -1,0 +1,91 @@
+<div class="dc12">
+	<div class="item-list">
+		<div class="box box-ter">
+			<h6 class="title">{{ 'message.info.bestseller_product'|trans }}</h6>
+			<a href="{{ path('search') }}" class="right-side">{{ 'message.info.view_another_product'|trans }}
+				<i class="fas fa-chevron-right"></i>
+			</a>
+
+			{# Product Terlaris tiap tiap kategori rank 1 - 3 #}
+			<div class="swiper-container" id="swiper-test">
+				<div class="swiper-wrapper">
+					{# Perulangan utk tiap kategory #}
+					{% for product in products %}
+						<div class="swiper-slide">
+							<div class="produk">
+								{% if product|length == 1 %}
+									<div class="image">
+										<div class="badge-ter">
+											<p>Top
+												<br>
+												<span>1</span>
+											</p>
+										</div>
+										{% set product_url = path('store_product_page', {
+                                            'store': product[0].s_slug,
+                                            'product': product[0].slug,
+                                        }) %}
+										<a href="{{ product_url }}"><img src="{{ product[0].image }}" alt=""></a>
+									</div>
+
+								{% elseif product|length > 1 %}
+									<div class="image">
+										<div class="badge-ter">
+											<p>Top
+												<br>
+												<span>1</span>
+											</p>
+										</div>
+										{% set product_url = path('store_product_page', {
+                                            'store': product[0].s_slug,
+                                            'product': product[0].slug,
+                                        }) %}
+										<a href="{{ product_url }}"><img src="{{ product[0].image }}" alt=""></a>
+									</div>
+
+									<div class="produk-small">
+
+										<div class="image2">
+											<div class="badge-ter">
+												<p>
+													<span>2</span>
+												</p>
+											</div>
+											{% set product_url2 = path('store_product_page', {
+                                                'store': product[1].s_slug,
+                                                'product': product[1].slug,
+                                            }) %}
+											<a href="{{ product_url2 }}"><img src="{{ product[1].image }}" alt=""></a>
+										</div>
+
+										{% if product|length > 2 %}
+											<div class="image2">
+												<div class="badge-ter">
+													<p>
+														<span>3</span>
+													</p>
+												</div>
+												{% set product_url3 = path('store_product_page', {
+                                                'store': product[2].s_slug,
+                                                'product': product[2].slug,
+                                            }) %}
+												<a href="{{ product_url3 }}"><img src="{{ product[2].image }}" alt=""></a>
+											</div>
+										{% endif %}
+									</div>
+								{% endif %}
+							</div>
+						</div>
+					{% endfor %}
+				</div>
+			</div>
+			<!-- Add Arrows -->
+			<div class="swiper-button-next">
+				<i class="fa fa-angle-right"></i>
+			</div>
+			<div class="swiper-button-prev">
+				<i class="fa fa-angle-left"></i>
+			</div>
+		</div>
+	</div>
+</div>

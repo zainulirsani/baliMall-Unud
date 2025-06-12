@@ -1,0 +1,180 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% block stylesheets %}
+<style>
+    .switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+    }
+
+    .switch input { 
+    opacity: 0;
+    width: 0;
+    height: 0;
+    }
+
+    .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+    }
+
+    .slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+    }
+
+    input:checked + .slider {
+    background-color: #4b85cc;
+    }
+
+    input:focus + .slider {
+    box-shadow: 0 0 1px #4b85cc;
+    }
+
+    input:checked + .slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+    }
+
+    /* Rounded sliders */
+    .slider.round {
+    border-radius: 34px;
+    }
+
+    .slider.round:before {
+    border-radius: 50%;
+    }
+
+    .btn-cc-red,.btn-cc-red:hover {
+        background-color: #4b85cc;
+        font-size: 14px;
+        padding: 10px 15px;
+        text-align: center;
+        border-radius: 5px;
+        color: #fff;
+        border: 1px solid #4b85cc;
+        margin: 2px;
+        cursor: pointer;
+        text-decoration: none;
+    }
+    .btn-cc-red-border,.btn-cc-red-border:hover {
+        background-color: transparent;
+        font-size: 14px;
+        padding: 10px 15px;
+        text-align: center;
+        border-radius: 5px;
+        color: #4b85cc;
+        border: 1px solid #4b85cc;
+        margin: 2px;
+        cursor: pointer;
+        text-decoration: none;
+    }
+    .table_detail tr td,th {
+        border: 0;
+        padding: 3px;
+        text-align:left;
+    }
+</style>
+{% endblock %}
+{% block content %}
+    <main class="cr-page">
+        <section>
+            <div class="container">
+                <div class="sc-cart row">
+                    <div class="dc12">
+                        <div class="row">
+                            <div class="dc6 tc12 auto box ct">
+                                <div class="dc12" style="text-align:center;">
+                                    <i class="fa fa-check-circle" style="color: #12b981;font-size: 100px;"></i>
+                                    <h3 style="color: #12b981;margin-top: 10px;">Pembayaran Berhasil</h3>
+                                    <p style="color: #999;margin-top: -20px;font-weight: 600;">{{dataPayment.getOrders.getInvoice}}</p>
+                                </div>
+                                <div class="dc12" style="display:flex;align-items:center;justify-content: center;">
+                                    <table border="0" width="80%" class="table_detail">
+                                        <tr>
+                                            <th width="60%">Waktu</th>
+                                            <th width="40%">Status</th>
+                                        </tr>
+                                        <tr>
+                                            <td style="color: #999;">{{responseTrxTime|date('d/m/Y - H:i')}}</td>
+                                            <td style="color: #999;">{{dataResponse.additionalInfo.trxStatus | default("-")}}</td>
+                                        </tr>
+                                        <tr>
+                                            <th><br></th>
+                                            <th></th>
+                                        </tr>
+                                        <tr>
+                                            <th>Nama Acquire</th>
+                                            <th>Nama Customer</th>
+                                        </tr>
+                                        <tr>
+                                            <td style="color: #999;">{{dataResponse.additionalInfo.acquireName | default("-")}}</td>
+                                            <td style="color: #999;">{{dataResponse.additionalInfo.customerName | default("-")}}</td>
+                                        </tr>
+                                        <tr>
+                                            <th><br></th>
+                                            <th></th>
+                                        </tr>
+                                        <tr>
+                                            <th>Merchant PAN</th>
+                                            <th>Customer PAN</th>
+                                        </tr>
+                                        <tr>
+                                            <td style="color: #999;">{{dataResponse.additionalInfo.mid | default("-")}}</td>
+                                            <td style="color: #999;">{{dataResponse.additionalInfo.customerPan | default("-")}}</td>
+                                        </tr>
+                                        <tr>
+                                            <th><br></th>
+                                            <th></th>
+                                        </tr>
+                                        <tr>
+                                            <th>Nama Issuer</th>
+                                            <th>Reff ID</th>
+                                        </tr>
+                                        <tr>
+                                            <td style="color: #999;">{{dataResponse.additionalInfo.issuerName | default("-")}}</td>
+                                            <td style="color: #999;">{{dataResponse.additionalInfo.referenceNo | default("-")}}</td>
+                                        </tr>
+                                        <tr>
+                                            <th><br></th>
+                                            <th></th>
+                                        </tr>
+                                        <tr>
+                                            <th>Nominal</th>
+                                            <th>Tips Amount</th>
+                                        </tr>
+                                        <tr>
+                                            <td style="color: #999;">Rp. {{dataResponse.additionalInfo.totalAmount|number_format(2, ",", ".") | default("-")}}</td>
+                                            <td style="color: #999;">Rp. {{dataResponse.additionalInfo.fee|number_format(2, ",", ".")| default("-")}}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <a href="{{ path('user_ppktreasurer_detail', {'id': dataPayment.getOrders.getId}) }}" type="button" class="btn-cc-red-border"><i class="fa fa-arrow-left" aria-hidden="true"></i> Detail Transaksi</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}
+
+{% block javascripts %}
+{% endblock %}

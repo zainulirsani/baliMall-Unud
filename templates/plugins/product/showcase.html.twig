@@ -1,0 +1,80 @@
+<div class="dc12">
+    <div class="item-list">
+        <div class="box">
+            <div class="dc12">
+                <h6 class="showcase-title">{{ 'label.area_category'|trans }}</h6>
+            </div>
+            <div class="dc3">
+                <a href="{{ path('search', {province_id: main['province_id'], region: main['region']}) }}">
+                    <img class="showcase-img-province" src="{{ asset(main['img']) }}" alt="">
+                </a>
+            </div>
+            <div class="dc9 slider-container">
+                <div class="item-list">
+                    <div class="box box-kat">
+                        <div id="swiper3" class="swiper">
+                            <div class="swiper-wrapper">
+                                {% for product in main['products'] %}
+                                    {% set store_slug = product.getStore.getSlug %}
+                                    {% set store_url = path('store_page', {'store': store_slug}) %}
+                                    {% set product_url = path('store_product_page', {
+                                        'store': store_slug,
+                                        'product': product.getSlug,
+                                    }) %}
+                                    <div class="swiper-slide showcase-slider">
+                                        <a href="{{ product_url }}">
+                                            <div class="icon showcase-icon">
+                                                {% set file = product.getFiles|default %}
+                                                {% set filePath = 'dist/img/no-image.png' %}
+                                                {% if file is not empty %}
+                                                    {% set filePath = file[0].getFilePath %}
+                                                {% endif %}
+                                                <img src="{{ path('sftp_show_file', {'path': filePath}) }}" alt="">
+                                            </div>
+                                            <div class="row">
+                                                <h5 style="text-align: center; padding-top: 10px; overflow: hidden; display: -webkit-box; -webkit-line-clamp:1; -webkit-box-orient: vertical" >{{ product.getName }}</h5>
+                                                <h5 style="color: red; font-weight: bold">Rp. {{ product.getPrice|number_format }}</h5>
+                                            </div>
+                                        </a>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="swiper-button-next" id="product-next">
+                            <i class="fa fa-angle-right"></i>
+                        </div>
+                        <div class="swiper-button-prev" id="product-prev">
+                            <i class="fa fa-angle-left"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="dc12 slider-container">
+                <div class="item-list">
+                    <div class="box box-cat">
+                        <div class="swiper" id="swiper4">
+                            <div class="swiper-wrapper">
+                                {% for province in provinces %}
+                                    {% set path = path('search', {province_id: province['id'], region: province['region']}) %}
+
+                                    {% if province['with_province_id'] is defined %}
+                                        {% set path = path('search', {province_id: province['id'], region: province['region'], with_province_id: province['with_province_id']}) %}
+                                    {% endif %}
+
+                                    <div class="swiper-slide">
+                                        <a href="{{ path }}">
+                                            <img class="showcase-img-provinces" src="{{ asset(province['img']) }}" alt="">
+                                        </a>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="swiper-button-prev" id="m-prev"></div>
+                        <div class="swiper-button-next" id="m-next"></div>
+                        <div class="swiper-scrollbar" id="m-scroll"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

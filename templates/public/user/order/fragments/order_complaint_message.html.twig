@@ -1,0 +1,16 @@
+{% if order['oc_id'] is not empty and order['oc_isResolved'] == false %}
+    <div class="top" style="margin-top: 20px;">
+        <a href="javascript:void(0);" class="sBtn small red chat" data-slug="{{ product['s_slug'] }}" data-order="{{ order['o_id'] }}" data-product="{{ product['p_id'] }}">
+            {{ 'label.send_message'|trans }}
+        </a>
+    </div>
+{% else %}
+    {% set chat_room_id = order_chat_room(order['u_id']|to_int, product['ow_id']|to_int, order['o_id']|to_int, product['p_id']|to_int) %}
+    {% if chat_room_id is not empty %}
+        <div class="top" style="margin-top: 20px;">
+            <a href="{{ path('user_chat_detail', {'room': chat_room_id}) }}" class="sBtn small red">
+                {{ 'label.view_message'|trans }}
+            </a>
+        </div>
+    {% endif %}
+{% endif %}

@@ -1,0 +1,64 @@
+<div class="dc12">
+    <div class="item-list">
+        <div class="box box-ter">
+            <h6 class="title">{{ 'message.info.bestseller_product'|trans }}</h6>
+            <a href="{{ path('search') }}" class="right-side">{{ 'message.info.view_another_product'|trans }}
+                <i class="fas fa-chevron-right"></i>
+            </a>
+            <div class="swiper-container" id="swiper2">
+                <div class="swiper-wrapper">
+                    {% for product in products %}
+                        <div class="swiper-slide">
+                            <div class="produk">
+                                {% if product[0] is defined %}
+                                    <div class="image">
+                                        <div class="badge-ter">
+                                            <p>Top<br><span>1</span></p>
+                                        </div>
+                                        {% set product_url1 = path('store_product_page', {
+                                            'store': product[0].s_slug,
+                                            'product': product[0].slug,
+                                        }) %}
+                                        <a href="{{ product_url1 }}"><img src="{{ path('sftp_show_file', {'path': product[0].image|default('dist/img/no-image.png')}) }}" alt=""></a>
+                                    </div>
+                                    {% if product[1] is defined %}
+                                        <div class="produk-small">
+                                            <div class="image2">
+                                                <div class="badge-ter">
+                                                    <p><span>2</span></p>
+                                                </div>
+                                                {% set product_url2 = path('store_product_page', {
+                                                    'store': product[1].s_slug,
+                                                    'product': product[1].slug,
+                                                }) %}
+                                                <a href="{{ product_url2 }}"><img src="{{ path('sftp_show_file', {'path': product[1].image|default('dist/img/no-image.png')}) }}" alt=""></a>
+                                            </div>
+                                            {% if product[2] is defined %}
+                                                <div class="image2">
+                                                    <div class="badge-ter">
+                                                        <p><span>3</span></p>
+                                                    </div>
+                                                    {% set product_url3 = path('store_product_page', {
+                                                        'store': product[2].s_slug,
+                                                        'product': product[2].slug,
+                                                    }) %}
+                                                    <a href="{{ product_url3 }}"><img src="{{ path('sftp_show_file', {'path': product[2].image|default('dist/img/no-image.png')}) }} " alt=""></a>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="swiper-button-next" id="best-seller-next">
+                <i class="fa fa-angle-right"></i>
+            </div>
+            <div class="swiper-button-prev" id="best-seller-prev">
+                <i class="fa fa-angle-left"></i>
+            </div>
+        </div>
+    </div>
+</div>

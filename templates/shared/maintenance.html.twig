@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="{{ locale }}">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="content-type" content="text/html">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+        <meta name="author" content="{{ get_parameter('app_name') }}">
+
+        <title>{{ page_title|trans }}</title>
+        <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}" >
+
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,900">
+        <link rel="stylesheet" href="{{ asset('dist/compiled/site.css') }}">
+    </head>
+    <body>
+        <div class="popup uc" title="{{ 'message.info.under_construction_alt'|trans }}" style="display: block;">
+            <div class="wh100">
+                <div class="popup-wrapper">
+                    <div class="inner">
+                        <img src="{{ asset('dist/img/404-popup.jpg') }}" alt="">
+                        <div class="text">
+                            <h3>{{ 'message.info.under_construction_alt'|trans }}</h3>
+                            <p>{{ 'message.info.under_construction_text'|trans|raw }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

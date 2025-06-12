@@ -1,0 +1,204 @@
+<div class="pr-card">
+	<div class="row">
+		{% if orders|length > 0 %}
+			{% for order in orders %}
+				{% set tax_value = order['o_products'][0]['op_taxValue']|to_int %}
+				{% set grand_total = order['o_total'] + order['o_shippingPrice'] %}
+                {% if order['o_isB2gTransaction'] == true %}
+					{# Harga total di db belum include ppn jadi di tambah ppn sedangkan harga ongkir sudah include ppn #}
+                    {% if order['o_negotiationStatus'] == 'none' %}
+                        {% set grand_total = order['o_totalBackup'] + order['o_shippingPriceBackup'] %}
+                    {% else %}
+                        {% set is_pkp_order = order['o_products'][0]['op_withTax'] is defined ? order['o_products'][0]['op_withTax']|to_bool : false %}
+                        {% if is_pkp_order %}
+                            {% set grand_total = (order['o_totalBackup'] + generate_ppn(order['o_totalBackup']|to_int, order['o_products'][0]['s_umkm_category'],tax_value)) + order['o_shippingPriceBackup'] %}
+                        {% else %}
+                            {% set grand_total = order['o_totalBackup'] + order['o_shippingPriceBackup'] %}
+                        {% endif %}
+                    {% endif %}
+                {% else %}
+                    {% for product in order['o_products'] %}
+                        {% set grand_total = grand_total + product['op_taxNominal'] %}
+                    {% endfor %}
+                {% endif %}
+				{% set order_vouchers_list = order_vouchers(order['o_sharedId']) %}
+				{% set order_vouchers_lists = order_vouchers(order['o_sharedId'], 'no') %}
+				{% set order_detail_path = path('user_order_detail', {'id': order['o_id']}) %}
+				{% set order_negotiation_style = '' %}
+				{% if order['u_role'] == 'ROLE_USER_GOVERNMENT' and order['o_negotiationStatus'] in ['pending', 'fail'] %}
+					{% set order_negotiation_style = 'border: 1px solid red;' %}
+				{% endif %}
+				{% set last_nego_price = 0 %}
+				{% set initial_with_shipping = true %}
+				<div class="dc6 tc12">
+					<div class="box pr-card__1" style="{{ order_negotiation_style }}">
+						<div class="top">
+							<div class="text">
+								<h6>{{ order['o_invoice'] }}</h6>
+								{% if parameters['buyer'] is defined %}
+									<p>{{ 'title.page.store'|trans }}:
+										{{ order['s_name']|raw }}</p>
+									{# {% set ppk_payment_method = order['o_ppk_payment_method']|default('uang_persediaan') %}
+									<p>{{ 'label.ppk_payment_method'|trans }} : {{get_parameter('ppk_method_options')[ppk_payment_method]}}</p> #}
+								{% elseif parameters['seller'] is defined %}
+									<p>{{ 'label.customer'|trans }}:
+										{{ order['u_firstName'] ~ ' ' ~ order['u_lastName'] }}</p>
+								{% endif %}
+							</div>
+							<span class="badge blue">{{ order['o_status'] }}</span>
+						</div>
+						<div class="info">
+							<div>
+								<span>
+									{% if order['u_role'] == 'ROLE_USER_GOVERNMENT' %}
+                                        {% set nego_batch = 0 %}
+										{% if order['o_negotiatedProducts']|length > 0 %}
+											{% for temp_nego_data in order['o_negotiatedProducts'] %}
+												{% set nego_batch = temp_nego_data['on_batch'] %}
+											{% endfor %}
+										{% endif %}
+										{% for product in order['o_products'] %}
+											{% for product_nego in order['o_negotiatedProducts'] %}
+												{% if (product_nego['p_id'] == product['p_id']) and (product_nego['on_batch'] == nego_batch) %}
+													{% if initial_with_shipping == true %}
+                                                        {% set last_nego_price = ((product_nego['on_negotiatedPrice'] * product['op_quantity']) + product_nego['on_negotiatedShippingPrice']) + ((product_nego['on_taxNominalPrice'] * product['op_quantity']) + (product_nego['on_taxNominalShipping'])) %}
+													{% else %}
+                                                        {% set last_nego_price = last_nego_price + (product_nego['on_negotiatedPrice'] * product['op_quantity']) + (product_nego['on_taxNominalPrice'] * product['op_quantity']) %}
+													{% endif %}
+                                                    {% set initial_with_shipping = false %}
+												{% endif %}
+											{% endfor %}
+										{% endfor %}
+
+										{% if parameters['buyer'] is defined %}
+											{% set order_groups = order_related(order['o_sharedId'], order['o_id']) %}
+											{% set order_detail_path = 'javascript:void(0);' %}
+											{% if order['o_sharedInvoice'] is defined and order['o_sharedInvoice'] is not empty %}
+												{% set order_detail_path = path('user_order_shared', {'id': order['o_sharedInvoice']|base64_encode}) %}
+											{% endif %}
+											{% if order_groups|length < 1 %}
+												{% if order_vouchers_list|length > 0 %}
+													{% set total_order_amount = 0 %}
+													{% set total_voucher_amount = 0 %}
+													{% set o_lists = [] %}
+													{% set v_lists = [] %}
+
+													{% for voucher_list in order_vouchers_lists %}
+														{% if voucher_list['vul_orderId'] not in o_lists %}
+															{% set total_order_amount = total_order_amount + voucher_list['vul_orderAmount'] %}
+															{% set o_lists = o_lists|merge([voucher_list['vul_orderId']]) %}
+														{% endif %}
+														{% if voucher_list['v_code'] not in v_lists %}
+															{% set total_voucher_amount = total_voucher_amount + voucher_list['v_amount'] %}
+															{% set v_lists = v_lists|merge([voucher_list['v_code']]) %}
+														{% endif %}
+													{% endfor %}
+
+													{% set grand_total_with_voucher = total_order_amount - total_voucher_amount %}
+
+													{% set grand_total_with_voucher_value = 'Rp. ' ~ grand_total_with_voucher|number_format %}
+													{% if grand_total_with_voucher < 0 %}
+														{% set grand_total_with_voucher = (grand_total_with_voucher * -1) %}
+														{% set grand_total_with_voucher_value = '(Rp. ' ~ grand_total_with_voucher|number_format ~ ')' %}
+													{% endif %}
+													<i class="fas fa-wallet">&nbsp;{{ 'label.original_price'|trans|upper }}</i>
+													{{ grand_total_with_voucher_value }}
+													<i class="fas fa-wallet">&nbsp;{{ 'label.negotiated_price'|trans|upper }}</i>
+													{{ last_nego_price|number_format }}
+
+												{% else %}
+													<i class="fas fa-wallet">&nbsp;{{ 'label.original_price'|trans|upper }}</i>
+													Rp.
+													{{ grand_total|number_format }}
+													<i class="fas fa-wallet">&nbsp;{{ 'label.negotiated_price'|trans|upper }}</i>
+													Rp.
+													{{ last_nego_price|number_format }}
+
+												{% endif %}
+											{% else %}
+												*{{ 'label.shared_orders'|trans }}
+											{% endif %}
+										{% elseif parameters['seller'] is defined %}
+											<i class="fas fa-wallet">&nbsp;{{ 'label.original_price'|trans|upper }}</i>
+											Rp.
+											{{ grand_total|number_format }}
+											<i class="fas fa-wallet">&nbsp;{{ 'label.negotiated_price'|trans|upper }}</i>
+											Rp.
+											{{ last_nego_price|number_format }}
+										{% endif %}
+										{% set last_nego_price = 0 %}
+
+									{% else %}
+										{% if parameters['buyer'] is defined %}
+											{% set order_groups = order_related(order['o_sharedId'], order['o_id']) %}
+											{% set order_detail_path = 'javascript:void(0);' %}
+											{% if order['o_sharedInvoice'] is defined and order['o_sharedInvoice'] is not empty %}
+												{% set order_detail_path = path('user_order_shared', {'id': order['o_sharedInvoice']|base64_encode}) %}
+											{% endif %}
+											{% if order_groups|length < 1 %}
+												{% if order_vouchers_list|length > 0 %}
+													{% set total_order_amount = 0 %}
+													{% set total_voucher_amount = 0 %}
+													{% set o_lists = [] %}
+													{% set v_lists = [] %}
+
+													{% for voucher_list in order_vouchers_lists %}
+														{% if voucher_list['vul_orderId'] not in o_lists %}
+															{% set total_order_amount = total_order_amount + voucher_list['vul_orderAmount'] %}
+															{% set o_lists = o_lists|merge([voucher_list['vul_orderId']]) %}
+														{% endif %}
+														{% if voucher_list['v_code'] not in v_lists %}
+															{% set total_voucher_amount = total_voucher_amount + voucher_list['v_amount'] %}
+															{% set v_lists = v_lists|merge([voucher_list['v_code']]) %}
+														{% endif %}
+													{% endfor %}
+
+													{% set grand_total_with_voucher = grand_total - total_voucher_amount %}
+													{% set grand_total_with_voucher_value = 'Rp. ' ~ grand_total_with_voucher|number_format %}
+													{% if grand_total_with_voucher < 0 %}
+{#														{% set grand_total_with_voucher = (grand_total_with_voucher * -1) %}#}
+{#														{% set grand_total_with_voucher_value = '(Rp. ' ~ grand_total_with_voucher|number_format ~ ')' %}#}
+														{% set grand_total_with_voucher_value = 'Rp. 0' %}
+													{% endif %}
+													<i class="fas fa-wallet"></i>
+													{{ grand_total_with_voucher_value }}
+												{% else %}
+													<i class="fas fa-wallet"></i>
+													Rp.
+													{{ grand_total|number_format }}
+												{% endif %}
+											{% else %}
+												*{{ 'label.shared_orders'|trans }}
+											{% endif %}
+										{% elseif parameters['seller'] is defined %}
+											<i class="fas fa-wallet"></i>
+											Rp.
+											{{ grand_total|number_format }}
+										{% endif %}
+									{% endif %}
+
+								</span>
+							</div>
+							<a href="{{ order_detail_path }}" class="sBtn red">
+								{{ 'label.order_detail'|trans }}
+							</a>
+						</div>
+					</div>
+				</div>
+			{% endfor %}
+		{% else %}
+			<div class="no-transaction ct">
+				<h1>
+					<i class="fas fa-shopping-cart"></i>
+				</h1>
+				<h5>{{ 'message.info.no_transactions'|trans }}</h5>
+				{% if app.user and app.user.role != 'ROLE_USER_SELLER' %}
+					<p class="ct">{{ 'message.info.no_transactions_alt'|trans }}</p>
+					<p class="ct">
+						<a href="{{ path('search') }}" class="sBtn red">{{ 'label.buy_now'|trans }}</a>
+					</p>
+				{% endif %}
+			</div>
+		{% endif %}
+	</div>
+</div>

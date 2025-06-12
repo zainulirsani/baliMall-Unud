@@ -1,0 +1,182 @@
+{% if order['u_role'] == 'ROLE_USER_GOVERNMENT' and order['o_negotiationStatus'] == 'finish' %}
+    {% set total_quantity = 0 %}
+    {% set total_delivery = 0 %}
+    {% set editable = false %}
+
+    {% if order['o_status'] in ['processed', 'partial_delivery'] %}
+        {% set editable = true %}
+    {% endif %}
+
+    {% if user_type == 'buyer' %}
+        {% set editable = false %}
+    {% endif %}
+
+    <hr>
+    <div id="partial-delivery-table" class="table-wrapper" style="margin-bottom: 20px;">
+        <div class="inner">
+            <table class="nego">
+                <tr class="thead_n">
+                    <td colspan="7" class="c">
+                        <b>Data Pengiriman</b>
+                    </td>
+                </tr>
+                <tr class="thead">
+                    <td>{{ 'label.number'|trans }}</td>
+                    <td>{{ 'label.product_name'|trans }}</td>
+                    <td>{{ 'label.qty'|trans }}</td>
+                    <td>{{ 'label.unit_alt'|trans }}</td>
+                    <td>{{ 'label.batch'|trans }}</td>
+                    <td>{{ 'label.count'|trans }}</td>
+                    <td>{{ 'label.actions'|trans }}</td>
+                </tr>
+                {% for product in order['o_products'] %}
+                    {% set delivery_details = product['op_deliveryDetails']|default('')|json_decode %}
+                    {% set sub_total_quantity = 0 %}
+                    {% set total_quantity = total_quantity + product['op_quantity'] %}
+                    {% set show_form = false %}
+                    {% set temp_detail = null %}
+
+                    <tr>
+                        <td class="number">
+                            <b>{{ loop.index }}</b>
+                        </td>
+                        <td>
+                            <b>{{ product['p_name'] }}</b>
+                        </td>
+                        <td class="c">
+                            <b>{{ product['op_quantity'] }}</b>
+                        </td>
+                        <td class="c">{{ product['p_unit'] }}</td>
+                        <td class="text_r">1</td>
+                        <td class="text_r">
+                            {% if delivery_details|length > 0 %}
+                                {% for detail in delivery_details %}
+                                    {% if detail['batch'] == 1 %}
+                                        {% set sub_total_quantity = sub_total_quantity + detail['current'] %}
+                                        {% set total_delivery = total_delivery + detail['current'] %}
+
+                                        {{ detail['current'] }}
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                {% set bg_color = editable ? 'grey' : 'white' %}
+                                <div style="background-color: {{ bg_color }}">
+                                    <input type="number" id="delivery_qty" name="delivery_qty[]" title="" min="1" max="{{ product['op_quantity'] }}" step="1" value="{{ product['op_quantity'] }}">
+                                </div>
+                                <input type="hidden" id="delivery_pid" name="delivery_pid[]" value="{{ product['p_id'] }}">
+                            {% endif %}
+                        </td>
+                        <td class="text_r">
+                            {% if delivery_details|length > 0 and user_type == 'seller' %}
+                                {% set print_type = delivery_details[0]['remaining'] > 0 ? 'bast' : 'basp' %}
+                                <a href="{{ path('user_order_print', {'id': order['o_id'], 'type': print_type, 'delivery_batch': 1}) }}" class="dl-bast-basp" data-filename="{{ print_type|upper }}">
+                                    {{ print_type|upper }}
+                                </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+
+                    {% for detail in delivery_details %}
+                        {% if detail['batch'] > 1 %}
+                            {% set sub_total_quantity = sub_total_quantity + detail['current'] %}
+                            {% set total_delivery = total_delivery + detail['current'] %}
+
+                            <tr>
+                                <td colspan="4"></td>
+                                <td class="text_r">{{ detail['batch'] }}</td>
+                                <td class="text_r">{{ detail['current'] }}</td>
+                                <td class="text_r">
+                                    {% if user_type == 'seller' %}
+                                        {% set print_type = detail['remaining'] > 0 ? 'bast' : 'basp' %}
+                                        <a href="{{ path('user_order_print', {'id': order['o_id'], 'type': print_type, 'delivery_batch': detail['batch']}) }}" class="dl-bast-basp" data-filename="{{ print_type|upper }}">
+                                            {{ print_type|upper }}
+                                        </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% if loop.last and detail['remaining'] > 0 %}
+                                {% set show_form = true %}
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if (total_quantity - total_delivery) > 0 and delivery_details|length > 0 %}
+                        {% set index = delivery_details|length %}
+                        {% set temp_detail = delivery_details[(index - 1)] %}
+                        {% set show_form = true %}
+                    {% endif %}
+
+                    {% if show_form and temp_detail is not empty and user_type == 'seller' %}
+                            <td colspan="4"></td>
+                            <td class="text_r">{{ temp_detail['batch'] + 1 }}</td>
+                            <td class="text_r">
+                                {% if editable %}
+                                    {% set readonly = '' %}
+                                    {% if temp_detail['remaining'] == 0 %}
+                                        {% set readonly = 'readonly' %}
+                                    {% endif %}
+
+                                    <div style="background-color: {{ editable and readonly == '' ? 'grey' : 'white' }}">
+
+                                        <input type="number" name="delivery_qty[]" title="" min="1" max="{{ temp_detail['remaining'] }}" step="1" value="{{ temp_detail['remaining'] }}" {{ readonly }}>
+                                    </div>
+                                    <input type="hidden" name="delivery_pid[]" value="{{ product['p_id'] }}">
+                                {% else %}
+                                    {{ temp_detail['current'] }}
+                                {% endif %}
+                            </td>
+                            <td class="text_r">
+                                {% if editable == false %}
+                                    {% set print_type = temp_detail['remaining'] > 0 ? 'bast' : 'basp' %}
+                                    <a href="{{ path('user_order_print', {'id': order['o_id'], 'type': print_type, 'delivery_batch': temp_detail['batch'] + 1}) }}" class="dl-bast-basp" data-filename="{{ print_type|upper }}">
+                                        {{ print_type|upper }}
+                                    </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+                <tr>
+                    <td colspan="4" rowspan="5"></td>
+                    <td class="t_price">
+                        <b>Belum Terkirim</b>
+                    </td>
+                    <td class="text_r">{{ total_quantity - total_delivery }}</td>
+                    <td class="text_r"></td>
+                </tr>
+                <tr>
+                    <td class="t_price">
+                        <b>Sudah Terkirim</b>
+                    </td>
+                    <td class="text_r">{{ total_delivery }}</td>
+                    <td class="text_r"></td>
+                </tr>
+                <tr>
+                    <td class="t_price">
+                        <b>Total</b>
+                    </td>
+                    <td class="text_r">{{ total_quantity }}</td>
+                    <td class="text_r"></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        $('.dl-bast-basp').click(function(e) {
+            e.preventDefault();
+
+            var url = $(this).attr('href');
+            var filename = $(this).attr('data-filename');
+            var element = document.createElement('a');
+
+            fetch(url).then(function (response) {
+                return response.blob().then((file) => {
+                    element.href = URL.createObjectURL(file);
+                    element.setAttribute('download', filename);
+                    element.click();
+                });
+            });
+        })
+    </script>
+{% endif %}

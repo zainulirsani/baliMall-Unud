@@ -1,0 +1,16 @@
+{% set breadcrumbs = breadcrumb|default([]) %}
+
+<section class="content-header">
+    <h1>Dashboard <small>Version 2.4.0</small></h1>
+    {% if breadcrumbs %}
+        <ol class="breadcrumb">
+            {% for item in breadcrumbs %}
+                {% if loop.last %}
+                    <li class="active">Dashboard</li>
+                {% else %}
+                    <li><a href="javascript:void(0);"><i class="fa fa-dashboard"></i> Home</a></li>
+                {% endif %}
+            {% endfor %}
+        </ol>
+    {% endif %}
+</section>

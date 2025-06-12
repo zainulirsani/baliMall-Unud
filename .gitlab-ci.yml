@@ -1,0 +1,45 @@
+stages:
+   - update
+   - clear_cache
+   - sync_compiled_asset
+   - composer_install
+
+default:
+    before_script:
+      - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+      - mkdir -p ~/.ssh
+      - eval $(ssh-agent -s)
+      - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+      - ssh-add <(echo "$SSH_PRIVATE_KEY")
+
+update_code:
+   stage: update
+   only:
+      - staging
+   script:
+      - ssh -p $SSH_PORT $SSH_USER@$REMOTE_SERVER "cd $REMOTE_DIR && git stash && git checkout staging && git pull"
+
+clear:
+   stage: clear_cache
+   only:
+      - staging
+   script:
+      - ssh -p $SSH_PORT $SSH_USER@$REMOTE_SERVER "cd $REMOTE_DIR && php bin/console cache:clear"
+
+copy_compiled:
+   stage: sync_compiled_asset
+   when: manual
+   script:
+      - ssh -p $SSH_PORT $SSH_USER@$REMOTE_SERVER "cd $REMOTE_DIR && php bin/console cache:clear"
+
+copy_compiled:
+   stage: sync_compiled_asset
+   when: manual
+   script:
+      - ssh -p $SSH_PORT $SSH_USER@$REMOTE_SERVER "cd $REMOTE_DIR && $MV_COMMANDS"
+
+install_package:
+   stage: composer_install
+   when: manual
+   script:
+      - ssh -p $SSH_PORT $SSH_USER@$REMOTE_SERVER "cd $REMOTE_DIR && composer install -n"

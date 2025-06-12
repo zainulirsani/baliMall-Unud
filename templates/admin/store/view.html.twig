@@ -1,0 +1,744 @@
+{% extends '@__main__/admin/base/layouts/default.html.twig' %}
+
+{% set trans_parameter = {'%name%': form_data['s_name']} %}
+{% set page_header = page_title|trans(trans_parameter) %}
+{% set index_route = 'admin_' ~ page_section ~ '_index' %}
+{% set edit_route = 'admin_' ~ page_section ~ '_edit' %}
+{% set store_status = form_data['s_status'] %}
+{% set store_status_value = '' %}
+{% set store_verified = form_data['s_isVerified']|default()|to_bool %}
+{% set store_verified_value = '' %}
+{% set store_owner_id = form_data['u_id']|default(0) %}
+{% set store_owner_full_name = null %}
+{% set store_delivery_couriers = form_data['s_deliveryCouriers']|default([]) %}
+{% set store_pkp = form_data['s_isPKP']|default(false) %}
+{% set used_erzap = form_data['s_isUsedErzap']|default(false) %}
+
+{% if store_owner_id > 0 %}
+    {% set store_owner_full_name = form_data['u_firstName'] ~ ' ' ~ form_data['u_lastName'] %}
+{% endif %}
+
+{% if form_data['s_deliveryCouriers'] is not empty %}
+    {% set store_delivery_couriers = form_data['s_deliveryCouriers']|json_decode %}
+{% endif %}
+
+{% set isUser = false %}
+
+{% if form_data['s_previousChanges'] is not empty %}
+    {% if form_data['s_previousChanges']['p_lastChangedBy']|to_int == form_data['u_id']|to_int %}
+        {% set isUser = true %}
+    {% endif%}
+{% endif %}
+
+{% set isUpdate = form_data['s_status'] == 'UPDATE' and isUser %}
+
+{% block stylesheets %}
+    <style>
+        .prev-value {
+            border: 1px solid red;
+        }
+    </style>
+
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">{{ page_header|raw }}</h3>
+                </div>
+                <div class="box-body">
+                    <div id="store-form" class="panel-body">
+                        <div class="nav-tabs-custom">
+                            <ul class="nav nav-tabs user-tabs">
+                                <li class="active user-tab-data">
+                                    <a href="#tab-data" data-toggle="tab" data-tab="data">{{ 'label.data'|trans }}</a>
+                                </li>
+                                <li class="user-tab-data">
+                                    <a href="#tab-pemilik" data-toggle="tab" data-tab="data">{{ 'label.business_owner'|trans }}</a>
+                                </li>
+                                <li class="user-tab-data">
+                                    <a href="#tab-address" data-toggle="tab" data-tab="data">{{ 'label.address'|trans }}</a>
+                                </li>
+                                <li class="user-tab-data">
+                                    <a href="#tab-finance" data-toggle="tab" data-tab="data">{{ 'label.financial_data'|trans }}</a>
+                                </li>
+                                <li class="user-tab-data">
+                                    <a href="#tab-document" data-toggle="tab" data-tab="data">{{ 'label.document'|trans }}</a>
+                                </li>
+                            </ul>
+                            <div class="tab-content tab-user-content">
+                                <div id="tab-data" class="tab-pane fade in active">
+                                    <div class="m-top-15"></div>
+                                    <div class="form-group">
+                                        <label for="input-owned">{{ 'label.owned_by'|trans }}</label>
+                                        <input id="input-owned" class="form-control" value="{{ store_owner_full_name }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-name">{{ 'label.store_name'|trans }}</label>
+                                        {% if isUpdate and form_data['s_previousChanges']['s_name'] is defined %}
+                                            <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['s_name'] }}" readonly>
+                                            <br>
+                                        {% endif %}
+
+                                        <input id="input-name" class="form-control" value="{{ form_data['s_name']|default()|raw }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-name">{{ 'label.brand'|trans }}</label>
+                                        {% if isUpdate and form_data['s_previousChanges']['s_brand'] is defined %}
+                                            <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['s_brand'] }}" readonly>
+                                            <br>
+                                        {% endif %}
+
+                                        <input id="input-name" class="form-control" value="{{ form_data['s_brand']|default()|raw }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-id-tayang">{{ 'label.id_tayang'|trans }}</label>
+                                        <input id="input-id-tayang" class="form-control" value="{{ form_data['s_idTayang']|default() }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-slug">{{ 'label.slug'|trans }}</label>
+                                        <input id="input-slug" class="form-control" value="{{ form_data['s_slug']|default() }}" readonly>
+                                    </div>
+                                    {#<div class="form-group">
+                                        <label for="input-color">{{ 'label.color'|trans }}</label>
+                                        <input id="input-color" class="form-control color-picker" value="{{ form_data['s_color']|default() }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-theme">{{ 'label.theme'|trans }}</label>
+                                        <input id="input-theme" class="form-control" value="{{ form_data['s_theme']|default() }}" readonly>
+                                    </div>#}
+                                    <div class="form-group">
+                                        <label for="input-description">{{ 'label.description'|trans }}</label>
+                                        {% if isUpdate and form_data['s_previousChanges']['s_description'] is defined %}
+                                            <textarea class="form-control prev-value" rows="3" readonly>{{ form_data['s_previousChanges']['s_description'] }}</textarea>
+                                            <br>
+                                        {% endif %}
+
+                                        <textarea id="input-descriptions" class="form-control" rows="3" readonly>{{ form_data['s_description']|default() }}</textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-note">{{ 'label.note'|trans }}</label>
+                                        <textarea id="input-note" class="form-control" rows="2" readonly>{{ form_data['s_note']|default() }}</textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-file-hash">{{ 'label.filehash'|trans }}</label>
+                                        <input id="input-file-hash" class="form-control" value="{{ form_data['s_fileHash'] }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+{#                                        {% if store_status is defined %}#}
+{#                                            {% set store_status = store_status == true ? 'label.active' : 'label.inactive' %}#}
+{#                                            {% set store_status_value = store_status|trans %}#}
+{#                                        {% endif %}#}
+                                        <label for="input-status">{{ 'label.status'|trans }}</label>
+                                        <input id="input-status" class="form-control" value="{{ store_status }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        {% if store_verified is defined %}
+                                            {% set store_verified = store_verified == true ? 'label.verified' : 'label.unverified' %}
+                                            {% set store_verified_value = store_verified|trans %}
+                                        {% endif %}
+                                        <label for="input-verified">{{ 'label.verified'|trans }}</label>
+                                        <input id="input-verified" class="form-control" value="{{ store_verified_value }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="">{{ 'label.pkp'|trans }}</label>
+                                        {% if isUpdate and form_data['s_previousChanges']['s_isPKP'] is defined %}
+                                            {% set pkpChecked = form_data['s_previousChanges']['s_isPKP'] == 'pkp' ? 'checked' : '' %}
+                                            <div class="checkbox prev-value">
+                                               <label><input type="checkbox" value="1" {{ pkpChecked }} disabled></label>
+                                               <br>
+                                           </div>
+                                        {% endif %}
+                                        {% set checked = store_pkp == true ? 'checked' : '' %}
+                                        <div class="checkbox">
+                                            <label><input type="checkbox" value="1" {{ checked }} disabled></label>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="">{{ 'label.used_erzap'|trans }}</label>
+                                        {% if isUpdate and form_data['s_previousChanges']['s_isUsedErzap'] is defined %}
+                                            {% set s_isUsedErzap = form_data['s_previousChanges']['s_isUsedErzap'] == 1 ? 'checked' : '' %}
+                                            <div class="checkbox prev-value">
+                                               <label><input type="checkbox" value="1" {{ s_isUsedErzap }} disabled></label>
+                                               <br>
+                                           </div>
+                                        {% endif %}
+                                        {% set checked = used_erzap == true ? 'checked' : '' %}
+                                        <div class="checkbox">
+                                            <label><input type="checkbox" value="1" {{ checked }} disabled></label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-register-number">{{ 'label.register_number'|trans }}</label>
+                                        <input id="input-register-number" class="form-control" value="{{ form_data['s_registeredNumber'] }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-type-business">{{ 'label.type_of_business'|trans }}</label>
+                                        {% if isUpdate and form_data['s_previousChanges']['s_typeOfBusiness'] is defined %}
+                                            {% set choiceType = get_parameter('type_of_business')[form_data['s_previousChanges']['s_typeOfBusiness']]['label'] %}
+                                            {% set labelType = 'label.' ~ choiceType %}
+                                            <input class="form-control prev-value" value="- {{ labelType|trans }}" readonly>
+                                            <br>
+                                        {% endif %}
+
+                                        {% set label = '' %}
+
+                                        {% if form_data['s_typeOfBusiness'] != '' %}
+                                            {% set choice = get_parameter('type_of_business')[form_data['s_typeOfBusiness']]['label'] %}
+                                            {% set label = ('label.' ~ choice) | trans %}
+                                        {% endif %}
+
+                                        <input id="input-type-business" class="form-control" value="{{ label }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-business-criteria">{{ 'label.business_criteria'|trans }}</label>
+                                        {% if isUpdate and form_data['s_previousChanges']['s_businessCriteria'] is defined %}
+                                            {% set prevLabelForBusinessCriteria =
+                                                get_parameter('business_criteria')[form_data['s_previousChanges']['s_businessCriteria']] %}
+
+                                            <input class="form-control prev-value" value="- {{ prevLabelForBusinessCriteria['display'] }}" readonly>
+                                            <br>
+                                        {% endif %}
+
+                                        {% set labelForBusinessCriteria = '' %}
+
+                                        {% if form_data['s_businessCriteria'] != '' %}
+                                            {% set labelForBusinessCriteria = get_parameter('business_criteria')[form_data['s_businessCriteria']] %}
+                                            {% set labelForBusinessCriteria = labelForBusinessCriteria['display'] %}
+                                        {% endif %}
+
+                                        <input id="input-business-criteria" class="form-control" value="{{ labelForBusinessCriteria }}" readonly>
+                                    </div>
+
+
+                                    <div class="form-group">
+                                        <label for="input-npwp-name">{{ 'label.npwp_name'|trans }}</label>
+                                        {% if isUpdate and form_data['s_previousChanges']['u_npwpName'] is defined %}
+                                            <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['u_npwpName'] }}" readonly>
+                                            <br>
+                                        {% endif %}
+                                        <input id="" class="form-control" value="{{ form_data['u_npwpName'] }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="">{{ 'label.npwp'|trans }}</label>
+                                        {% if isUpdate and form_data['s_previousChanges']['u_npwp'] is defined %}
+                                            <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['u_npwp'] }}" readonly>
+                                            <br>
+                                        {% endif %}
+
+                                        <input id="input-npwp" class="form-control" value="{{ form_data['u_npwp'] }}" readonly>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="">{{ 'label.delivery_couriers'|trans }}</label>
+                                        {% if isUpdate and form_data['s_previousChanges']['s_deliveryCouriers'] is defined %}
+                                            <div class="prev-value">
+                                                {% for key, courier in get_parameter('raja_ongkir_couriers') %}
+                                                    {% set checkedCourier = key in form_data['s_previousChanges']['s_deliveryCouriers'] ? 'checked' : '' %}
+                                                    {% if checkedCourier %}
+                                                        <div class="checkbox">
+                                                            -
+                                                            <label>
+                                                                <input type="checkbox" value="{{ key }}" {{ checkedCourier }} disabled> {{ courier }}
+                                                            </label>
+                                                        </div>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                        {% for key, courier in get_parameter('raja_ongkir_couriers') %}
+                                            {% set checked = key in store_delivery_couriers ? 'checked' : '' %}
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input type="checkbox" value="{{ key }}" {{ checked }} disabled> {{ courier }}
+                                                </label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="">{{ 'label.category'|trans }}</label>
+                                        {% if isUpdate and form_data['s_previousChanges']['s_productCategories'] is defined %}
+                                            <div class="prev-value">
+                                                {% for category in form_data['productCategories']|filter((v,k) => v['level'] != 1) %}
+                                                    {% set prev_category = form_data['s_previousChanges']['s_productCategories']|split(',') %}
+                                                    {% set checkedCategory = category['id'] in prev_category ? 'checked' : '' %}
+                                                    {% if checkedCategory %}
+                                                        <div class="checkbox">
+                                                            -
+                                                            <label>
+                                                                <input type="checkbox" value="{{ category['id'] }}" {{ checkedCategory }} disabled> {{ category['text'] }}
+                                                            </label>
+                                                        </div>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+
+                                        {% for category in form_data['productCategories']|filter((v,k) => v['level'] != 1) %}
+                                            {#                                            {% for category in form_data['productCategories'] %}#}
+                                            {% set checked = category['id'] in form_data['s_productCategories'] ? 'checked' : '' %}
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input type="checkbox" value="{{ category['id'] }}" {{ checked }} disabled> {{ category['text'] }}
+                                                </label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div id="tab-pemilik" class="tab-pane fade in">
+                                    <div class="m-top-15"></div>
+                                    <div class="form-group">
+                                        <label for="input-owner">{{ 'label.owned_by'|trans }}</label>
+                                        {% if isUpdate and form_data['s_previousChanges']['u_fullName'] is defined %}
+                                            <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['u_fullName'] }}" readonly>
+                                            <br>
+                                        {% endif %}
+                                        <input id="input-owner" class="form-control" value="{{ store_owner_full_name }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-nik">{{ 'label.position'|trans }}</label>
+                                        {% if isUpdate and form_data['s_previousChanges']['s_position'] is defined %}
+                                            <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['s_position'] }}" readonly>
+                                            <br>
+                                        {% endif %}
+                                        <input id="input-nik" class="form-control" value="{{ form_data['s_position'] }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-nik">{{ 'label.nik'|trans }}</label>
+                                        {% if isUpdate and form_data['s_previousChanges']['u_nik'] is defined %}
+                                            <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['u_nik'] }}" readonly>
+                                            <br>
+                                        {% endif %}
+                                        <input id="input-nik" class="form-control" value="{{ form_data['u_nik'] }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-nik">{{ 'label.email'|trans }}</label>
+                                        {% if isUpdate and form_data['s_previousChanges']['u_email'] is defined %}
+                                            <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['u_email'] }}" readonly>
+                                            <br>
+                                        {% endif %}
+                                        <input id="input-nik" class="form-control" value="{{ form_data['u_email'] }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-nik">{{ 'label.phone'|trans }}</label>
+                                        {% if isUpdate and form_data['s_previousChanges']['u_phoneNumber'] is defined %}
+                                            <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['u_phoneNumber'] }}" readonly>
+                                            <br>
+                                        {% endif %}
+                                        <input id="input-nik" class="form-control" value="{{ form_data['u_phoneNumber'] }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-dob">{{ 'label.dob'|trans }}</label>
+                                        {% if isUpdate and form_data['s_previousChanges']['u_dob'] is defined %}
+                                            <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['u_dob'] }}" readonly>
+                                            <br>
+                                        {% endif %}
+                                        <input id="input-dob" class="form-control" value="{{ form_data['u_dob'] }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-gender">{{ 'label.gender'|trans }}</label>
+                                        {% if isUpdate and form_data['s_previousChanges']['u_gender'] is defined %}
+                                            {% set prevGenderLabel = get_parameter('gender_choices')[form_data['s_previousChanges']['u_gender']] %}
+                                            <input class="form-control prev-value" value="- {{ prevGenderLabel|trans }}" readonly>
+                                            <br>
+                                        {% endif %}
+
+                                        {% if form_data['u_gender'] is not empty %}
+                                            {% set genderLabel = get_parameter('gender_choices')[form_data['u_gender']] %}
+                                            <input id="input-gender" class="form-control" value="{{ genderLabel|trans }}" readonly>
+                                        {% else %}
+                                            <input id="input-gender" class="form-control" value="" readonly>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div id="tab-address" class="tab-pane fade">
+                                    <div class="m-top-15"></div>
+                                    <div class="form-group">
+                                        <label for="input-address">{{ 'label.address'|trans }}</label>
+                                        {% if isUpdate and form_data['s_previousChanges']['s_address'] is defined %}
+                                            <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['s_address'] }}" readonly>
+                                            <br>
+                                        {% endif %}
+                                        <input id="input-address" class="form-control" value="{{ form_data['s_address'] }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-province">{{ 'label.province'|trans }}</label>
+                                        {% if isUpdate and form_data['s_previousChanges']['s_province'] is defined %}
+                                            <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['s_province'] }}" readonly>
+                                            <br>
+                                        {% endif %}
+
+                                        <input id="input-province" class="form-control" value="{{ form_data['s_province'] }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-city">{{ 'label.city'|trans }}</label>
+                                        {% if isUpdate and form_data['s_previousChanges']['s_city'] is defined %}
+                                            <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['s_city'] }}" readonly>
+                                            <br>
+                                        {% endif %}
+
+                                        <input id="input-city" class="form-control" value="{{ form_data['s_city'] }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-district">{{ 'label.district'|trans }}</label>
+                                        {% if isUpdate and form_data['s_previousChanges']['s_district'] is defined %}
+                                            <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['s_district'] }}" readonly>
+                                            <br>
+                                        {% endif %}
+
+                                        <input id="input-district" class="form-control" value="{{ form_data['s_district'] }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-post-code">{{ 'label.post_code'|trans }}</label>
+                                        {% if isUpdate and form_data['s_previousChanges']['s_postCode'] is defined %}
+                                            <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['s_postCode'] }}" readonly>
+                                            <br>
+                                        {% endif %}
+
+                                        <input id="input-post-code" class="form-control" value="{{ form_data['s_postCode'] }}" readonly>
+                                    </div>
+                                </div>
+                                <div id="tab-finance" class="tab-pane fade in">
+                                    <div class="m-top-15"></div>
+                                    <div class="form-group">
+                                        <label for="input-store-capital">{{ 'label.store_capital'|trans }}</label>
+                                        {% if isUpdate and form_data['s_previousChanges']['s_modalUsaha'] is defined %}
+                                            <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['s_modalUsaha']|number_format }}" readonly>
+                                            <br>
+                                        {% endif %}
+
+                                        <input id="input-store-capital" class="form-control" value="{{ form_data['s_modalUsaha']|number_format }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-total-manpower">{{ 'label.total_manpower'|trans }}</label>
+                                        {% if isUpdate and form_data['s_previousChanges']['s_totalManpower'] is defined %}
+                                            <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['s_totalManpower'] }}" readonly>
+                                            <br>
+                                        {% endif %}
+
+                                        <input id="input-total-manpower" class="form-control" value="{{ form_data['s_totalManpower'] }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-account-owner">{{ 'label.account_owner'|trans }}</label>
+                                        {% if isUpdate and form_data['s_previousChanges']['s_rekeningName'] is defined %}
+                                            <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['s_rekeningName'] }}" readonly>
+                                            <br>
+                                        {% endif %}
+
+                                        <input id="input-account-owner" class="form-control" value="{{ form_data['s_rekeningName'] }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-bank">{{ 'label.bank'|trans }}</label>
+                                        {% if isUpdate and form_data['s_previousChanges']['s_bankName'] is defined %}
+                                            <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['s_bankName'] }}" readonly>
+                                            <br>
+                                        {% endif %}
+
+                                        <input id="input-bank" class="form-control" value="{{ form_data['s_bankName'] }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-account-number">{{ 'label.account_number'|trans }}</label>
+                                        {% if isUpdate and form_data['s_previousChanges']['s_nomorRekening'] is defined %}
+                                            <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['s_nomorRekening'] }}" readonly>
+                                            <br>
+                                        {% endif %}
+
+                                        <input id="input-account-number" class="form-control" value="{{ form_data['s_nomorRekening'] }}" readonly>
+                                    </div>
+                                </div>
+                                <div id="tab-document" class="tab-pane fade in">
+                                    <div class="m-top-15"></div>
+                                    {% if isUpdate and form_data['totalPreviousFiles'] > 0 %}
+                                        <table class="table prev-value">
+                                            <thead>
+                                            <tr>
+                                                <th width="50%">{{ 'label.filename'|trans }}</th>
+                                                <th width="30%">{{ 'label.category'|trans }}</th>
+                                                <th width="20%">{{ 'label.actions'|trans }}</th>
+                                                <th></th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% if form_data['s_previousChanges']['u_ktpFile'] is defined %}
+                                                <tr>
+                                                    <td>{{ form_data['s_previousChanges']['u_ktpFileName'] }}</td>
+                                                    <td>{{ 'label.photo_ktp'|trans }}</td>
+                                                    <td class="py-0 align-middle">
+                                                        <div class="btn-group btn-group-sm">
+                                                            <a href="{{ path('sftp_show_file', {'path': form_data['s_previousChanges']['u_ktpFileRealPath'] }) }}" target="_blank" class="btn btn-info"><i class="fa fa-eye"></i></a>
+                                                        </div>
+                                                        <div class="btn-group btn-group-sm">
+                                                            <a href="{{ path('sftp_download_file', {'path': form_data['u_ktpFileRealPath'] }) }}" target="_blank" class="btn btn-info"><i class="fa fa-download"></i></a>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+
+                                            {% if form_data['s_previousChanges']['s_rekeningFile'] is defined %}
+                                                <tr>
+                                                    <td>{{ form_data['s_previousChanges']['s_rekeningFileName'] }}</td>
+                                                    <td>{{ 'label.account_file'|trans }}</td>
+                                                    <td class="py-0 align-middle">
+                                                        <div class="btn-group btn-group-sm">
+                                                            <a href="{{ path('sftp_show_file', {'path': form_data['s_previousChanges']['s_rekeningFileRealPath'] }) }}" target="_blank" class="btn btn-info"><i class="fa fa-eye"></i></a>
+                                                        </div>
+                                                        <div class="btn-group btn-group-sm">
+                                                            <a href="{{ path('sftp_download_file', {'path': form_data['s_rekeningFileRealPath'] }) }}" target="_blank" class="btn btn-info"><i class="fa fa-download"></i></a>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+                                            {% if form_data['s_previousChanges']['u_npwpFile'] is defined %}
+                                                <tr>
+                                                    <td>{{ form_data['s_previousChanges']['u_npwpFileName'] }}</td>
+                                                    <td>{{ 'label.npwp_file'|trans }}</td>
+                                                    <td class="py-0 align-middle">
+                                                        <div class="btn-group btn-group-sm">
+                                                            <a href="{{ path('sftp_show_file', {'path': form_data['s_previousChanges']['u_npwpFileRealPath'] }) }}" target="_blank" class="btn btn-info"><i class="fa fa-eye"></i></a>
+                                                        </div>
+                                                        <div class="btn-group btn-group-sm">
+                                                            <a href="{{ path('sftp_download_file', {'path': form_data['u_npwpFileRealPath'] }) }}" target="_blank" class="btn btn-info"><i class="fa fa-download"></i></a>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+                                            {% if form_data['s_previousChanges']['s_sppkpFile'] is defined %}
+                                                {% for item in form_data['s_previousChanges']['s_sppkpFile'] %}
+                                                    <tr>
+                                                        <td>{{ item['filename'] }}</td>
+                                                        <td>{{ 'label.sppkp_file'|trans }}</td>
+                                                        <td class="py-0 align-middle">
+                                                            <div class="btn-group btn-group-sm">
+                                                                <a href="{{ path('sftp_show_file', {'path': item['realPath'] }) }}" target="_blank" class="btn btn-info"><i class="fa fa-eye"></i></a>
+                                                            </div>
+                                                            <div class="btn-group btn-group-sm">
+                                                                <a href="{{ item['path'] }}" target="_blank" class="btn btn-info"><i class="fa fa-download"></i></a>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                {% endfor %}
+                                            {% endif %}
+                                            {% if form_data['s_previousChanges']['u_suratIjinFile'] is defined %}
+                                                {% for item in form_data['s_previousChanges']['u_suratIjinFile'] %}
+                                                    <tr>
+                                                        <td>{{ item['filename'] }}</td>
+                                                        <td>{{ 'label.business_license_file'|trans }}</td>
+                                                        <td class="py-0 align-middle">
+                                                            <div class="btn-group btn-group-sm">
+                                                                <a href="{{ path('sftp_show_file', {'path': item['realPath'] }) }}" target="_blank" class="btn btn-info"><i class="fa fa-eye"></i></a>
+                                                            </div>
+                                                            <div class="btn-group btn-group-sm">
+                                                                <a href="{{ item['download'] }}" class="btn btn-info"><i class="fa fa-download"></i></a>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                {% endfor %}
+                                            {% endif %}
+                                            {% if form_data['s_previousChanges']['u_dokumenFile'] is defined %}
+                                                {% for item in form_data['s_previousChanges']['u_dokumenFile'] %}
+                                                    <tr>
+                                                        <td>{{ item['filename'] }}</td>
+                                                        <td>{{ 'label.additional_document'|trans }}</td>
+                                                        <td class="py-0 align-middle">
+                                                            <div class="btn-group btn-group-sm">
+                                                                <a href="{{ path('sftp_show_file', {'path': item['realPath'] }) }}" target="_blank" class="btn btn-info"><i class="fa fa-eye"></i></a>
+                                                            </div>
+                                                            <div class="btn-group btn-group-sm">
+                                                                <a href="{{ item['path'] }}" target="_blank" class="btn btn-info"><i class="fa fa-download"></i></a>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                {% endfor %}
+                                            {% endif %}
+                                            </tbody>
+                                        </table>
+                                        <hr>
+                                    {% endif %}
+
+                                    <table class="table">
+                                        <thead>
+                                        <tr>
+                                            <th width="50%">{{ 'label.filename'|trans }}</th>
+                                            <th width="30%">{{ 'label.category'|trans }}</th>
+                                            <th width="20%">{{ 'label.actions'|trans }}</th>
+                                            <th></th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% if form_data['u_photoProfile'] is not null %}
+                                        {# {{ form_data['u_photoProfileDownload'] }} #}
+                                            <tr>
+                                                <td>{{ form_data['u_photoProfileName'] }}</td>
+                                                <td>{{ 'label.photo_profile'|trans }}</td>
+                                                <td class="py-0 align-middle">
+                                                    <div class="btn-group btn-group-sm">
+                                                        <a href="{{ path('sftp_show_file', {'path': form_data['u_photoProfileRealPath'] }) }}" target="_blank" class="btn btn-info"><i class="fa fa-eye"></i></a>
+                                                    </div>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <a href="{{ path('sftp_download_file', {'path': form_data['u_photoProfileRealPath'] }) }}"  class="btn btn-info"><i class="fa fa-download"></i></a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+
+                                        {% if form_data['u_bannerProfile'] is not null %}
+                                            <tr>
+                                                <td>{{ form_data['u_bannerProfileName'] }}</td>
+                                                <td>{{ 'label.photo_banner'|trans }}</td>
+                                                <td class="py-0 align-middle">
+                                                    <div class="btn-group btn-group-sm">
+                                                        <a href="{{ path('sftp_show_file', {'path': form_data['u_bannerProfileRealPath'] }) }}" target="_blank" class="btn btn-info"><i class="fa fa-eye"></i></a>
+                                                    </div>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <a href="{{ path('sftp_download_file', {'path': form_data['u_bannerProfileRealPath'] }) }}" class="btn btn-info"><i class="fa fa-download"></i></a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+
+                                        {% if form_data['u_ktpFile'] is not null %}
+                                            <tr>
+                                                <td>{{ form_data['u_ktpFileName'] }}</td>
+                                                <td>{{ 'label.photo_ktp'|trans }}</td>
+                                                <td class="py-0 align-middle">
+                                                    <div class="btn-group btn-group-sm">
+                                                        <a href="{{ path('sftp_show_file', {'path': form_data['u_ktpFileRealPath'] }) }}" target="_blank" class="btn btn-info"><i class="fa fa-eye"></i></a>
+                                                    </div>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <a href="{{ path('sftp_download_file', {'path': form_data['u_ktpFileRealPath'] }) }}" class="btn btn-info"><i class="fa fa-download"></i></a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+
+                                        {% if form_data['s_rekeningFile'] is not null %}
+                                            <tr>
+                                                <td>{{ form_data['s_rekeningFileName'] }}</td>
+                                                <td>{{ 'label.account_file'|trans }}</td>
+                                                <td class="py-0 align-middle">
+                                                    <div class="btn-group btn-group-sm">
+                                                        <a href="{{ path('sftp_show_file', {'path': form_data['s_rekeningFileRealPath'] }) }}" target="_blank" class="btn btn-info"><i class="fa fa-eye"></i></a>
+                                                    </div>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <a href="{{ path('sftp_download_file', {'path': form_data['s_rekeningFileRealPath'] }) }}" class="btn btn-info"><i class="fa fa-download"></i></a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+                                        {% if form_data['u_npwpFile'] is not null %}
+                                            <tr>
+                                                <td>{{ form_data['u_npwpFileName'] }}</td>
+                                                <td>{{ 'label.npwp_file'|trans }}</td>
+                                                <td class="py-0 align-middle">
+                                                    <div class="btn-group btn-group-sm">
+                                                        <a href="{{ path('sftp_show_file', {'path': form_data['u_npwpFileRealPath'] }) }}" target="_blank" class="btn btn-info"><i class="fa fa-eye"></i></a>
+                                                    </div>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <a href="{{ path('sftp_download_file', {'path': form_data['u_npwpFileRealPath'] }) }}" class="btn btn-info"><i class="fa fa-download"></i></a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+                                        {% if form_data['s_sppkpFile'] is not null %}
+                                            {% for item in form_data['s_sppkpFile'] %}
+                                                <tr>
+                                                    <td>{{ item['filename'] }}</td>
+                                                    <td>{{ 'label.sppkp_file'|trans }}</td>
+                                                    <td class="py-0 align-middle">
+                                                        <div class="btn-group btn-group-sm">
+                                                            <a href="{{ path('sftp_show_file', {'path': item['realPath'] }) }}" target="_blank" class="btn btn-info"><i class="fa fa-eye"></i></a>
+                                                        </div>
+                                                        <div class="btn-group btn-group-sm">
+                                                            <a href="{{ path('sftp_download_file', {'path': item['realPath'] }) }}" class="btn btn-info"><i class="fa fa-download"></i></a>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        {% endif %}
+                                        {% if form_data['u_suratIjin'] is not null %}
+                                            {% for item in form_data['u_suratIjin'] %}
+                                                <tr>
+                                                    <td>{{ item['filename'] }}</td>
+                                                    <td>{{ 'label.business_license_file'|trans }}</td>
+                                                    <td class="py-0 align-middle">
+                                                        <div class="btn-group btn-group-sm">
+                                                            <a href="{{ path('sftp_show_file', {'path': item['realPath'] }) }}" target="_blank" class="btn btn-info"><i class="fa fa-eye"></i></a>
+                                                        </div>
+                                                        <div class="btn-group btn-group-sm">
+                                                            <a href="{{ path('sftp_download_file', {'path': item['realPath'] }) }}" class="btn btn-info"><i class="fa fa-download"></i></a>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        {% endif %}
+                                        {% if form_data['u_dokumenFile'] is not null %}
+                                            {% for item in form_data['u_dokumenFile'] %}
+                                                <tr>
+                                                    <td>{{ item['filename'] }}</td>
+                                                    <td>{{ 'label.additional_document'|trans }}</td>
+                                                    <td class="py-0 align-middle">
+                                                        <div class="btn-group btn-group-sm">
+                                                            <a href="{{ path('sftp_show_file', {'path': item['realPath'] }) }}" target="_blank" class="btn btn-info"><i class="fa fa-eye"></i></a>
+                                                        </div>
+                                                        <div class="btn-group btn-group-sm">
+                                                            <a href="{{ path('sftp_download_file', {'path': item['realPath'] }) }}" class="btn btn-info"><i class="fa fa-download"></i></a>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        {% endif %}
+
+                                        {% if form_data['u_user_signature'] is not null %}
+                                            <tr>
+                                                <td>{{ form_data['u_user_signatureName'] }}</td>
+                                                <td>{{ 'label.user_signature'|trans }}</td>
+                                                <td class="py-0 align-middle">
+                                                    <div class="btn-group btn-group-sm">
+                                                        <a href="{{ path('sftp_show_file', {'path': form_data['u_user_signatureRealPath'] }) }}" target="_blank" class="btn btn-info"><i class="fa fa-eye"></i></a>
+                                                    </div>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <a href="{{ path('sftp_download_file', {'path': form_data['u_user_signatureRealPath'] }) }}" class="btn btn-info"><i class="fa fa-download"></i></a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+
+                                        {% if form_data['u_user_stamp'] is not null %}
+                                            <tr>
+                                                <td>{{ form_data['u_user_stampName'] }}</td>
+                                                <td>{{ 'label.user_stamp'|trans }}</td>
+                                                <td class="py-0 align-middle">
+                                                    <div class="btn-group btn-group-sm">
+                                                        <a href="{{ path('sftp_show_file', {'path': form_data['u_user_stampRealPath'] }) }}" target="_blank" class="btn btn-info"><i class="fa fa-eye"></i></a>
+                                                    </div>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <a href="{{ path('sftp_download_file', {'path': form_data['u_user_stampRealPath'] }) }}" class="btn btn-info"><i class="fa fa-download"></i></a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="box-footer">
+                    {% if form_data['isAllowedToEdit'] %}
+                        <div id="button-tab-data" class="button-tabs-store" style="display: inline;">
+                            <a href="{{ path(edit_route, {'id': form_data['s_id']}) }}" class="btn btn-primary">{{ 'button.edit'|trans }}</a>
+                        </div>
+                    {% endif %}
+                    <div style="display: inline;">
+                        <a href="{{ path(index_route) }}" class="btn btn-default">{{ 'button.cancel'|trans }}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

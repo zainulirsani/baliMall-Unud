@@ -1,0 +1,669 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% block stylesheets %}
+	<style>
+		.temp-btn {
+			min-width: 120px;
+			text-align: center;
+			height: 24px;
+			line-height: 24px;
+			border-radius: 8px;
+		}
+		.styled-table {
+			border-collapse: collapse;
+			margin: 25px 0;
+			font-size: 0.9em;
+			font-family: sans-serif;
+			box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+		}
+		.styled-table thead tr {
+			background-color: #4b85cc;
+			color: #ffffff;
+			text-align: left;
+		}
+		.styled-table th,
+		.styled-table td {
+			padding: 12px 15px;
+		}
+		.styled-table tbody tr {
+			border-bottom: 1px solid #dddddd;
+		}
+
+		.styled-table tbody tr:nth-of-type(even) {
+			background-color: #f3f3f3;
+		}
+
+		.styled-table tbody tr:last-of-type {
+			border-bottom: 2px solid #4b85cc;
+		}
+		.styled-table tbody tr.active-row {
+			font-weight: bold;
+			color: #4b85cc;
+		}
+		.badge-orange {
+			background-color: #FEF2E5;
+			font-size: 12px;
+			padding: 5px 10px;
+			text-align: center;
+			border-radius: 10px;
+			color: #CD6200;
+			border: 1px solid #CD6200;
+		}
+		.badge-green {
+			background-color: #EBF9F1;
+			font-size: 12px;
+			padding: 5px 10px;
+			text-align: center;
+			border-radius: 10px;
+			color: #1F9254;
+			border: 1px solid #1F9254;
+		}
+		.badge-red {
+			background-color: #ffa5a582;
+			font-size: 12px;
+			padding: 5px 10px;
+			text-align: center;
+			border-radius: 10px;
+			color: #4b85cc;
+			border: 1px solid #4b85cc;
+		}
+		.badge-blue {
+			background-color: #008ae838;
+			font-size: 12px;
+			padding: 5px 10px;
+			text-align: center;
+			border-radius: 10px;
+			color: #008ae8;
+			border: 1px solid #008ae8;
+		}
+		.btn-send-red,
+		.btn-send-red:hover {
+			background-color: #4b85cc;
+			font-size: 14px;
+			padding: 5px 10px;
+			text-align: center;
+			border-radius: 5px;
+			color: #fff;
+			border: 1px solid #4b85cc;
+			margin: 2px;
+			cursor: pointer;
+			text-decoration: none;
+		}
+		.btn-send-red-border,
+		.btn-send-red-border:hover {
+			background-color: transparent;
+			font-size: 14px;
+			padding: 5px 10px;
+			text-align: center;
+			border-radius: 5px;
+			color: #4b85cc;
+			border: 1px solid #4b85cc;
+			margin: 2px;
+			cursor: pointer;
+			text-decoration: none;
+		}
+
+		.input input[type=text] {
+			background-color: #FFF;
+			border: 1.5px solid #ededed;
+		}
+
+		.btn-search-ppk,
+		.btn-search-ppk:hover {
+			background-color: #4b85cc;
+			font-size: 14px;
+			padding: 14px 18px;
+			text-align: center;
+			border-radius: 5px;
+			color: #fff;
+			border: 1px solid #4b85cc;
+			cursor: pointer;
+			text-decoration: none;
+		}
+
+		.btn-info-ppk,
+		.btn-info-ppk:hover {
+			background-color: #0dcaf0;
+			font-size: 14px;
+			padding: 14px 18px;
+			text-align: center;
+			border-radius: 5px;
+			color: #fff;
+			border: 1px solid #0dcaf0;
+			cursor: pointer;
+			text-decoration: none;
+		}
+
+		.table_ppk_status tr,
+		.table_ppk_status td {
+			padding: 10px;
+		}
+
+		.text-center {
+			text-align: center;
+		}
+		::-webkit-scrollbar {
+			-webkit-appearance: none;
+			width: 7px;
+		}
+
+		::-webkit-scrollbar-thumb {
+			border-radius: 4px;
+			background-color: rgba(0, 0, 0, 0.5);
+			box-shadow: 0 0 1px rgba(255, 255, 255, 0.5);
+		}
+		.fake-scroll-div {
+			overflow-x: scroll !important;
+			height: 20px !important;
+			margin-bottom: 0 !important;
+		}
+
+		.btn-search-ppk,
+		.btn-search-ppk:hover {
+			background-color: #4b85cc;
+			font-size: 14px;
+			padding: 14px 18px;
+			text-align: center;
+			border-radius: 5px;
+			color: #fff;
+			border: 1px solid #4b85cc;
+			cursor: pointer;
+			text-decoration: none;
+		}
+
+		.btn-send-red-border {
+			background-color: transparent;
+			font-size: 14px;
+			padding: 14px 18px;
+			text-align: center;
+			border-radius: 5px;
+			color: #4b85cc;
+			border: 1px solid #4b85cc;
+			margin: 2px;
+			cursor: pointer;
+			text-decoration: none;
+		}
+
+		.btn-send-red-border:hover {
+			background-color: #4b85cc;
+			color: #fff;
+			padding: 14px 18px;
+			transition: 0.5s;
+		}
+
+		.text-note {
+			margin-top: 10px;
+			border: 1px solid #dcdcdc;
+			padding: 10px;
+			font-size: 14px;
+			border-radius: 4px;
+			overflow-y: auto;
+			height: 100px; /* or any desired height */
+			width: 100%; /* or any desired width */
+			resize: vertical; /* allows vertical resizing */
+		}
+
+		.form-addedum {
+			display: flex;
+			flex-direction: column;
+			align-items: flex-start;
+			padding: 20px;
+			border: 1px solid #ccc;
+			border-radius: 4px;
+			margin: 20px 0;
+		}
+
+		.form-addedum .form-group {
+			width: 100%;
+		}
+
+		.form-addedum .form-group label {
+			font-size: 14px;
+			margin-bottom: 5px;
+		}
+
+		.form-addedum .form-group input[type=text] {
+			width: 100%;
+			padding: 10px;
+			border: 1px solid #ccc;
+			border-radius: 4px;
+			font-size: 14px;
+			margin-bottom: 10px;
+		}
+
+		.form-addedum .form-group input[type=date] {
+			width: 100%;
+			padding: 10px;
+			border: 1px solid #ccc;
+			border-radius: 4px;
+			font-size: 14px;
+			margin-bottom: 10px;
+		}
+
+		.form-addedum .form-group input[type=checkbox] {
+			margin-right: 5px;
+			margin-bottom: 10px;
+
+		}
+
+		.form-addedum .form-group .form-check-label {
+			margin-right: 10px;
+		}
+
+		.form-addedum .form-group .form-check {
+			margin-bottom: 10px;
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+		}
+
+		.form-addedum .flex {
+			display: flex;
+			justify-content: space-between;
+			width: 100%;
+		}
+
+		.form-addedum .flex-column {
+			display: flex;
+			flex-direction: column;
+			justify-content: space-between;
+			width: 100%;
+		}
+
+		.form-addedum .form-group .form-control {
+			width: 100%;
+			padding: 10px;
+			border: 1px solid #ccc;
+			border-radius: 4px;
+			font-size: 14px;
+			margin-bottom: 10px;
+		}
+
+		.form-addedum .form-group .form-control:read-only {
+			background-color: #f9f9f9;
+		}
+
+		.form-addedum .form-group .form-control:disabled {
+			background-color: #f9f9f9;
+		}
+
+		.form-addedum .form-group .execution-time {
+			width: 50%;
+			padding: 10px;
+			border: 1px solid #ccc;
+			border-radius: 4px;
+			font-size: 14px;
+			margin-bottom: 10px;
+		}
+
+		.container-style {
+			margin-top: 10px;
+		}
+		table,
+		th,
+		td {
+			border-collapse: collapse;
+			border: 1px solid black;
+		}
+		table td,
+		table th {
+			padding: 5px;
+			text-align: left;
+		}
+		.column {
+			float: left;
+			width: 50%;
+		}
+		/*.column-left { background-color: #aaa; }*/
+		/*.column-right { background-color: #bbb; }*/
+		.column-left h5,
+		.column-left p {
+			margin-left: 10px;
+		}
+		.column-right h5,
+		.column-right p {
+			margin-left: 90px;
+		}
+		.row:after {
+			content: '';
+			display: table;
+			clear: both;
+		}
+
+		.notShow {
+			display: none;
+		}
+
+		.submit {
+			text-align: center;
+			margin-top: 20px;
+			margin-bottom: 20px;
+		}
+
+		.btn-ajukan {
+			text-align: center;
+			margin-top: 20px;
+			margin-bottom: 20px;
+			display: flex;
+			justify-content: center;
+		}
+	</style>
+
+{% endblock stylesheets %}
+
+{% block content %}
+{% set nego_price = 0 %}
+{% set nego_batch = 0 %}
+{% set sub_total_nego_price = 0 %}
+{% set sub_total_ppn_price = 0 %}
+{% set nego_shipping = 0 %}
+
+{% if order['o_negotiatedProducts']|length > 0 %}
+    {% for temp_nego_data in order['o_negotiatedProducts'] %}
+        {% set nego_batch = temp_nego_data['on_batch'] %}
+        {% set nego_shipping = temp_nego_data['on_negotiatedShippingPrice'] %}
+    {% endfor %}
+{% endif %}
+
+	<main class="pdl dbu">
+		<section>
+			<div class="container">
+				<div class="box">
+					<div class="row">
+
+						<div class="dc12 tc12 center" style="margin: 0 auto;">
+							<div style="display:flex; justify-content: space-between; align-items: center;">
+								<h4>Form Permohonan Addendum</h4>
+								<a class="btn-send-red-border" href="{{ path('user_pemesanan') }}">Kembali</a>
+							</div>
+							<div class="flex-column">
+								<form class="form-addedum" id="addedum" action="#" method="post">
+									<div class="form-group">
+										<p for="nomor-pemesanan">Nomor Addedum</p>
+										<input type="text" class="form-control" id="nomor-pemesanan" name="nomor-pemesanan" value="ADD/{{ order['o_invoice'] }}" readonly>
+									</div>
+									<div class="form-group">
+										<p for="tanggal-addedum">Tanggal Addedum</p>
+										<input type="text" class="form-control" id="tanggal-addedum" name="tanggal-addedum" readonly value="{{ 'now'|date('d F Y') }}">
+									</div>
+									<div class="form-group">
+										<p for="tanggal-addedum">Perihal Addedum</p>
+										<textarea class="form-control" id="perihal-addedum" name="perihal-addedum" rows="3" required></textarea>
+									</div>
+									<div class="form-group">
+										<p for="jenis-addedum">Jenis Addedum</p>
+										<br/>
+										<div class="form-check">
+											<input class="form-check-input" type="checkbox" id="waktu-pelaksanaan" name="executionTimes">
+											<p class="form-check-label" for="waktu-pelaksanaan">
+												Waktu Pelaksanaan
+											</p>
+										</div>
+										<div class="form-check">
+											<input class="form-check-input" type="checkbox" id="kuantitas" name="quantity">
+											<p class="form-check-label" for="kuantitas">
+												Kuantitas
+											</p>
+										</div>
+									</div>
+									<div class="flex-column">
+										<h4>Addendum</h4>
+										<br/>
+										<div id="showExecutionTime" class="notShow">
+											<table style="width: 100%" class="table">
+												<tr>
+													<td>Nama Instansi</td>
+													<td>
+														{% if order['o_institution_name'] is empty and order['o_work_unit_name'] is empty %}
+															-
+														{% else %}
+															{{ order['o_institution_name']|default() ~ ', ' ~ order['o_work_unit_name']|default() }}
+														{% endif %}
+													</td>
+												</tr>
+												<tr>
+													<td>No. Order</td>
+													<td>{{ order['o_id'] }}</td>
+												</tr>
+												<tr>
+													<td>No. Invoice</td>
+													<td>{{ order['o_invoice'] }}</td>
+												</tr>
+												<tr>
+													{% set waktu_persetujuan = null %}
+													{% for product_nego in order['o_negotiatedProducts'] %}
+														{% set waktu_persetujuan = product_nego['on_updatedAt'] %}
+													{% endfor %}
+													<td>Tanggal Transaksi</td>
+													<td>
+														{{ waktu_persetujuan|date("d")|to_int }}
+														{{ get_parameter('indonesian_months_name')[waktu_persetujuan|date("m")|to_int]|capitalize }}
+														{{ waktu_persetujuan|date("Y") }}
+													</td>
+												</tr>
+												<tr>
+													<td>Nama Paket Pekerjaan</td>
+													<td>{{ order['o_jobPackageName'] }}</td>
+												</tr>
+												<tr>
+													<td>Tahun Anggaran</td>
+													<td>{{ order['o_fiscalYear'] }}</td>
+												</tr>
+												<tr>
+													<td>Sumber Dana</td>
+													<td>{{ order['o_sourceOfFund'] }}</td>
+												</tr>
+												<tr>
+													<td>Pagu Anggaran</td>
+													<td>{{ order['o_budgetCeiling']|number_format }}</td>
+												</tr>
+											</table>
+											<br/>
+											<div class="form-group flex-column">
+												<p for="executionTime">Waktu Pelaksanaan Pekerjaan Awal:</p>
+												<input type="number" class="form-control execution-time" id="executionTime" name="executionTime" value="{{ order['o_executionTime'] }}" readonly>
+												<br/>
+												<p for="executionTime">Diubah menjadi:</p>
+												<input type="number" class="form-control execution-time" id="executionTime" name="executionTime" min="{{ order['o_executionTime'] }}" max="365" required>
+												Hari Kalender
+											</div>
+										</div>
+										<br>
+										<div id="showQty" class="notShow">
+											<p>Rincian Kuantitas Awal:</p>
+											<table style="margin-top: 10px; width: 100%;">
+												<thead>
+													<tr>
+														<th>No.</th>
+														<th>Uraian Barang / Jasa</th>
+														<th>Jumlah (qty)</th>
+														<th>Satuan</th>
+														<th>Harga Satuan</th>
+														<th>Total Harga</th>
+													</tr>
+												</thead>
+												<tbody>
+													{% set initial_with_shipping = true %}
+													{% for index, product in order['o_products'] %}
+														{% for product_nego in order['o_negotiatedProducts'] %}
+															{% if (product_nego['p_id'] == product['p_id']) and (product_nego['on_batch'] == nego_batch) %}
+																{% set nego_price = (product_nego['on_negotiatedPrice'] * product['op_quantity'])|number_format %}
+																{% set sub_total_nego_price = sub_total_nego_price + (product_nego['on_negotiatedPrice'] * product['op_quantity']) %}
+
+																{% if initial_with_shipping == true %}
+																	{% set sub_total_ppn_price = sub_total_ppn_price + ((product_nego['on_negotiatedPrice'] * (product_nego['on_taxValue']/100)) * product['op_quantity']) + product_nego['on_taxNominalShipping'] %}
+																{% else %}
+																	{% set sub_total_ppn_price = sub_total_ppn_price + ((product_nego['on_negotiatedPrice'] * (product_nego['on_taxValue']/100)) * product['op_quantity']) %}
+																{% endif %}
+																{% set initial_with_shipping = false %}
+																{% set nego_shipping = product_nego['on_negotiatedShippingPrice'] %}
+																<tr>
+																	<td>{{ index+1 }}</td>
+																	<td>{{ product['p_name'] }}</td>
+																	<td style="text-align: center;">{{ product['op_quantity'] }}</td>
+																	<td>{{ product['p_unit']|default('Unit') }}</td>
+																	<td style="text-align: right;">{{ product_nego['on_negotiatedPrice']|number_format }}</td>
+																	<td style="text-align: right;">{{ nego_price }}</td>
+																</tr>
+															{% endif %}
+														{% endfor %}
+													{% endfor %}
+													<tr>
+														<td colspan="5" style="text-align: right;">Biaya Kirim (Rp)</td>
+														<td style="text-align: right;">{{ nego_shipping|number_format }}</td>
+													</tr>
+													<tr>
+														<td colspan="5" style="text-align: right;">Total PPN (Rp)</td>
+														<td style="text-align: right;">{{ sub_total_ppn_price|round|number_format }}</td>
+													</tr>
+													<tr>
+														{% set order_grand_total = sub_total_nego_price + nego_shipping + sub_total_ppn_price %}
+														<td colspan="5" style="text-align: right;">Total (Rp)</td>
+														<td style="text-align: right;">{{ order_grand_total|round|number_format }}</td>
+													</tr>
+												</tbody>
+											</table>
+											<br/>
+											<p>Diubah Menjadi:</p>
+											<table style="margin-top: 10px; width: 100%;">
+												<thead>
+													<tr>
+														<th>No.</th>
+														<th>Uraian Barang / Jasa</th>
+														<th>Jumlah (qty)</th>
+														<th>Satuan</th>
+														<th>Harga Satuan</th>
+														<th>Total Harga</th>
+													</tr>
+												</thead>
+												<tbody>
+													{% for index, product in order['o_products'] %}
+														{% for product_nego in order['o_negotiatedProducts'] %}
+															{% if (product_nego['p_id'] == product['p_id']) and (product_nego['on_batch'] == nego_batch) %}
+																{% set nego_price = product_nego['on_negotiatedPrice'] * product['op_quantity']/100 %}
+																{% set total_with_vat = nego_price * product['op_taxValue'] %}
+																{% set akumulasi_qty_terkirim = product['op_quantity'] - product['op_quantityToSend'] %}
+																<tr>
+																	<td>{{ index + 1 }}</td>
+																	<td>{{ product['p_name'] }}</td>
+																	<td style="text-align: center;">
+																		<div class="form-group">
+																			<input type="number" class="form-control" name="qty" min="{{ akumulasi_qty_terkirim }}" value="{{ product['op_quantity'] }}" oninput="updateTotals(this)">
+																		</div>
+																	</td>
+																	<td>{{ product['p_unit']|default('Unit') }}</td>
+																	<td style="text-align: right;" class="price-per-unit" data-price="{{ product_nego['on_negotiatedPrice'] }}">
+																		{{ product_nego['on_negotiatedPrice']|number_format }}
+																	</td>
+																	<td style="text-align: right;" class="subtotal">{{ total_with_vat|number_format }}</td>
+																</tr>
+															{% endif %}
+														{% endfor %}
+													{# <tr>
+														<td colspan="5" style="text-align: right;">Subtotal (Rp)</td>
+														<td style="text-align: right;" id="sub-total-price">{{ sub_total_nego_price|round|number_format }}</td>
+													</tr> #}
+													<tr>
+														<td colspan="5" style="text-align: right;">Biaya Kirim (Rp)</td>
+														<td style="text-align: right;" id="shipping-cost" data-shipping="{{ nego_shipping }}">{{ nego_shipping|number_format }}</td>
+													</tr>
+													<tr>
+														<td colspan="5" style="text-align: right;">Total PPN (11%) (Rp)</td>
+														<td style="text-align: right;" id="total-tax">{{ (sub_total_nego_price * product['op_taxValue']/100)|round|number_format }}</td>
+													</tr>
+													<tr>
+														{% set order_grand_total = sub_total_nego_price + (sub_total_nego_price * product['op_taxValue']/100) + nego_shipping %}
+														<td colspan="5" style="text-align: right;"><strong>Total (Rp)</strong></td>
+														<td style="text-align: right;" id="grand-total"><strong>{{ order_grand_total|round|number_format }}</strong></td>
+													</tr>
+												{% endfor %}
+												</tbody>
+											</table>
+										</div>
+									</div>
+									<div class="submit" style="text-align: center;">
+										<button type="submit" class="btn-send-red">Ajukan Permohonan Addendum</button>
+									</div>
+								</form>
+								</div>
+							</div>
+
+						</div>
+					</div>
+				</div>
+			</section>
+		</main>
+
+
+		<script>
+			
+
+		document.querySelector('#waktu-pelaksanaan').addEventListener('change', function (e) {
+			console.log(this.checked);
+			if (this.checked == true) {
+				document.querySelector('#showExecutionTime').classList.remove('notShow');
+			} else {
+				document.querySelector('#showExecutionTime').classList.add('notShow');
+			}
+		});
+
+		document.querySelector('#kuantitas').addEventListener('change', function (e) {
+			if (this.checked == true) {
+				document.querySelector('#showQty').classList.remove('notShow');
+			} else {
+				document.querySelector('#showQty').classList.add('notShow');
+			}
+		});
+
+		console.log({{ order['o_products'][0]|json_encode|raw }})
+
+		document.querySelectorAll('.form-addedum .form-group input[type=checkbox]').forEach(function (el) {
+			el.addEventListener('change', function (e) {
+				if (this.checked == true) {
+					document.querySelector('.submit').classList.remove('notShow');
+				} else {
+					document.querySelector('.submit').classList.add('notShow');
+				}
+			});
+		});
+
+		{# function to update totals automatically #}
+		function updateTotals(input) {
+			let row = input.closest("tr");
+			let quantity = parseInt(input.value);
+			let minQuantity = parseInt(input.getAttribute("min"));
+
+			if (isNaN(quantity) || quantity < minQuantity) {
+				quantity = minQuantity;
+				input.value = minQuantity;
+			}
+
+
+			// Get base price per unit
+			let pricePerUnit = row.querySelector(".price-per-unit").dataset.price
+			let vatRate = {{ order['o_products'][0]['op_taxValue']|json_encode|raw }}; // VAT (PPN) is 11%
+			let shippingCost = parseFloat(document.getElementById("shipping-cost").dataset.shipping);
+
+			// Calculate new values
+			let newSubTotal = pricePerUnit * quantity;
+			let newTax = newSubTotal * (vatRate / 100);
+			let newTotal = newSubTotal + newTax;
+
+			// Update row values (single column format)
+			row.querySelector(".subtotal").innerText = newTotal.toLocaleString();
+
+			// Update overall totals
+			let totalSubTotal = 0;
+			document.querySelectorAll(".subtotal").forEach(el => {
+				totalSubTotal += parseInt(el.innerText.replace(/,/g, ""));
+			});
+
+			let grandTotal = newSubTotal + newTotal + shippingCost;
+
+			// Update total summary fields
+			// document.getElementById("sub-total-price").innerText = totalSubTotal.toLocaleString();
+			document.getElementById("grand-total").innerText = grandTotal.toLocaleString();
+		}
+		</script>
+
+	{% endblock %}

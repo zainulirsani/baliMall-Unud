@@ -1,0 +1,240 @@
+{% extends '@__main__/admin/base/layouts/default.html.twig' %}
+
+{% set trans_parameter = {'%name%': form_data['p_name']} %}
+{% set page_header = page_title|trans(trans_parameter) %}
+{% set index_route = 'admin_' ~ page_section ~ '_index' %}
+{% set edit_route = 'admin_' ~ page_section ~ '_edit' %}
+{% set product_id = form_data['p_id']|default(0) %}
+{% set product_status = form_data['p_status']|default() %}
+{% set product_status_value = '' %}
+{% set product_featured = form_data['p_featured']|default() %}
+{% set product_featured_value = '' %}
+{% set product_unit = form_data['p_unit']|default() %}
+{% set product_unit_value = '' %}
+{% set store_id = form_data['s_id']|default(0) %}
+{% set store_name = form_data['s_name']|default('N/A') %}
+
+{% set isUpdate = product_status == 'product_updated' %}
+
+{% block stylesheets %}
+    <style>
+        .prev-value {
+            border: 1px solid red;
+            margin-bottom: 10px;
+        }
+    </style>
+
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">{{ page_header }}</h3>
+                </div>
+                <div id="product-form" class="box-body">
+                    <div class="panel-body">
+                        <div class="nav-tabs-custom">
+                            <ul class="nav nav-tabs product-tabs">
+                                <li class="active product-tab-data">
+                                    <a href="#tab-data" data-toggle="tab" data-tab="data">{{ 'label.data'|trans }}</a>
+                                </li>
+                                <li class="product-tab-images">
+                                    <a href="#tab-images" data-toggle="tab" data-tab="images">{{ 'label.images'|trans }}</a>
+                                </li>
+                            </ul>
+                            <div class="tab-content tab-product-content">
+                                <div id="tab-data" class="tab-pane fade in active">
+                                    <div class="m-top-15"></div>
+                                    <div class="form-group">
+                                        <label for="input-owned">{{ 'label.store_name'|trans }}</label>
+                                        <select id="input-owned" class="form-control" disabled>
+                                            {#<option value="">{{ 'label.select_option'|trans }}</option>#}
+                                            {% if store_name is defined and store_name is not empty %}
+                                                <option value="{{ store_id }}" selected>{{ store_name }}</option>
+                                            {% endif %}
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-name">{{ 'label.name'|trans }}</label>
+                                        {% if isUpdate and form_data['p_previousChanges']['p_name'] is defined %}
+                                            <input class="form-control prev-value" value="- {{ form_data['p_previousChanges']['p_name'] }}" readonly>
+                                        {% endif %}
+                                        <input id="input-name" class="form-control" value="{{ form_data['p_name']|default() }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-slug">{{ 'label.slug'|trans }}</label>
+                                        <input id="input-slug" class="form-control" value="{{ form_data['p_slug']|default() }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-category">{{ 'label.category'|trans }}</label>
+
+                                        {% if isUpdate and form_data['p_previousChanges']['p_category'] is defined %}
+                                            {% set textCategory = '' %}
+                                            {% for category in product_category_data %}
+                                                {% if category['id'] == form_data['p_previousChanges']['p_category'] %}
+                                                    {% set textCategory = category['text'] %}
+                                                {% endif %}
+                                            {% endfor %}
+
+                                            <input class="form-control prev-value" value="- {{ textCategory }}" readonly>
+                                        {% endif %}
+
+                                        <select id="input-category" class="form-control" disabled>
+                                            <option value="">{{ 'label.select_option'|trans }}</option>
+                                            {% for category in product_category_data %}
+                                                {#{% set selected = category['id'] in form_data['p_category']|default({}) ? 'selected' : '' %}#}
+                                                {% set selected = category['id'] == form_data['p_category']|default() ? 'selected' : '' %}
+                                                <option value="{{ category['id'] }}" {{ selected }}>{{ category['text'] }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="form-group ">
+                                            <label for="input-pdn">{{ 'label.pdn_or_non_product'|trans }}</label>
+                                            {% if isUpdate and form_data['p_previousChanges']['p_isPdn'] is defined %}
+
+                                                <input class="form-control prev-value" value="- {{ form_data['p_is_pdn'] == null ? 'label.pdn_product'|trans : 'label.' ~ form_data['p_is_pdn'] ~ '_product'|trans }}" readonly>
+                                            {% endif %}
+                                            {% if errors['p_isPdn']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['p_isPdn'] }}</span>
+                                            {% endif %}
+                                            <select id="input-pdn" class="form-control" name="p_isPdn" disabled>
+                                                {% for choice in get_parameter('pdn_options') %}
+                                                    {% set label = 'label.' ~ choice ~ '_product' %}
+                                                    {% set label2 = 'label.' ~ choice ~ '_option' %}
+                                                    {% set selected = form_data['p_is_pdn']|default() == choice ? 'selected' : '' %}
+                                                    <option value="{{ choice }}" {{ selected }}>{{ label|trans ~ ' ' ~ label2|trans }} </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    <div class="form-group">
+                                        <label for="input-keywords">{{ 'label.keywords'|trans }}</label>
+                                        {% if isUpdate and form_data['p_previousChanges']['p_keywords'] is defined %}
+                                            <input class="form-control prev-value" value="- {{ form_data['p_previousChanges']['p_keywords'] }}" readonly>
+                                        {% endif %}
+                                        <input id="input-keywords" class="form-control" value="{{ form_data['p_keywords']|default() }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-description">{{ 'label.description'|trans }}</label>
+                                        {% if isUpdate and form_data['p_previousChanges']['p_description'] is defined %}
+                                            <textarea class="form-control prev-value" rows="3" readonly>- {{ form_data['p_previousChanges']['p_description']|striptags|default() }}</textarea>
+                                        {% endif %}
+                                        <textarea id="input-description" class="form-control" rows="3" readonly>{{ form_data['p_description']|default() }}</textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-note">{{ 'label.publish_note'|trans }}</label>
+                                        {% if isUpdate and form_data['p_previousChanges']['p_note'] is defined %}
+                                            <input class="form-control prev-value" value="- {{ form_data['p_previousChanges']['p_note'] }}" readonly>
+                                        {% endif %}
+                                        <textarea id="input-note" class="form-control" rows="3" readonly>{{ form_data['p_note']|default() }}</textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-admin-note">{{ 'label.admin_note'|trans }}</label>
+                                        <textarea id="input-admin-note" class="form-control" rows="3" readonly>{{ form_data['p_adminNote']|default() }}</textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-quantity">{{ 'label.stock'|trans }}</label>
+                                        {% if isUpdate and form_data['p_previousChanges']['p_quantity'] is defined %}
+                                            <input class="form-control prev-value" value="- {{ form_data['p_previousChanges']['p_quantity'] }}" readonly>
+                                        {% endif %}
+                                        <input id="input-quantity" class="form-control" value="{{ form_data['p_quantity']|default() }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-price">{{ 'label.base_price'|trans }}</label>
+                                        {% if isUpdate and form_data['p_previousChanges']['p_basePrice'] is defined %}
+                                            <input class="form-control prev-value" value="- {{ form_data['p_previousChanges']['p_basePrice'] }}" readonly>
+                                        {% endif %}
+                                        <input id="input-price" class="form-control" value="{{ form_data['p_basePrice']|default() }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-price">{{ 'label.price'|trans }}</label>
+                                        {% if isUpdate and form_data['p_previousChanges']['p_price'] is defined %}
+                                            <input class="form-control prev-value" value="- {{ form_data['p_previousChanges']['p_price'] }}" readonly>
+                                        {% endif %}
+                                        <input id="input-price" class="form-control" value="{{ form_data['p_price']|default() }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-weight">{{ 'label.weight'|trans }}</label>
+                                        {% if isUpdate and form_data['p_previousChanges']['p_weight'] is defined %}
+                                            <input class="form-control prev-value" value="- {{ form_data['p_previousChanges']['p_weight'] }}" readonly>
+                                        {% endif %}
+                                        <input id="input-weight" class="form-control" value="{{ form_data['p_weight']|default() }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        {% if product_status is not empty %}
+                                            {% set product_status = product_status == 'publish' ? 'label.publish' : 'label.' ~ product_status %}
+                                            {% set product_status_value = product_status|trans %}
+                                        {% endif %}
+                                        <label for="input-status">{{ 'label.status'|trans }}</label>
+                                        <input id="input-status" class="form-control" value="{{ product_status_value }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        {% if product_unit is not empty %}
+                                            {% set product_unit_value = product_unit|trans %}
+                                        {% endif %}
+                                        <label for="input-unit">{{ 'label.unit'|trans }}</label>
+                                        {% if isUpdate and form_data['p_previousChanges']['p_unit'] is defined %}
+                                            <input class="form-control prev-value" value="- {{ form_data['p_previousChanges']['p_unit'] }}" readonly>
+                                        {% endif %}
+                                        <input id="input-unit" class="form-control" value="{{ product_unit_value }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        {% if product_featured is not empty %}
+                                            {% set product_featured = product_featured == 'yes' ? 'label.yes' : 'label.no' %}
+                                            {% set product_featured_value = product_featured|trans %}
+                                        {% endif %}
+                                        <label for="input-featured">{{ 'label.featured'|trans }}</label>
+                                        <input id="input-featured" class="form-control" value="{{ product_featured_value }}" readonly>
+                                    </div>
+                                </div>
+                                <div id="tab-images" class="tab-pane fade">
+                                    <div class="m-top-15"></div>
+                                    {% if isUpdate and form_data['p_previousChanges']['p_images'] is defined %}
+                                        <div id="tab-images-content" class="custom-gallery prev-value">
+                                            {% for image in form_data['p_previousChanges']['p_images'] %}
+                                                <figure>
+                                                    <a href="{{ path('sftp_show_file', {'path': image}) }}" class="cbox-gallery">
+                                                        <img class="img-responsive" src="{{ path('sftp_show_file', {'path': image}) }}" alt="">
+                                                    </a>
+                                                </figure>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+
+                                    <div id="tab-images-content" class="custom-gallery">
+                                        {% if form_data['p_images'] is defined %}
+                                            {% for image in form_data['p_images'] %}
+                                                <figure>
+                                                    <a href="{{ path('sftp_show_file', {'path': image['filePath']}) }}" class="cbox-gallery">
+                                                        <img class="img-responsive" src="{{ path('sftp_show_file', {'path': image['filePath']}) }}" alt="">
+                                                    </a>
+                                                </figure>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="box-footer">
+                    <div id="button-tab-data" class="button-tabs-product" style="display: inline;">
+                        <button type="button" class="btn btn-primary btn-tab-step" data-current="data" data-step="images">
+                            {{ 'button.next'|trans }}
+                        </button>
+                    </div>
+                    <div id="button-tab-images" class="button-tabs-product hidden" style="display: inline;">
+                        <button type="button" class="btn btn-primary btn-tab-step" data-current="images" data-step="data">
+                            {{ 'button.previous'|trans }}
+                        </button>
+                        {#<a href="{{ path(edit_route, {'id': product_id}) }}" class="btn btn-primary">{{ 'button.edit'|trans }}</a>#}
+                    </div>
+                    <div style="display: inline;">
+                        <a href="{{ path(index_route) }}" class="btn btn-default">{{ 'button.cancel'|trans }}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

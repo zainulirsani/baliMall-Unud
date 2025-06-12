@@ -1,0 +1,70 @@
+<style>
+    .img-100 { width: 100px; }
+    .img-left { float: left; }
+    .img-right { float: right; margin-top: 40px; }
+    .clear { clear: both; }
+    .list-upper-alpha { list-style: upper-alpha; }
+    .list-item { padding-bottom: 5px; border-bottom: 1px solid #eaeaea; }
+    .p-bold { font-weight: bold; text-align: justify; }
+    .list-decimal { list-style: decimal; }
+    .list-decimal li { text-align: justify; }
+</style>
+<main class="cr-page">
+    <section>
+        <div class="container">
+            <div class="sc-cart row">
+                <div class="dc6 tc12 auto box ct">
+                    <div>
+                        <img src="{{ asset('assets/img/qris/GPN-Logo.png') }}" class="img-100 img-left" alt="GPN Logo">
+                        <img src="{{ asset('assets/img/qris/QRIS-Logo.png') }}" class="img-100 img-right" alt="QRIS Logo">
+                        <div class="clear"></div>
+                    </div>
+                    <div>
+                        <p>
+                            {{ qris_pay['merchant_name'] }}<br>
+                            {{ qris_pay['nmid'] }}<br>
+                            {{ qris_pay['terminal_user'] }}
+                        </p>
+                    </div>
+                    {% if qris_payment_data['error'] is defined %}
+                        <div>
+                            <p>Terjadi kesalahan saat meminta data pembayaran.</p>
+                        </div>
+                        <hr>
+                    {% elseif qris_payment_data['qrImage'] is defined and qris_payment_data['qrImage'] is not empty %}
+                        <div>
+                            <img src="{{ qris_payment_data['qrImage'] }}" alt="" width="220" height="auto">
+                        </div>
+                        <div>
+                            <p>
+                                Rp. {{ nominal|number_format }}<br>
+                                {{ qris_payment_data['expiredDate'] }}
+                            </p>
+                        </div>
+                        <hr>
+                        <div>
+                            <ul class="list-upper-alpha">
+                                <li class="list-item">
+                                    <p class="p-bold">PEMBAYARAN DENGAN QRIS</p>
+                                    <ol class="list-decimal">
+                                        <li>Login aplikasi yang akan digunakan untuk proses pembayaran QRIS seperti Mobile Banking BPD Bali, Mobile Banking bank lain, atau Dompet Digital seperti OVO, GoPay, dan lainnya.</li>
+                                        <li>Pilih pembayaran melalui <strong>QRIS</strong>.</li>
+                                        <li>Scan <strong>QRCode</strong> yang muncul.</li>
+                                        <li>Inputkan nominal tagihan.</li>
+                                        <li>Masukkan Password atau PIN.</li>
+                                        <li>Transaksi melalui QRIS berhasil.</li>
+                                        <li>Selesai.</li>
+                                    </ol>
+                                </li>
+                            </ul>
+                        </div>
+                    {% endif %}
+                    <div>
+                        <p>Support By</p>
+                        <img src="{{ asset('assets/img/qris/BPD-Logo.png') }}" class="img-100" alt="BPD Logo">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>

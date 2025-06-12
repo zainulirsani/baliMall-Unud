@@ -1,0 +1,179 @@
+{% set span_btn_style = 'cursor: default; margin-right: 16px;' %}
+{% set order_is_paid = 'no' %}
+{% set order_is_pending = 'no' %}
+
+{% if is_pending_order == total_order_items %}
+	{% set order_is_pending = 'yes' %}
+	{% if disable_payment_confirmation == false %}
+		{% if buyer.getRole == 'ROLE_USER_GOVERNMENT'%}
+			{% if is_received_order == total_order_items %}
+				<p>
+					{{ 'message.info.payment_info'|trans }}<br>
+					<code>
+						{% if show_pay_account_1 == 'yes' %}
+							{{ order_payment_accounts['all_1']|join('<br>')|raw }}
+						{% endif %}
+						{% if show_pay_account_2 == 'yes' %}<br><br>{{ order_payment_accounts['all_2']|join('<br>')|raw }}
+						{% endif %}
+					</code>
+				</p>
+				<div class="inner-box">
+					<img src="{{ asset(asset_qris_pay) }}" height="400px" alt="">
+					<br><br>
+					<a href="{{ asset(asset_qris_pay) }}" class="sBtn small red" download>
+						{{ 'button.download'|trans ~ ' QRIS' }}
+					</a>
+					<br><br>
+				</div>
+				<p>*{{ 'message.notification.pending_order'|trans }}</p>
+				<a href="{{ path('user_payment_confirmation', {'invoice': shared_id}) }}" class="sBtn red">
+					{{ 'title.page.payment_confirmation'|trans }}
+				</a>
+			{% endif %}
+		{% else %}
+			<p>
+				{{ 'message.info.payment_info'|trans }}<br>
+				{% if order_with_tax == true %}
+					<code>
+						{% if show_pay_account_1 == 'yes' %}
+							{{ order_payment_accounts['all_1']|join('<br>')|raw }}
+						{% endif %}
+						{% if show_pay_account_2 == 'yes' %}<br><br>{{ order_payment_accounts['all_2']|join('<br>')|raw }}
+						{% endif %}
+					</code>
+				{% else %}
+					<code>
+						{% if show_pay_account_1 == 'yes' %}
+							{{ order_payment_accounts['all_1']|join('<br>')|raw }}
+						{% endif %}
+						{% if show_pay_account_2 == 'yes' %}<br><br>{{ order_payment_accounts['all_2']|join('<br>')|raw }}
+						{% endif %}
+					</code>
+				{% endif %}
+			</p>
+			{% if show_qris_pay == 'yes' %}
+				<div class="inner-box">
+					<img src="{{ asset(asset_qris_pay) }}" height="400px" alt="">
+					<br><br>
+					<a href="{{ asset(asset_qris_pay) }}" class="sBtn small red" download>
+						{{ 'button.download'|trans ~ ' QRIS' }}
+					</a>
+					<br><br>
+				</div>
+			{% endif %}
+			<p>*{{ 'message.notification.pending_order'|trans }}</p>
+			<a href="{{ path('user_payment_confirmation', {'invoice': shared_id}) }}" class="sBtn red">
+				{{ 'title.page.payment_confirmation'|trans }}
+			</a>
+		{% endif %}
+	{% endif %}
+{% elseif is_paid_order == total_order_items %}
+	{% set order_is_paid = 'yes' %}
+	{% if buyer.getRole == 'ROLE_USER_GOVERNMENT' %}
+		{% include '@__main__/public/user/order/fragments/government_files.html.twig' %}
+		<div class="badges green">
+			<span>
+				<i class="fas fa-check-circle"></i>
+				{{ 'label.finished'|trans }}
+			</span>
+		</div>
+		{# <span class="sBtn red" style="{{ span_btn_style }}">{{ 'label.finished'|trans }}</span> #}
+	{% else %}
+		<div class="badges blue">
+			<span>
+				<i class="fas fa-clock"></i>
+				{{ 'label.waiting_confirmation'|trans }}
+			</span>
+		</div>
+		{# <span class="sBtn red" style="{{ span_btn_style }}">{{ 'label.waiting_confirmation'|trans }}</span> #}
+	{% endif %}
+{% elseif is_confirmed_order == total_order_items %}
+	<div class="badges blue">
+		<span>
+			<i class="fas fa-check-circle"></i>
+			{{ 'label.order_confirmed'|trans }}
+		</span>
+	</div>
+	{# <span class="sBtn red" style="{{ span_btn_style }}">{{ 'label.order_confirmed'|trans }}</span> #}
+{% elseif is_processed_order == total_order_items %}
+	<div class="badges green">
+		<span>
+			<i class="fas fa-check-circle"></i>
+			{{ 'label.order_processed'|trans }}
+		</span>
+	</div>
+	{# <span class="sBtn red" style="{{ span_btn_style }}">{{ 'label.order_processed'|trans }}</span> #}
+{% elseif is_shipped_order == total_order_items %}
+	<div class="badges green">
+		<span>
+			<i class="fas fa-check-circle"></i>
+			{{ 'message.info.shipped'|trans }}
+		</span>
+	</div>
+	{# <span class="sBtn red" style="{{ span_btn_style }}">{{ 'message.info.shipped'|trans }}</span> #}
+{% elseif is_received_order == total_order_items %}
+	<div class="badges green">
+		<span>
+			<i class="fas fa-check-circle"></i>
+			{{ 'message.info.received'|trans }}
+		</span>
+	</div>
+	{# <span class="sBtn red" style="{{ span_btn_style }}">{{ 'message.info.received'|trans }}</span> #}
+{% elseif is_cancel_order == total_order_items %}
+	<div class="badges red">
+		<span>
+			<i class="fas fa-times-circle"></i>
+			{{ 'message.info.cancelled'|trans }}
+		</span>
+	</div>
+	{# <span class="gBtn red" style="{{ span_btn_style }}">{{ 'message.info.cancelled'|trans }}</span> #}
+{% endif %}
+
+{% if buyer.getRole != 'ROLE_USER_GOVERNMENT' %}
+	<a href="{{ path('user_order_shared_invoice', {'id': id}) }}" class="sBtn red">
+		{{ 'label.shared_invoice'|trans }}
+	</a>
+
+	<div class="inner-box">
+		<hr>
+		{% if qris_pay['enable'] == 'yes' and order_is_paid == 'no' and order_is_pending == 'yes' and grand_total <= qris_pay['amount_limit'] %}
+			<a href="{{ path('user_order_pay_with_channel', {'channel': 'qris', 'id': shared_id}) }}" class="sBtn red">
+				{{ 'label.pay_with_qris'|trans }}
+			</a>
+		{% endif %}
+
+		{% if va_pay['enable'] == 'yes' and order_is_paid == 'no' and order_is_pending == 'yes' %}
+			<a href="{{ path('user_order_pay_with_channel', {'channel': 'virtual-account', 'id': shared_id}) }}" class="sBtn red">
+				{{ 'label.pay_with_virtual_account'|trans }}
+			</a>
+		{% endif %}
+
+        {% if order_is_paid == 'no' and order_is_pending == 'yes' and is_midtrans_enable %}
+            <br><br>
+            <a href="{{ path('user_order_pay_with_channel', {'channel': 'midtrans', 'id': shared_id}) }}" class="sBtn red">
+                {{ 'label.pay_with_midtrans'|trans }}
+            </a>
+        {% endif %}
+	</div>
+{% else %}
+	{# {% if va_pay['enable'] == 'yes' and order_is_paid == 'no' and b2g_can_pay == true %}
+		<div class="inner-box">
+			<hr>
+			<a href="{{ path('user_order_pay_with_channel', {'channel': 'virtual-account', 'id': shared_id}) }}" class="sBtn red">
+				{{ 'label.pay_with_virtual_account'|trans }}
+			</a>
+
+            {% if order_is_paid == 'no' and order_is_pending == 'yes' and is_doku_enable %}
+                {% if doku_payment_url is null %}
+                    <a href="{{ path('user_order_pay_with_channel', {'channel': 'doku', 'id': shared_id}) }}" class="sBtn red">
+                        {{ 'label.pay_with_doku'|trans }}
+                    </a>
+                {% else %}
+                    <a href="{{ doku_payment_url }}" class="sBtn red">
+                        {{ 'label.pay_with_doku'|trans }}
+                    </a>
+                {% endif %}
+            {% endif %}
+		</div>
+	{% endif %} #}
+{% endif %}

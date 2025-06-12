@@ -1,0 +1,82 @@
+{% set admin_avatar = admin_user['u_photoProfile']|default('dist/img/adminlte/avatar-male.png') %}
+{% set admin_name = admin_user['u_firstName'] ~ ' ' ~ admin_user['u_lastName'] %}
+{% set active_dashboard = app.request.get('_route') == 'admin_dashboard' ? 'active' : '' %}
+
+<aside class="main-sidebar">
+    <section class="sidebar">
+        <div class="user-panel">
+            <div class="pull-left image">
+                <img src="{{ asset(admin_avatar) }}" class="img-circle" alt="Admin Photo Profile">
+            </div>
+            <div class="pull-left info">
+                <p>{{ admin_name }}</p>
+                <a href="javascript:void(0);">{{ admin_user['u_role'] }}</a>
+            </div>
+        </div>
+        <ul class="sidebar-menu" data-widget="tree">
+            <li class="{{ active_dashboard }}">
+                <a href="{{ path('admin_dashboard') }}">
+                    <i class="fa fa-dashboard"></i> <span>{{ 'menu.dashboard'|trans }}</span>
+                </a>
+            </li>
+            
+            {% for index, parent in get_parameter('admin_menu') %}
+                {% set options = parent.options ? parent.options : {} %}
+                {% set href = parent.href ? path(parent.href, options) : 'javascript:void(0);' %}
+                {% set icon = parent.icon ? parent.icon : parent.children ? 'fa-folder' : 'fa-th' %}
+                {% set has_children = parent.children ? 'treeview' : '' %}
+                {% if app.request.get('_route') == parent.href %}
+                    {% set has_children = 'active ' ~ has_children %}
+                {% endif %}
+                {% if href in app.request.pathinfo %}
+                    {% set has_children = 'active ' ~ has_children %}
+                {% endif %}
+
+                {% set hidden = '' %}
+
+                {% if parent.hide_for_role is defined and app.user.getRole in parent.hide_for_role %}
+                    {% set hidden = 'hidden' %}
+                {% endif %}
+                
+                <li id="menu-{{ index }}" class="{{ has_children }} {{ hidden }}">
+                    <a id="{{ parent.id }}" class="{{ parent.class }}" href="{{ href }}">
+                        <i class="fa {{ icon }}"></i> <span>{{ parent.label|trans }}</span>
+                        {% if parent.children %}
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        {% endif %}
+                    </a>
+                    {% if parent.children %}
+
+
+                        <ul class="treeview-menu">
+                            {% for child in parent.children %}
+                                {% set child_options = child.options ? child.options : {} %}
+                                {% set child_href = child.href ? path(child.href, child_options) : 'javascript:void(0);' %}
+                                {% set child_icon = child.icon ? child.icon : 'fa-circle-o' %}
+                                {% set has_parent = app.request.get('_route') == child.href ? 'active' : '' %}
+                                {% set hide_children_class = '' %}
+
+                                {% if child.hide_for_role is defined and app.user.getRole in child.hide_for_role %}
+                                    {% set hide_children_class = 'hidden' %}
+                                {% endif %}
+
+                                <li class="children-menu {{ has_parent }} {{ hide_children_class }}" data-parent="menu-{{ index }}">
+                                    <a id="{{ child.id }}" class="{{ child.class }}" href="{{ child_href }}">
+                                        <i class="fa {{ child_icon }}"></i> {{ child.label|trans }}
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </li>
+            {% endfor %}
+            <li>
+                <a href="{{ path('admin_logout') }}">
+                    <i class="fa fa-sign-out"></i> <span>{{ 'menu.logout'|trans }}</span>
+                </a>
+            </li>
+        </ul>
+    </section>
+</aside>

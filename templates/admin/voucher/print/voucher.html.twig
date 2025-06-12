@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Voucher</title>
+    </head>
+    <body>
+        {% if print_many == true %}
+            {% for image in images %}
+                <img src="{{ image|raw }}" alt="" width="100%" style="margin-top: 50px; page-break-after: always;">
+            {% endfor %}
+        {% else %}
+            <img src="{{ images[0]|raw }}" alt="" width="100%" style="margin-top: 50px;">
+        {% endif %}
+    </body>
+</html>

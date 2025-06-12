@@ -1,0 +1,51 @@
+{% extends '@__main__/public/base/layouts/email_info.html.twig' %}
+
+{% block body %}
+    <div class="text">
+        <p>Yth. Bapak/Ibu {{ name }}</p>
+        {% if status == 'paid' %}
+            <p>Terimakasih Bapak/Ibu telah melakukan pembayaran atas transaksi dengan no invoice {{invoice}} pada {{merchant}} melalui tokodaring.balimall.id Berikut kami sampaikan invoice yang berlaku sebagai dokumen yang dipersamakan dengan bukti pemungutan Pajak Penghasilan Pasal 22 dan dokumen tertentu yang kedudukannya dipersamakan dengan Faktur Pajak</p>
+        {% else %}
+            {% if type == 'treasurer' %}
+                <p>Bersama ini kami informasikan bahwa pesanan dengan no invoice {{invoice}} dari {{merchant}} oleh Pejabat Pengadaan {{pp}} pada Satker {{satker|default("(-)")}} {{klpd|default("(-)")}} melalui tokodaring.balimall.id telah diterima oleh PPK {{ppk_name}}, mohon agar melanjutkan proses pembayaran melalui tautan berikut : </p>
+            {% else %}
+                <p>Bersama ini kami informasikan bahwa pesanan dengan no invoice {{invoice}} dari {{merchant}} oleh Pejabat Pengadaan {{pp}} pada Satker {{satker|default("(-)")}} {{klpd|default("(-)")}} melalui tokodaring.balimall.id telah dilakukan pengiriman{{type == 'pic' ? ' sesuai dengan Tanda Terima berikut' : ', mohon agar melakukan konfirmasi penerimaan produk melalui tautan berikut :'}}</p>
+            {% endif %}
+
+                {% if type == 'ppk' or type == 'treasurer' %}
+                    <p>
+                        <br><br>
+                        <a type="button" href="{{ link_login }}" target="_blank" style="padding: 10px 15px;background-color: #E1251B;color: #fff;border-radius: 5px;margin-top: 10px;text-decoration:none;">{{type == 'ppk' ? 'Konfirmasi Penerimaan Produk' : 'Proses Pembayaran'}}</a>
+                    </p>
+                {% elseif type == 'pic' %}
+                    <p>
+                        <br><br>
+                        <a href="{{ link_sp }}" target="_blank">Surat Pesanan</a>,
+                        <a href="{{ link_k }}" target="_blank">Kwitansi</a>,
+                        <a href="{{ link_st }}" target="_blank">Surat Tagihan</a>,
+                        <a href="{{ link_i }}" target="_blank">Invoice</a>,
+                        <a href="{{ link_b }}" target="_blank">Tanda Terima</a>,
+                    </p>
+                {% endif %}
+        {% endif %}
+        {% if status != 'paid' %}
+            <p>Terima Kasih</p><br>
+        {% endif %}
+        <p>Salam</p>
+        <img src="{{ site_url('dist/img/balimall.png') }}" class="logo" alt="Logo">
+        <br>
+        <span>Bmall.id</span>
+        <table>
+            <tr>
+                <td>Whatsapp</td>
+                <td>:</td>
+                <td>0811 3116 4999</td>
+            </tr>
+            <tr>
+                <td>Email</td>
+                <td>:</td>
+                <td>info@balimall.id</td>
+            </tr>
+        </table>
+    </div>
+{% endblock %}

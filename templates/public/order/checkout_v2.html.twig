@@ -1,0 +1,688 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% set cart_items = user_cart is not empty ? user_cart.getItems : [] %}
+{% set cart_taxes = 0 %}
+{% set is_pkp = 0 %}
+{% set store_pkp = false %}
+{% set order_payment_accounts = get_parameter('order_payment_accounts') %}
+{% set voucher_amount = 0 %}
+{% set total_tax = 0 %}
+{% set free_tax_nominal = 0 %}
+{% set dataPkp = 0 %}
+{% set isPkpShipping = false %}
+
+{% block content %}
+    {# CSS override #}
+    <style>
+        .cart-note {
+            min-height: 100px !important;
+        }
+        .input input[type=text] {
+            background-color: #FFF;
+            border: 1.5px solid #ededed;
+        }
+        .select2-selection--single{
+            padding: 10px 0px;
+            height: 48px !important;
+            border: 1px solid #dcdcdc !important;
+        }
+        .select2-selection__arrow{
+            margin-top: 8px;
+        }
+    </style>
+    <main class="cr-page">
+        {% include '@__main__/public/base/partials/breadcrumb.html.twig' %}
+        <section>
+            <div class="container">
+                <div class="box">
+                    <h2 class="ct">{{ 'button.checkout'|trans|upper }}</h2>
+                    <form id="checkout-form" action="{{ path('order_process') }}" method="POST" accept-charset="UTF-8" data-version="v2">
+                        {{ csrf_field('process_order') }}
+                        {% if app.user.role != 'ROLE_SUPER_ADMIN' and app.user.role != 'ROLE_SUPER_SELLER' %}
+                            <div id="popup-approve-negotiation" class="popup general" title="approve">
+                                <div class="wh100">
+                                    <div class="popup-wrapper">
+                                        <div class="inner">
+                                            <a href="javascript:void(0);" class="close-btn" onclick="$(this).parents('.popup').fadeOut();"></a>
+                                            <h3>{{ 'label.procurement_data'|trans }}</h3>
+                                            <p id="approve-negotiation-error" class="error" style="font-size: 16px;"></p>
+                                            {# <div class="input">
+                                                <input id="approve-negotiation-work-unit-name" name="work-unit-name" type="text" title="" placeholder="{{ 'label.work_unit_name'|trans }}" required>
+                                            </div>
+                                            <div class="input">
+                                                <input id="approve-negotiation-institution-name" name="institution-name" type="text" title="" placeholder="{{ 'label.institution_name'|trans }}" required>
+                                            </div> #}
+                                            <div class="input">
+                                                <label for="approve-negotiation-job-package-name" style="text-align: left;">{{ 'label.job_package_name'|trans }}</label>
+                                                <input id="approve-negotiation-job-package-name" name="job-package-name" type="text" title="" placeholder="{{ 'label.job_package_name'|trans }}" required>
+                                            </div>
+                                            {# <div class="input">
+                                                <input id="approve-negotiation-fiscal-year" name="fiscal-year" type="text" title="" placeholder="{{ 'label.fiscal_year'|trans }}" required>
+                                            </div> #}
+
+                                            <div class="input">
+                                                <label for="approve-negotiation-fiscal-year" style="text-align: left;">{{ 'label.fiscal_year'|trans }}</label>
+                                                <select id="approve-negotiation-fiscal-year" name="fiscal-year" required>
+                                                    {% for option in select_year %}
+                                                        <option value="{{option}}" {% if option == tahun_ini %} selected {% endif %}
+                                                        >{{option}}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="input">
+                                                <label for="approve-negotiation-rup" style="text-align: left;">Kode RUP</label>
+                                                <input id="approve-negotiation-rup" name="rup" type="text" title="" placeholder="Kode RUP" required>
+                                            </div>
+                                            <div class="input">
+                                                <label for="approve-negotiation-source-of-fund" style="text-align: left;">{{ 'label.source_of_fund'|trans }}</label>
+                                                <select id="approve-negotiation-source-of-fund" name="source-of-fund" required>
+                                                    <option value="">{{ 'label.source_of_fund_choose'|trans }}</option>
+                                                    {% for key,option in get_parameter('source_of_fund_options') %}
+                                                        <option value="{{key}}">{{option}}</option>
+                                                    {% endfor %}
+                                                </select>
+                                                <input class="hide" id="approve-negotiation-other-source-of-fund" name="other-source-of-fund" type="text" title="" placeholder="{{ 'label.other_source_of_fund'|trans }}" required style="margin-top: 20px;">
+                                            </div>
+                                            <div class="input">
+                                                <label for="approve-negotiation-budget-account" style="text-align: left;">{{ 'label.budget_account'|trans }}</label>
+                                                <input id="approve-negotiation-budget-account" name="budget-account" type="text" title="" placeholder="{{ 'label.budget_account'|trans }}" required>
+                                            </div>
+                                            <div class="input">
+                                                <label for="approve-negotiation-budget-ceiling" style="text-align: left;">{{ 'label.budget_ceiling'|trans }}</label>
+                                                <input id="approve-negotiation-budget-ceiling" name="budget-ceiling" type="text" title="" placeholder="{{ 'label.budget_ceiling'|trans }}" required>
+                                            </div>
+                                            
+                                            {# <div class="input">
+                                                <input id="approve-unit-name" name="unit-name" type="text" title="" placeholder="{{ 'label.unit_name'|trans }}">
+                                            </div>
+                                            <div class="input">
+                                                <input id="approve-unit-pic" name="unit-pic" type="text" title="" placeholder="{{ 'label.unit_pic'|trans }}">
+                                            </div>
+                                            <div class="input">
+                                                <input id="approve-unit-email" name="unit-email" type="email" title="" placeholder="{{ 'label.unit_email'|trans }}">
+                                            </div> #}
+                                            <div class="input">
+                                                <label for="approve-negotiation-satker-select" style="text-align: left;">Data Satker</label>
+                                                <select id="approve-negotiation-satker-select" name="satker-data" class="not-use-selectric use-select2" style="width: 100%;" required>
+                                                    <option value="">Pilih Satker</option>
+                                                    {% for satker in satker_data %}
+                                                        <option value="{{satker.getId}}">{{satker.getSatkerName}}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            
+                                            <div class="input">
+                                                <label for="approve-negotiation-pic-select" style="text-align: left;">{{ 'label.data_pic'|trans }}</label>
+                                                <select id="approve-negotiation-pic-select" name="pic-data" class="not-use-selectric use-select2" style="width: 100%;" required>
+                                                    <option value="">{{ 'label.pic_data_choose'|trans }}</option>
+                                                    {% for pic in pic_data %}
+                                                        <option value="{{pic.getId}}">{{pic.getName}}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+
+                                            <div class="input hide">
+                                                <label for="approve-negotiation-payment-method" style="text-align: left;">{{ 'label.ppk_payment_method'|trans }}</label>
+                                                <select id="approve-negotiation-payment-method" name="payment-method" required>
+                                                    <option value="">{{ 'label.payment_method'|trans }}</option>
+                                                    {% for key, option in get_parameter('ppk_method_options') %}
+                                                        <option value="{{key}}"  {{key == 'uang_persediaan' ? 'selected' : ''}}>{{option}}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+
+                                            <div class="input {{app.user.subRole == 'PPK' ? 'hide' : ''}}">
+                                                <label for="approve-negotiation-ppk-select" style="text-align: left;">{{ 'label.data_ppk'|trans }}</label>
+                                                <select id="approve-negotiation-ppk-select" name="ppk-data" class="not-use-selectric use-select2" style="width: 100%;" required>
+                                                    <option value="">{{ 'label.ppk_data_choose'|trans }}</option>
+                                                    {% for ppk in ppk_data %}
+                                                        {% set ppk_type = 'label.' ~ ppk['u_subRoleTypeAccount'] %}
+                                                        <option value="{{ppk['u_id']}}" {{ app.user.subRole == 'PPK' and (app.user.id == ppk['u_id']) ? 'selected':'' }}>{{ppk['u_username']}} ({{ppk_type|trans}})</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+
+                                            <div class="input">
+                                                <label for="approve-negotiation-treasurer-select" style="text-align: left;">{{ 'label.data_treasurer'|trans }}</label>
+                                                <select id="approve-negotiation-treasurer-select" name="treasurer-data" class="not-use-selectric use-select2" style="width: 100%;" required>
+                                                    <option value="">{{ 'label.treasurer_data_choose'|trans }}</option>
+                                                    {% for treasurer in ppk_treasurer_data %}
+                                                            {% set treasurer_type = 'label.' ~ treasurer['u_subRoleTypeAccount'] %}
+                                                            <option value="{{treasurer['u_id']}}">{{treasurer['u_username']}} ({{treasurer_type|trans}})</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+
+                                            {# <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                                                <tr>
+                                                    <td width="50%">
+                                                        <div class="input">
+                                                            <select id="approve-negotiation-ppk-type" name="ppk-type" required>
+                                                                <option value="ppk">{{ 'label.ppk'|trans }}</option>
+                                                                <option value="budget_user">{{ 'label.budget_user'|trans }}</option>
+                                                                <option value="proxy_budget_user">{{ 'label.proxy_budget_user'|trans }}</option>
+                                                            </select>
+                                                        </div>
+                                                    </td>
+                                                    <td width="50%">
+                                                        <div class="input">
+                                                            <input id="approve-negotiation-ppk-name" name="ppk-name" type="text" title="" placeholder="{{ 'label.ppk_name'|trans }}" required>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td width="50%"></td>
+                                                    <td width="50%">
+                                                        <div class="input">
+                                                            <input id="approve-negotiation-ppk-nip" name="ppk-nip" type="text" title="" placeholder="{{ 'label.ppk_nip'|trans }}" required>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+
+                                                <tr>
+                                                    <td width="50%">
+                                                        <div class="input">
+                                                            <select id="approve-negotiation-treasurer-type" name="treasurer-type" required>
+                                                                <option value="general_treasurer">{{ 'label.general_treasurer'|trans }}</option>
+                                                                <option value="expenditure_treasurer">{{ 'label.expenditure_treasurer'|trans }}</option>
+                                                                <option value="assistant_treasurer">{{ 'label.assistant_treasurer'|trans }}</option>
+                                                            </select>
+                                                        </div>
+                                                    </td>
+                                                    <td width="50%">
+                                                        <div class="input">
+                                                            <input id="approve-negotiation-treasurer-name" name="treasurer-name" type="text" title="" placeholder="{{ 'label.treasurer_name'|trans }}" required>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td width="50%"></td>
+                                                    <td width="50%">
+                                                        <div class="input">
+                                                            <input id="approve-negotiation-treasurer-nip" name="treasurer-nip" type="text" title="" placeholder="{{ 'label.treasurer_nip'|trans }}" required>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </table> #}
+
+                                            <div class="btn-wrapper">
+                                                <a id="popup-approve-negotiation-btn" href="javascript:void(0);" class="sBtn red">
+                                                    {{ 'button.approve'|trans }}
+                                                </a>
+                                                <a href="javascript:void(0);" class="gBtn red" onclick="$(this).parents('.popup').fadeOut();">
+                                                    {{ 'button.close'|trans }}
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        <div class="table-wrapper">
+                            <div class="inner">
+                                <table>
+                                    {% for key, merchant in merchants %}
+                                        {% set hash = merchant['hash'] %}
+                                        {% set total_weight = 0 %}
+                                        {% set vendor_couriers = [] %}
+                                        {% set store_slug = merchant['items'][0]['attributes']['vendor_slug']|default() %}
+                                        {% set is_vendor_pkp = false %}
+                                        <tr>
+                                            <td colspan="5">
+                                                <a href="{{ path('store_page', {'store': store_slug}) }}" target="_blank">
+                                                    <b>{{ merchant['items'][0]['attributes']['vendor']|default('N/A')|raw }}</b>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% for item in merchant['items'] %}
+                                            {% set item_hash = item['id'] %}
+                                            {% set attr = item['attributes'] %}
+                                            {% set thumb = product_main_image(attr['image']|default(0)) %}
+                                            {% set quantity = item['quantity'] %}
+                                            {% set total_weight = total_weight + (attr['weight'] * quantity) %}
+                                            {% set price = attr['price'] %}
+                                            {% set max_qty = attr['max_qty']|default(1) %}
+                                            {% set tax_nominal = attr['tax_nominal'] %}
+
+                                            {% if attr['free_tax'] == 1 %}
+                                                {% set free_tax_nominal = free_tax_nominal + tax_nominal %}
+                                                {% set tax_nominal = 0 %}
+                                            {% endif %}
+
+                                            {% set price_with_tax = price + tax_nominal %}
+                                            {% set sub_total = price * quantity %}
+                                            {% set sub_total_with_tax = sub_total %}
+                                            {% set store_url = path('store_page', {'store': attr['vendor_slug']}) %}
+                                            {% set vendor_couriers = get_vendor_couriers(attr['vendor_slug']) %}
+                                            {% set vendor_pkp = check_vendor_is_pkp(attr['vendor_slug']) %}
+                                            {% set product_url = path('store_product_page', {
+                                                'store': attr['vendor_slug'],
+                                                'product': attr['slug']
+                                            }) %}
+
+                                            {% if vendor_pkp == true %}
+                                                {% set is_pkp = is_pkp + 1 %}
+                                                {% set store_pkp = true %}
+                                                {% set dataPkp = 1 %}
+                                                {% set isPkpShipping = true %}
+                                                {% set is_vendor_pkp = true %}
+                                            {% else %}
+                                                {% set dataPkp = 0 %}
+                                                {% set isPkpShipping = false %}
+                                            {% endif %}
+
+                                            {% if attr['with_tax'] == 1 and tax_nominal > 0%}
+                                                {% if vendor_pkp %}
+                                                    {% set cart_taxes = cart_taxes + tax_nominal %}
+                                                    {% set sub_total_with_tax = sub_total_with_tax + tax_nominal %}
+                                                {% else %}
+                                                    {% set cart_taxes = cart_taxes %}
+                                                    {% set sub_total_with_tax = sub_total %}
+                                                {% endif %}
+                                            {% endif %}
+                                            <tr>
+                                                <td>
+                                                    {{ 'label.name'|trans }}:
+                                                    <a href="{{ product_url }}" target="_blank"><b>{{ attr['name'] }}</b></a>
+                                                </td>
+                                                <td>{{ 'label.qty'|trans }}: <b>{{ quantity }}</b></td>
+                                                <td>{{ 'label.weight'|trans }}: <b>{{ attr['weight']  }}</b> kg</td>
+                                                <td id="cart-item-total-{{ hash }}" data-product-hash="{{ item_hash }}" class="rt {{ item_hash }} {% if app.user and app.user.role != 'ROLE_USER_GOVERNMENT' %}item-sub-total{% endif %}" data-sub-total="{{ sub_total }}" data-sub-total-with-tax="{{ sub_total_with_tax }}" data-pkp="{{ dataPkp }}">
+                                                    {% if app.user %}
+                                                        {% if app.user.role == 'ROLE_USER_GOVERNMENT' or dataPkp == 1 %}
+                                                            <b>Rp. {{ sub_total|number_format(2, ',', '.') }}</b>
+                                                        {% else %}
+                                                           <b>Rp. {{ sub_total|number_format(2, ',', '.') }}</b>
+                                                        {% endif %}
+                                                    {% else %}
+                                                        <b>Rp. {{ sub_total|number_format(2, ',', '.') }}</b>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                        {% if app.user and addresses|length > 0 %}
+                                            <tr>
+                                                <td colspan="3">
+                                                    <div id="address-element-{{ hash }}" class="address">
+                                                        <h6>{{ 'label.delivery_address'|trans }}</h6>
+                                                        <div class="input">
+                                                            <select name="address[{{ hash }}]" class="adr-opt not-use-selectric use-select2" style="width: 100%;">
+                                                                <option value="">Pilih Alamat</option>
+                                                                {% for address in addresses %}
+                                                                    <option value="{{ address.getId }}" data-hash="{{ hash }}" data-pkp="{% if is_vendor_pkp == true %}1{% endif %}">{{ address.getTitle }} ({{ address.getAddress ~ ' ' ~ address.getPostCode ~ ' - ' ~ address.getCity ~ ' ' ~ address.getProvince }})</option>
+                                                                {% endfor %}
+                                                            </select>
+                                                        </div>
+                                                        {% for address in addresses %}
+                                                            <div id="adr-detail-{{ address.getId ~ '-' ~ hash }}" data-cid="{{ address.getCityId }}" data-pid="{{ address.getProvinceId }}" data-sid="{{ key }}" data-origin="{{ merchant['origin_id'] }}" data-weight="{{ total_weight }}"></div>
+                                                        {% endfor %}
+                                                        {# {% for address in addresses %}
+                                                            <div class="input">
+                                                                    <span class="check-wrapper">
+                                                                        <input type="radio" class="radio adr-opt" name="address[{{ hash }}]" value="{{ address.getId }}" title="" data-hash="{{ hash }}" data-pkp="{% if is_vendor_pkp == true %}1{% endif %}">
+                                                                        <label></label>
+                                                                    </span> {{ address.getTitle }}
+                                                                <p>{{ address.getAddress ~ ' ' ~ address.getPostCode ~ ' - ' ~ address.getCity ~ ' ' ~ address.getProvince }}</p>
+                                                                <div id="adr-detail-{{ address.getId ~ '-' ~ hash }}" data-cid="{{ address.getCityId }}" data-pid="{{ address.getProvinceId }}" data-sid="{{ key }}" data-origin="{{ merchant['origin_id'] }}" data-weight="{{ total_weight }}"></div>
+                                                            </div>
+                                                        {% endfor %} #}
+                                                    </div>
+                                                    {% if app.user and app.user.role != 'ROLE_USER_GOVERNMENT' %}
+                                                        {% include '@__main__/public/order/fragments/free_shipping.html.twig' %}
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+                                        <tr id="courier-choices-{{ hash }}">
+                                            <td colspan="3">
+                                                <h6>{{ 'label.delivery_couriers'|trans }}</h6>
+                                                <div class="input">
+                                                    <select id="shipping-courier-{{ hash }}" name="shp_name[{{ hash }}]" class="shipping-courier" title="">
+                                                        {% set courier = 'label.courier'|trans %}
+                                                        <option value="">{{ 'label.select_label'|trans({'%label%': courier}) }}</option>
+                                                        {% for key, courier in get_parameter('raja_ongkir_couriers') %}
+                                                            {% if key in vendor_couriers and key != 'free_shipping' and key != 'free_shipping_2' and key != 'free_shipping_3' and key != 'free_shipping_4' %}
+                                                                {% if app.user and app.user.role == 'ROLE_USER_GOVERNMENT' and key != 'gosend' %}
+                                                                    <option value="{{ key }}">{{ courier }}</option>
+                                                                {% endif %}
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                                <table id="shipping-package-{{ hash }}"></table>
+                                                <div class="input">
+                                                    <textarea name="note[{{ hash }}]" class="no-resize cart-note" placeholder="{{ 'label.note'|trans }}" title=""></textarea>
+                                                </div>
+                                                <div>
+                                                    <input id="shipping-name-{{ hash }}" type="hidden" value="0">
+                                                    <input id="shipping-service-{{ hash }}" type="hidden" value="0">
+                                                    <input id="shipping-price-{{ hash }}" type="hidden" class="{% if isPkpShipping or app.user.role == 'ROLE_USER_GOVERNMENT' or store_pkp %}pkp-shipping{% else %}non-pkp-shipping{% endif %}" value="0">
+                                                </div>
+                                            </td>
+                                            <td></td>
+                                        </tr>
+                                        {% if app.user and app.user.role == 'ROLE_USER_GOVERNMENT' %}
+                                            {% include '@__main__/public/order/fragments/negotiation.html.twig' %}
+                                            {#{% include '@__main__/public/order/fragments/negotiation_hidden.html.twig' %}#}
+                                        {% endif %}
+                                        <tr>
+                                            <td colspan="3">{{ 'label.delivery_fee'|trans }}</td>
+                                            <td id="shipping-cost-{{ hash }}" colspan="2" class="{% if store_pkp or app.user.role == 'ROLE_USER_GOVERNMENT' %}pkp-shipping-cost{% else %}non-pkp-shipping{% endif %}"><b>Rp. 0</b></td>
+                                        </tr>
+                                    {% endfor %}
+                                    <input type="hidden" id="government-checkout" value="{% if app.user and app.user.role == 'ROLE_USER_GOVERNMENT' %}1{% endif %}">
+                                    <input type="hidden" id="is-pkp-trx" value="1">
+                                </table>
+                            </div>
+                        </div>
+                        {% if app.user and app.user.role != 'ROLE_USER_GOVERNMENT' %}
+                            <div class="table-wrapper">
+                                <table>
+                                    <tbody id="voucher-element">
+                                        {% for key, voucher in vouchers %}
+                                            {% set voucher_amount = voucher_amount + voucher['amount'] %}
+                                            <tr id="ov-{{ key }}">
+                                                <td colspan="3">
+                                                    <a href="javascript:void(0);" class="remove-voucher" data-code="{{ key }}" title="{{ 'button.delete'|trans }}">
+                                                        <i class="fa fa-times"></i>
+                                                    </a>
+                                                    {{ 'label.code'|trans }}: <strong>{{ key }}</strong>
+                                                </td>
+                                                <td colspan="2" class="rt"><b>Rp. {{ voucher['amount']|number_format }}</b></td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                    <tr>
+                                        <td>
+                                            <div class="input" style="margin-bottom: 10px;">
+                                                <input id="input-voucher" type="text" title="" placeholder="{{ 'label.input_voucher'|trans }}">
+                                            </div>
+                                            <button id="apply-voucher" type="button" class="sBtn red">
+                                                {{ 'label.check'|trans }}
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        {% endif %}
+                        <div class="table-wrapper">
+                            <table>
+                                <tr>
+                                    <td class="ct">
+                                        <h5>{{ 'label.ppn'|trans }}</h5>
+                                    </td>
+
+                                    <td class="rt">
+                                    
+                                        <h5 id="ppn-grand-total" class="right-side rt"
+                                            data-ppn-grand-total="{{ cart_taxes }}"
+                                            data-ppn-grand-total-with-tax="{{ cart_taxes }}"
+                                            data-ppn-percentage="{{ get_ppn_percentage(umkm_category)}}"
+                                            data-voucher-status="">
+                                            {% if app.user and app.user.role in ['ROLE_USER_GOVERNMENT', 'ROLE_USER', 'ROLE_USER_BUYER'] and is_pkp > 0 %}
+                                                Rp. {{ cart_taxes|number_format }}
+                                            {% else %}
+                                                Rp. 0
+                                            {% endif %}
+                                        </h5>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="ct">
+                                        <h5>{{ 'label.total'|trans }}</h5>
+                                    </td>
+                                    <td class="rt">
+                                        {% set data_grand_total = user_cart.getAttributeTotal %}
+                                        {% set data_grand_total_with_tax = data_grand_total + cart_taxes %}
+                                        {% set data_grand_total_shown = data_grand_total %}
+                                        {% if is_pkp > 0 %}
+                                            {% if cart_taxes < 1 %}
+                                                {% set cart_taxes = generate_ppn(data_grand_total, umkm_category) %}
+                                            {% endif %}
+                                            {% set data_grand_total_with_tax = data_grand_total + cart_taxes %}
+                                            {% set data_grand_total_shown = data_grand_total_with_tax %}
+                                        {% endif %}
+                                        {% if voucher_amount > 0 %}
+                                            {% set data_grand_total = data_grand_total - voucher_amount %}
+                                            {% set data_grand_total_with_tax = data_grand_total_with_tax - voucher_amount %}
+                                            {% set data_grand_total_shown = data_grand_total %}
+                                        {% endif %}
+                                        <h5 id="input-grand-total" class="right-side rt"
+                                            data-free-tax-nominal="{{ free_tax_nominal }}"
+                                            data-grand-total="{{ data_grand_total }}"
+                                            data-grand-total-with-tax="{{ data_grand_total_with_tax }}"
+                                            data-voucher-status="">Rp. {{ data_grand_total_shown|number_format }}</h5>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+{#                        <div id="workunit-select" class="inner-box">#}
+{#                            <ul>#}
+{#                                <li>#}
+{#                                    <div class="address">#}
+{#                                        <h6>{{ 'label.workunit'|trans }}</h6>#}
+{#                                    </div>#}
+{#                                </li>#}
+{#                                {% if satker_choices|length > 0 %}#}
+{#                                    {% for satker in satker_choices %}#}
+{#                                        <li>#}
+{#                                            <div class="address">#}
+{#                                                <div class="input">#}
+{#                                                        <span class="check-wrapper">#}
+{#                                                            <input type="radio" class="radio satker-opt" name="satker" value="{{ satker.getId }}" title="">#}
+{#                                                            <label></label>#}
+{#                                                        </span> {{ satker.getFullname }} | {{ satker.getWorkUnit }}#}
+{#                                                </div>#}
+{#                                            </div>#}
+{#                                        </li>#}
+{#                                    {% endfor %}#}
+{#                                {% endif %}#}
+{#                            </ul>#}
+{#                        </div>#}
+                        {% if app.user %}
+                            {% set tax_checked = app.user and app.user.role == 'ROLE_USER_GOVERNMENT' ? 'checked' : '' %}
+                            {% set tax_readonly = tax_checked == 'checked' ? 'onclick="return false;"' : '' %}
+                            {% set tax_style = tax_checked == 'checked' ? 'display: block;' : 'display: none;' %}
+                            <div class="inner-box" style="display:none">
+                                <span class="check-wrapper">
+                                    <input id="tax-invoice-btn" type="checkbox" name="with_tax" class="check" value="1" title="" {{ tax_checked }} {{ tax_readonly|raw }}>
+                                    <label></label>
+                                </span>
+                                <p>{{ 'label.tax_invoice'|trans }}</p>
+                            </div>
+                            <div id="tax-documents" class="inner-box" style="{{ tax_style }}">
+                                <ul>
+                                    <li>
+                                        <div class="address">
+                                            <h6>{{ 'label.tax_document'|trans }}</h6>
+                                        </div>
+                                    </li>
+                                    {% if tax_documents|length > 0 %}
+                                        {% for tax_document in tax_documents %}
+                                            <li>
+                                                <div class="address">
+                                                    <h6>{{ tax_document.getTitle }}</h6>
+                                                    <div class="input">
+                                                        <span class="check-wrapper">
+                                                            <input type="radio" class="radio tax-opt" name="tax_document" value="{{ tax_document.getId }}" title="">
+                                                            <label></label>
+                                                        </span> {{ tax_document.getNumber is not empty ? tax_document.getNumber :'-' }}
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        {% endfor %}
+                                    {% else %}
+                                        <li>
+                                            <div class="address">
+                                                <h6>{{ 'message.info.no_tax_document'|trans }}</h6>
+                                                <a href="{{ path('user_tax_new') }}" class="sBtn red">
+                                                    {{ 'button.add'|trans }}
+                                                </a>
+                                            </div>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+
+                        {% endif %}
+                        <div class="inner-box">
+                            <span class="check-wrapper">
+                                <input type="checkbox" name="tnc" class="check" value="1" title="">
+                                <label></label>
+                            </span>
+                            <p>{{ 'message.confirm.tnc'|trans|raw }}</p>
+                        </div>
+                        {% if app.user %}
+                            {% if no_phone == true %}<div id="no-phone"></div>{% endif %}
+                        {% endif %}
+                        {% if is_buyer and checkout_payment_info == 'show' %}
+                            <div class="inner-box">
+                                <p>
+                                    {{ 'message.info.payment_info'|trans }}<br>
+                                    {#{% if app.user and app.user.role == 'ROLE_USER_GOVERNMENT' %}
+                                        <code id="sp-gov">
+                                            {% if show_pay_account_1 == 'yes' %}{{ order_payment_accounts['all_1']|join('<br>')|raw }}{% endif %}
+                                            {% if show_pay_account_2 == 'yes' %}<br><br>{{ order_payment_accounts['all_2']|join('<br>')|raw }}{% endif %}
+                                        </code>
+                                    {% else %}
+                                        <code id="without-tax">
+                                            {% if show_pay_account_1 == 'yes' %}{{ order_payment_accounts['all_1']|join('<br>')|raw }}{% endif %}
+                                            {% if show_pay_account_2 == 'yes' %}<br><br>{{ order_payment_accounts['all_2']|join('<br>')|raw }}{% endif %}
+                                        </code>
+                                        <code id="with-tax" style="display: none;">
+                                            {% if show_pay_account_1 == 'yes' %}{{ order_payment_accounts['all_1']|join('<br>')|raw }}{% endif %}
+                                            {% if show_pay_account_2 == 'yes' %}<br><br>{{ order_payment_accounts['all_2']|join('<br>')|raw }}{% endif %}
+                                        </code>
+                                    {% endif %}#}
+                                </p>
+                            </div>
+                            <div class="inner-box" style="margin-top: -35px;">
+                                <div class="dc6 tc12">
+                                    {% if app.user and app.user.role == 'ROLE_USER_GOVERNMENT' %}
+                                        <code class="sp-gov">
+                                            {% if show_pay_account_1 == 'yes' %}
+                                                {{ order_payment_accounts['all_1']|join('<br>')|raw }}
+                                            {% endif %}
+                                        </code>
+                                    {% else %}
+                                        <code class="without-tax">
+                                            {% if show_pay_account_1 == 'yes' %}
+                                                {{ order_payment_accounts['all_1']|join('<br>')|raw }}
+                                            {% endif %}
+                                        </code>
+                                        <code class="with-tax" style="display: none;">
+                                            {% if show_pay_account_1 == 'yes' %}
+                                                {{ order_payment_accounts['all_1']|join('<br>')|raw }}
+                                            {% endif %}
+                                        </code>
+                                    {% endif %}
+                                </div>
+                                <div class="dc6 tc12">
+                                    {% if app.user and app.user.role == 'ROLE_USER_GOVERNMENT' %}
+                                        <code class="sp-gov">
+                                            {% if show_pay_account_2 == 'yes' %}
+                                                {{ order_payment_accounts['all_2']|join('<br>')|raw }}
+                                            {% endif %}
+                                        </code>
+                                    {% else %}
+                                        <code class="without-tax">
+                                            {% if show_pay_account_2 == 'yes' %}
+                                                {{ order_payment_accounts['all_2']|join('<br>')|raw }}
+                                            {% endif %}
+                                        </code>
+                                        <code class="with-tax" style="display: none;">
+                                            {% if show_pay_account_2 == 'yes' %}
+                                                {{ order_payment_accounts['all_2']|join('<br>')|raw }}
+                                            {% endif %}
+                                        </code>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% if show_qris_pay == 'yes' %}
+                                <div class="inner-box" style="margin-top: -35px;">
+                                    <img src="{{ asset(asset_qris_pay) }}" height="400px" alt="">
+                                </div>
+                                <div class="inner-box" style="margin-top: -50px;">
+                                    <a href="{{ asset(asset_qris_pay) }}" class="sBtn small red" download>
+                                        {{ 'button.download'|trans ~ ' QRIS' }}
+                                    </a>
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                        <div class="btn-wrapper ">
+                            {% if app.user %}
+                                {% if addresses|length > 0 %}
+                                    {% set btn_label = app.user.role == 'ROLE_USER' ? 'button.submit_cart' : 'button.continue_order' %}
+                                    <a id="checkout-now" href="javascript:void(0);" class="sBtn red right-side">
+                                        {{ btn_label|trans|upper }}
+                                    </a>
+                                {% else %}
+                                    <a href="javascript:void(0);" class="sBtn red right-side cart-incomplete">
+                                        {{ 'button.submit_cart'|trans|upper }}
+                                    </a>
+                                {% endif %}
+                            {% else %}
+                                <input type="submit" class="sBtn red right-side" value="{{ 'button.submit_cart'|trans|upper }}">
+                            {% endif %}
+                            <a href="{{ path('cart_index') }}" class="gBtn">{{ 'button.return'|trans }}</a>
+                            <div class="clear"></div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    {% if app.user and app.user.role != 'ROLE_USER_GOVERNMENT' %}
+        <template id="order-coupon-template">
+            <tr id="ov-**code1**">
+                <td colspan="3">
+                    <a href="javascript:void(0);" class="remove-voucher" data-code="**code2**" title="{{ 'button.delete'|trans }}">
+                        <i class="fa fa-times"></i>
+                    </a>
+                    {{ 'label.code'|trans }}: <strong>**code3**</strong>
+                </td>
+                <td colspan="2" class="rt"><b>Rp. **amount**</b></td>
+            </tr>
+        </template>
+    {% endif %}
+{% endblock %}
+
+{% block javascripts %}
+    {% if free_shipping_method['multiple'] == 'yes' %}
+        <script>
+            $(function() {
+                $('.self-pick-up').on('change', function(e) {
+                    e.preventDefault();
+
+                    var hash = $(this).attr('data-hash');
+
+                    if (!$(this).prop('checked')) {
+                        $(this).prop('checked', false);
+                    } else {
+                        $('.pu-'+hash).each(function() {
+                            $(this).prop('checked', false);
+                        });
+
+                        $(this).prop('checked', true);
+                    }
+                });
+            });
+                var currencyFormatter = new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                });
+
+            {# const cell = document.querySelector('[id^="cart-item-total-"]');
+            if (cell) {
+            const correctValue = parseFloat(cell.dataset.subTotal).toLocaleString("id-ID", {
+                style: "currency",
+                currency: "IDR",
+               // minimumFractionDigits: 2
+            });
+            cell.innerHTML = `<b>${correctValue}</b>`;
+            } #}
+
+        </script>
+    {% endif %}
+{% endblock %}

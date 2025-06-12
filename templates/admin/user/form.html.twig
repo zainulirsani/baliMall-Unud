@@ -1,0 +1,623 @@
+{% extends '@__main__/admin/base/layouts/default.html.twig' %}
+
+{% set controller = app.request.get('_controller') %}
+{% set page_method = controller[1] is defined ? controller[1] : 'n/a' %}
+{% set page_header = page_title|trans %}
+{% set index_route = 'admin_' ~ page_section ~ '_index' %}
+{% set save_route = 'admin_' ~ page_section ~ '_save' %}
+{% set page_action = path(save_route) %}
+{% set user_id = form_data['u_id']|default(0) %}
+{% set user_dir_slug = form_data['u_dirSlug']|default() %}
+{% set user_roles = get_parameter('user_roles') %}
+{% set user_sub_roles = get_parameter('user_sub_roles') %}
+{% set user_sub_role_types = get_parameter('ppk_type_options') %}
+{% set user_roles = get_parameter('user_roles')|array_unset('ROLE_USER_GOVERNMENT') %}
+{% set user_avatar = form_data['u_photoProfile']|default('dist/img/adminlte/avatar-male.png') %}
+{% set user_activation = 'no' %}
+{% set read_only = '' %}
+{% set read_only_password = '' %}
+{% set label_address = 'label.address'|trans %}
+{% set exclude_government = form_data['u_role']|default() == 'ROLE_USER_GOVERNMENT' ? 'yes' : 'no' %}
+
+{% if admin_user['u_role'] == 'ROLE_SUPER_ADMIN' %}
+    {% set user_roles = user_roles|merge({'ROLE_SUPER_ADMIN': 'ROLE_SUPER_ADMIN'}) %}
+{% else %}
+    {% set user_roles = user_roles|array_unset('ROLE_ADMIN') %}
+    {% set user_roles = user_roles|array_unset('ROLE_ACCOUNTING_1') %}
+    {% set user_roles = user_roles|array_unset('ROLE_ACCOUNTING_2') %}
+    {% set user_roles = user_roles|array_unset('ROLE_HELPDESK_USER') %}
+    {% set user_roles = user_roles|array_unset('ROLE_HELPDESK_MERCHANT') %}
+    {% set user_roles = user_roles|array_unset('ROLE_ADMIN_PRODUCT') %}
+    {% set user_roles = user_roles|array_unset('ROLE_ADMIN_MERCHANT') %}
+    {% set user_roles = user_roles|array_unset('ROLE_ADMIN_VOUCHER') %}
+{% endif %}
+
+{#{% set admin_merchant_province = form_data['u_adminMerchantBranchProvince'] %}#}
+
+{% if page_method == 'edit' %}
+    {% set trans_parameter = {'%name%': form_data['u_username']} %}
+    {% set user_dir_slug = form_data['u_dirSlug'] %}
+    {% set page_header = page_title|trans(trans_parameter) %}
+    {% set update_route = 'admin_' ~ page_section ~ '_update' %}
+    {% set roleParam = app.request.query.get('role') %}
+    {% set page_action = path(update_route, {id: user_id, role: roleParam}) %}
+{#    {% set read_only = 'disabled' %}#}
+    {% set read_only_password = form_data['is_superadmin'] ? '' : 'disabled' %}
+
+    {% if form_data['u_isActive'] == 0 and form_data['u_isDeleted'] == 0 and form_data['u_activationCode'] == '' %}
+        {% set user_activation = 'yes' %}
+    {% endif %}
+{% endif %}
+
+{% if form_data['u_photoProfileSrc'] is defined and form_data['u_photoProfileSrc'] != '' %}
+    {% set user_avatar = form_data['u_photoProfileSrc'] %}
+{% endif %}
+
+{% block stylesheets %}
+    <style>
+        #map { height: 300px; }
+
+        .hidden {
+            display: none;
+        }
+        
+        .button-image-user {
+            margin-top: 5px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="box box-primary">
+                <form id="user-form" accept-charset="UTF-8" method="post" action="{{ page_action }}">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">{{ page_header }}</h3>
+                    </div>
+                    <div class="box-body">
+                        {{ csrf_field(token_id) }}
+                        <div class="panel-body">
+                            <div class="nav-tabs-custom">
+                                <ul class="nav nav-tabs user-tabs">
+                                    <li class="active user-tab-data">
+                                        <a href="#tab-data" data-toggle="tab" data-tab="data">{{ 'label.data'|trans }}</a>
+                                    </li>
+                                    <li class="user-tab-profile">
+                                        <a href="#tab-profile" data-toggle="tab" data-tab="profile">{{ 'label.profile'|trans }}</a>
+                                    </li>
+                                    {% if page_method == 'edit' %}
+                                        <li class="user-tab-address">
+                                            <a href="#tab-address" data-toggle="tab" data-tab="address">{{ 'label.address'|trans }}</a>
+                                        </li>
+                                        {% if form_data['u_role'] == 'ROLE_USER_GOVERNMENT' %}
+                                            <li class="user-tab-government">
+                                                <a href="#tab-government" data-toggle="tab" data-tab="government">{{ 'label.government'|trans }}</a>
+                                            </li>
+                                        {% endif %}
+
+                                        {% if form_data['u_subRole'] != 'PPK' and form_data['u_subRole'] != 'TREASURER' %}
+                                            {# <li class="user-tab-ppk">
+                                                <a href="#tab-ppk" data-toggle="tab" data-tab="ppk">{{ 'label.data_ppk'|trans }}</a>
+                                            </li> #}
+
+                                            {# <li class="user-tab-treasurer">
+                                                <a href="#tab-treasurer" data-toggle="tab" data-tab="treasurer">{{ 'label.data_treasurer'|trans }}</a>
+                                            </li> #}
+
+                                            <li class="user-tab-pic">
+                                                <a href="#tab-pic" data-toggle="tab" data-tab="pic">{{ 'label.data_pic'|trans }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endif %}
+                                </ul>
+                                <div class="tab-content tab-user-content">
+                                    <div id="tab-data" class="tab-pane fade in active">
+                                        <div class="m-top-15"></div>
+                                        <div class="form-group">
+                                            <label for="">{{ 'label.is_user_testing'|trans }}</label>
+
+                                            {% set checked = form_data['u_isUserTesting']|default(false) == true ? 'checked' : '' %}
+                                            <div class="checkbox">
+                                                <label><input id="isUserTesting" type="checkbox" name="u_isUserTesting" value="1" {{ checked }}></label>
+                                            </div>
+                                        </div>
+                                        <div class="form-group {% if errors['u_username']|default() %}has-error{% endif %}">
+                                            {% set disabled = user_id > 0 ? 'disabled' : '' %}
+                                            <label for="input-username">{{ 'label.username'|trans }}</label>
+                                            {% if errors['u_username']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['u_username'] }}</span>
+                                            {% endif %}
+                                            <input id="input-username" class="form-control" name="u_username" value="{{ form_data['u_username']|default() }}">
+                                        </div>
+                                        <div class="form-group {% if errors['u_email']|default() %}has-error{% endif %}">
+                                            <label for="input-email">{{ 'label.email'|trans }}</label>
+                                            {% if errors['u_email']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['u_email'] }}</span>
+                                            {% endif %}
+                                            <input id="input-email" type="text" class="form-control" name="u_email" value="{{ form_data['u_email']|default() }}" {{ read_only }}>
+                                        </div>
+                                        <div class="form-group {% if errors['u_password']|default() %}has-error{% endif %}">
+                                            <label for="input-password">{{ 'label.password'|trans }}</label>
+                                            {% if errors['u_password']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['u_password'] }}</span>
+                                            {% endif %}
+                                            <input id="input-password" type="password" class="form-control" name="u_password" {{ read_only_password }}>
+                                        </div>
+                                        <div class="form-group {% if errors['u_passwordConfirmation']|default() %}has-error{% endif %}">
+                                            <label for="input-password-confirmation">{{ 'label.confirm_password'|trans }}</label>
+                                            {% if errors['u_passwordConfirmation']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['u_passwordConfirmation'] }}</span>
+                                            {% endif %}
+                                            <input id="input-password-confirmation" type="password" class="form-control" name="u_passwordConfirmation" {{ read_only_password }}>
+                                        </div>
+                                        <div class="form-group {% if errors['u_role']|default() %}has-error{% endif %}">
+                                            <label for="input-role">{{ 'label.role'|trans }}</label>
+                                            {% if errors['u_role']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['u_role'] }}</span>
+                                            {% endif %}
+                                            <select id="input-role" class="form-control" name="u_role">
+                                                <option value="">{{ 'label.select_option'|trans }}</option>
+                                                {% if exclude_government == 'no' %}
+                                                    {% for key, role in user_roles %}
+                                                        {% set selected = form_data['u_role']|default() == key ? 'selected' : '' %}
+                                                        <option value="{{ key }}" {{ selected }}>{{ role }}</option>
+                                                    {% endfor %}
+                                                {% else %}
+                                                    <option value="ROLE_USER_GOVERNMENT" selected>ROLE_USER_GOVERNMENT</option>
+                                                {% endif %}
+                                            </select>
+                                        </div>
+                                        <div class="form-group sub_role-input {% if form_data['u_role']|default() != "ROLE_USER_GOVERNMENT" %} hide {% endif %}
+                                         {% if errors['u_subRole']|default() %}has-error{% endif %}">
+                                            <label for="input-sub_role">{{ 'label.sub_role'|trans }}</label>
+                                            {% if errors['u_subRole']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['u_subRole'] }}</span>
+                                            {% endif %}
+                                            <select id="input-sub_role" class="form-control" name="u_subRole">
+                                                <option value="">{{ 'label.select_option'|trans }}</option>
+                                                {% for key, subrole in user_sub_roles %}
+                                                    {% set selected = form_data['u_subRole']|default() == key ? 'selected' : '' %}
+                                                    <option value="{{ key }}" {{ selected }}>{{ subrole }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group sub_role_type-input {% if form_data['u_subRole']|default() != "PPK" %} hide {% endif %}
+                                         {% if errors['u_subRoleTypeAccount']|default() %}has-error{% endif %}">
+                                            <label for="input-sub_role_type">{{ 'label.sub_role'|trans }} Type</label>
+                                            {% if errors['u_subRoleTypeAccount']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['u_subRoleTypeAccount'] }}</span>
+                                            {% endif %}
+                                            <select id="input-sub_role_type" class="form-control" name="u_subRoleTypeAccount">
+                                                <option value="">{{ 'label.select_option'|trans }}</option>
+                                                {% for subRoleType in user_sub_role_types %}
+                                                    {% set subRoleTypeLabel = 'label.' ~ subRoleType %}
+                                                    {% set selected = form_data['u_subRoleTypeAccount']|default() == subRoleType ? 'selected' : '' %}
+                                                    <option value="{{ subRoleType }}" {{ selected }}>{{ subRoleTypeLabel|trans }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="form-group admin-merchant-input {% if errors['u_adminMerchantBranchProvince']|default() %}has-error{% endif %}">
+                                            <label for="input-admin-merchant-cabang">{{ 'label.admin_merchant'|trans }}</label>
+                                            {% if errors['u_adminMerchantBranchProvince']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['u_adminMerchantBranchProvince'] }}</span>
+                                            {% endif %}
+                                            <select id="input-admin-cabang" class="form-control" name="u_adminMerchantBranchProvince">
+                                                <option value="">{{ 'label.select_option'|trans }}</option>
+                                                {% for item in province_data  %}
+                                                    {% set selected = form_data['u_adminMerchantBranchProvince']|default(0) == item['province_id'] ? 'selected' : '' %}
+                                                    <option value="{{ item['province_id'] }}" {{ selected }}>{{ item['province'] }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="form-group {% if errors['u_isActive']|default() %}has-error{% endif %}">
+                                            <label for="input-status">{{ 'label.status'|trans }}</label>
+                                            {% if errors['u_isActive']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['u_isActive'] }}</span>
+                                            {% endif %}
+                                            <select id="input-status" class="form-control" name="u_isActive">
+                                                <option value="">{{ 'label.select_option'|trans }}</option>
+                                                {% for key, choice in get_parameter('active_inactive') %}
+                                                    {% set label = 'label.' ~ choice %}
+                                                    {% set selected = form_data['u_isActive']|default() == key ? 'selected' : '' %}
+                                                    <option value="{{ key }}" {{ selected }}>{{ label|trans }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+
+                                        {% if form_data['u_subRole']|default('') == 'TREASURER' %}
+                                            <div class="form-group">
+                                                <label for="input-username">VA BNI</label>
+                                                <input class="form-control" name="u_username" value="{{ form_data['u_vaBni']|default() }}" disabled>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        
+                                    </div>
+                                    <div id="tab-profile" class="tab-pane fade">
+                                        <div class="m-top-15"></div>
+                                        <div class="form-group {% if errors['u_photoProfile']|default() %}has-error{% endif %}">
+                                            <div class="text-center">
+                                                <img src="{{ path('sftp_show_file', {'path': user_avatar}) }}" class="profile-user-img img-responsive img-circle" alt="">
+                                                <button type="button" class="profile-user-img btn btn-primary button-image-user">+</button>
+                                            </div>
+                                            {% if read_only == '' %}
+                                                <input id="input-photo-profile" type="file" name="file_image" class="hidden">
+                                                <input id="photo-profile" type="hidden" name="u_photoProfile" value="{{ form_data['u_photoProfile']|default() }}">
+                                                <input id="photo-profile-tmp" type="hidden" name="u_photoProfileTmp">
+                                            {% endif %}
+                                        </div>
+                                        <div class="form-group {% if errors['u_firstName']|default() %}has-error{% endif %}">
+                                            <label for="input-first-name">{{ 'label.first_name'|trans }}</label>
+                                            {% if errors['u_firstName']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['u_firstName'] }}</span>
+                                            {% endif %}
+                                            <input id="input-first-name" class="form-control" name="u_firstName" value="{{ form_data['u_firstName']|default() }}" {{ read_only }}>
+                                        </div>
+                                        <div class="form-group {% if errors['u_lastName']|default() %}has-error{% endif %}">
+                                            <label for="input-last-name">{{ 'label.last_name'|trans }}</label>
+                                            {% if errors['u_lastName']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['u_lastName'] }}</span>
+                                            {% endif %}
+                                            <input id="input-last-name" class="form-control" name="u_lastName" value="{{ form_data['u_lastName']|default() }}" {{ read_only }}>
+                                        </div>
+                                        <div class="form-group {% if errors['u_gender']|default() %}has-error{% endif %}">
+                                            <label for="input-gender">{{ 'label.gender'|trans }}</label>
+                                            {% if errors['u_gender']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['u_gender'] }}</span>
+                                            {% endif %}
+                                            <select id="input-gender" class="form-control" name="u_gender" {{ read_only }}>
+                                                <option value="">{{ 'label.select_option'|trans }}</option>
+                                                {% for key, gender in get_parameter('gender_choices') %}
+                                                    {% set selected = form_data['u_gender']|default() == key ? 'selected' : '' %}
+                                                    <option value="{{ key }}" {{ selected }}>{{ gender|trans }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="form-group {% if errors['u_phoneNumber']|default() %}has-error{% endif %}">
+                                            <label for="input-phone">{{ 'label.phone'|trans }}</label>
+                                            {% if errors['u_phoneNumber']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['u_phoneNumber'] }}</span>
+                                            {% endif %}
+                                            <input id="input-phone" class="form-control" name="u_phoneNumber" value="{{ form_data['u_phoneNumber']|default() }}" {{ read_only }}>
+                                        </div>
+                                        <div class="form-group {% if errors['u_dob']|default() %}has-error{% endif %}">
+                                            <label for="input-dob">{{ 'label.dob'|trans }}</label>
+                                            {% if errors['u_dob']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['u_dob'] }}</span>
+                                            {% endif %}
+                                            <input id="input-dob" class="form-control input-dob" name="u_dob" value="{{ form_data['u_dob']|default() }}" {{ read_only }}>
+                                        </div>
+                                        <div class="form-group {% if errors['u_description']|default() %}has-error{% endif %}">
+                                            <label for="input-description">{{ 'label.description'|trans }}</label>
+                                            {% if errors['u_description']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['u_description'] }}</span>
+                                            {% endif %}
+                                            <textarea id="input-description" class="form-control" rows="3" name="u_description" {{ read_only }}>{{ form_data['u_description']|default() }}</textarea>
+                                        </div>
+                                    </div>
+                                    {% if page_method == 'edit' %}
+                                        <div id="tab-address" class="tab-pane fade">
+                                            <div class="m-top-15"></div>
+                                            <div id="content-address" class="row">
+                                                {{ render(controller('App\\Plugins\\AdminPlugin::userAddressList', {
+                                                    'userId': user_id,
+                                                    'type': 'edit'
+                                                })) }}
+                                            </div>
+                                        </div>
+                                        {% if form_data['u_role'] == 'ROLE_USER_GOVERNMENT' %}
+                                            <div id="tab-government" class="tab-pane fade">
+                                                <div class="m-top-15"></div>
+                                                <div class="form-group">
+                                                    <label for="input-nip">{{ 'label.nip'|trans }}</label>
+                                                    <input id="input-nip" class="form-control" value="{{ form_data['u_nip'] }}" name="u_nip">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="input-pp-name">{{ 'label.pp_name'|trans }}</label>
+                                                    <input id="input-pp-name" class="form-control" value="{{ form_data['u_ppName'] }}" name="u_ppName">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="input-ppk-name">{{ 'label.ppk_name'|trans }}</label>
+                                                    <input id="input-ppk-name" class="form-control" value="{{ form_data['u_ppkName'] }}" name="u_ppkName">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="input-lkpp-lpse-id">{{ 'label.lpse_id'|trans }}</label>
+                                                    <input id="input-lkpp-lpse-id" class="form-control" name="u_lkppLpseId" value="{{ form_data['u_lkppLpseId'] }}">
+                                                </div>
+                                                <div class="form-group {% if errors['u_lkppKLDI']|default() %}has-error{% endif %}">
+                                                    {% set disabled = user_id > 0 ? 'disabled' : '' %}
+                                                    <label for="input-lkpp_kldi">K/L/PD</label>
+                                                    {% if errors['u_lkppKLDI']|default() %}
+                                                        <span class="help-block custom-help-block">{{ errors['u_lkppKLDI'] }}</span>
+                                                    {% endif %}
+                                                    <select class="form-control" name="u_lkppKLDI">
+                                                        <option value="">Pilih K/L/PD</option>
+                                                        {% for item in form_data['data_klpd'] %}
+                                                            <option value="{{item.getKldiName}}" {{form_data['u_lkppKLDI']|default() == item.getKldiName ? 'selected' : ''}}>{{item.getKldiName}}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                                <div class="form-group {% if errors['u_satker']|default() %}has-error{% endif %}">
+                                                    {% set disabled = user_id > 0 ? 'disabled' : '' %}
+                                                    <label for="input-satker">{{ 'label.work_unit'|trans }}</label>
+                                                    {% if errors['u_satker']|default() %}
+                                                        <span class="help-block custom-help-block">{{ errors['u_satker'] }}</span>
+                                                    {% endif %}
+                                                    <select class="form-control" name="u_satker">
+                                                        <option value="">Pilih {{ 'label.work_unit'|trans }}</option>
+                                                        {% for item in form_data['data_satker'] %}
+                                                            <option value="{{item.getId}}" {{form_data['u_satkerId']|default() == item.getId ? 'selected' : ''}}>{{item.getSatkerName}}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+
+                                        <div id="tab-ppk" class="tab-pane fade">
+                                            <div class="m-top-15"></div>
+                                            <div class="form-group">
+                                                <label for="input-ppk">{{ 'label.data_ppk'|trans }}</label>
+                                                <select id="input-ppk" class="form-control" name="id_ppk">
+                                                    <option value="0">Select {{ 'label.data_ppk'|trans }}</option>
+                                                    {% for value in form_data['u_userPpkTreasurer'] %}
+                                                        {% if value.getType == 'ppk' %}
+                                                            <option value="{{ value.getId }}" data-name="{{ value.getName }}" data-nip="{{ value.getNip }}" data-email="{{ value.getEmail }}" data-telp="{{ value.getTelp }}" data-type="{{ value.getTypeAccount }}">{{ value.getName }}</option>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="input-ppk_name">{{ 'label.ppk_name'|trans }}</label>
+                                                <input id="input-ppk_name" class="form-control" value="" name="ppk_name">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="input-ppk_nip">{{ 'label.ppk_nip'|trans }}</label>
+                                                <input id="input-ppk_nip" class="form-control" value="" name="ppk_nip">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="input-ppk_telp">{{ 'label.ppk_telp'|trans }}</label>
+                                                <input id="input-ppk_telp" class="form-control" value="" name="ppk_telp">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="input-ppk_email">{{ 'label.ppk_email'|trans }}</label>
+                                                <input id="input-ppk_email" class="form-control" value="" name="ppk_email">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="input-ppk_type_account">{{ 'label.type'|trans }}</label>
+                                                <select id="input-ppk_type_account" class="form-control" name="ppk_type_account">
+                                                    {% for option in get_parameter('ppk_type_options') %}
+                                                        {% set label_option = 'label.' ~ option %}
+                                                        <option value="{{ option }}">{{ label_option|trans }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div id="tab-treasurer" class="tab-pane fade">
+                                            <div class="m-top-15"></div>
+                                            <div class="form-group">
+                                                <label for="input-treasurer">{{ 'label.data_treasurer'|trans }}</label>
+                                                <select id="input-treasurer" class="form-control" name="id_treasurer">
+                                                    <option value="0">Select {{ 'label.data_treasurer'|trans }}</option>
+                                                    {% for value in form_data['u_userPpkTreasurer'] %}
+                                                        {% if value.getType == 'treasurer' %}
+                                                            <option value="{{ value.getId }}" data-name="{{ value.getName }}" data-nip="{{ value.getNip }}" data-email="{{ value.getEmail }}" data-telp="{{ value.getTelp }}" data-type="{{ value.getTypeAccount }}">{{ value.getName }}</option>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="input-treasurer_name">{{ 'label.treasurer_name'|trans }}</label>
+                                                <input id="input-treasurer_name" class="form-control" value="" name="treasurer_name">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="input-treasurer_nip">{{ 'label.treasurer_nip'|trans }}</label>
+                                                <input id="input-treasurer_nip" class="form-control" value="" name="treasurer_nip">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="input-treasurer_telp">{{ 'label.treasurer_telp'|trans }}</label>
+                                                <input id="input-treasurer_telp" class="form-control" value="" name="treasurer_telp">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="input-treasurer_email">{{ 'label.treasurer_email'|trans }}</label>
+                                                <input id="input-treasurer_email" class="form-control" value="" name="treasurer_email">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="input-treasurer_type_account">{{ 'label.type'|trans }}</label>
+                                                <select id="input-treasurer_type_account" class="form-control" name="treasurer_type_account">
+                                                    {% for option in get_parameter('treasurer_type_options') %}
+                                                        {% set label_option = 'label.' ~ option %}
+                                                        <option value="{{ option }}">{{ label_option|trans }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div id="tab-pic" class="tab-pane fade">
+                                            <div class="m-top-15"></div>
+                                            <div class="form-group">
+                                                <label for="input-pic">{{ 'label.data_pic'|trans }}</label>
+                                                <select id="input-pic" class="form-control" name="id_pic">
+                                                    <option>{{ 'label.pic_data_choose'|trans }}</option>
+                                                    {% for value in form_data['u_userPic'] %}
+                                                        <option value="{{ value.getId }}" data-name="{{ value.getName }}" data-telp="{{ value.getNotelp }}" data-email="{{ value.getEmail }}" data-unit="{{ value.getUnit }}" data-address="{{ value.getAddress }}">{{ value.getName }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="input-pic_name">{{ 'label.pic_name'|trans }}</label>
+                                                <input id="input-pic_name" class="form-control" value="" name="pic_name">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="input-pic_telp">{{ 'label.pic_telp'|trans }}</label>
+                                                <input id="input-pic-telp" class="form-control" value="" name="pic_telp">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="input-pic_email">{{ 'label.pic_email'|trans }}</label>
+                                                <input id="input-pic_email" class="form-control" value="" name="pic_email">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="input-pic_unit">{{ 'label.pic_unit'|trans }}</label>
+                                                <input id="input-pic_unit" class="form-control" value="" name="pic_unit">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="input-pic_address">{{ 'label.pic_address'|trans }}</label>
+                                                <input id="input-pic_address" class="form-control" value="" name="pic_address">
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <input id="input-id" type="hidden" name="u_id" value="{{ user_id }}">
+                                    <input id="input-dir-slug" type="hidden" name="u_dirSlug" value="{{ user_dir_slug }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box-footer">
+                        <div id="button-tab-data" class="button-tabs-user" style="display: inline;">
+                            <button type="button" class="btn btn-primary btn-tab-step" data-current="data" data-step="profile">
+                                {{ 'button.next'|trans }}
+                            </button>
+                        </div>
+                        <div id="button-tab-profile" class="button-tabs-user hidden" style="display: inline;">
+                            <button type="button" class="btn btn-primary btn-tab-step" data-current="profile" data-step="data">
+                                {{ 'button.previous'|trans }}
+                            </button>
+                            {% if page_method == 'edit' %}
+                                <button type="button" class="btn btn-primary btn-tab-step" data-current="profile" data-step="address">
+                                    {{ 'button.next'|trans }}
+                                </button>
+                            {% else %}
+                                <button type="submit" class="btn btn-primary" name="btn_action" value="save">
+                                    {{ 'button.save'|trans }}
+                                </button>
+                                <button type="submit" class="btn btn-primary" name="btn_action" value="save_exit">
+                                    {{ 'button.save_exit'|trans }}
+                                </button>
+                            {% endif %}
+                        </div>
+                        {% if page_method == 'edit' %}
+                            {% if form_data['u_role'] == 'ROLE_USER_GOVERNMENT' %}
+                                <div id="button-tab-address" class="button-tabs-user hidden" style="display: inline;">
+                                    <button type="button" class="btn btn-primary btn-tab-step" data-current="address" data-step="profile">
+                                        {{ 'button.previous'|trans }}
+                                    </button>
+                                    <button type="button" class="btn btn-primary btn-tab-step" data-current="address" data-step="government">
+                                        {{ 'button.next'|trans }}
+                                    </button>
+                                    <button id="add-address" type="button" class="btn btn-success">
+                                        {{ 'button.add_label'|trans({'%label%': label_address}) }}
+                                    </button>
+                                </div>
+                                <div id="button-tab-government" class="button-tabs-user hidden" style="display: inline;">
+
+                                    {% if form_data['u_subRole'] != 'PPK' and form_data['u_subRole'] != 'TREASURER'  %}
+                                        <button type="button" class="btn btn-primary btn-tab-step" data-current="government" data-step="address">
+                                            {{ 'button.previous'|trans }}
+                                        </button>
+                                        <button type="button" class="btn btn-primary btn-tab-step" data-current="government" data-step="ppk">
+                                            {{ 'button.next'|trans }}
+                                        </button>
+                                    {% else %}
+                                        <button type="button" class="btn btn-primary btn-tab-step" data-current="government" data-step="address">
+                                            {{ 'button.previous'|trans }}
+                                        </button>
+                                        <button type="submit" class="btn btn-primary" name="btn_action" value="save">
+                                            {{ 'button.save'|trans }}
+                                        </button>
+                                        <button type="submit" class="btn btn-primary" name="btn_action" value="save_exit">
+                                            {{ 'button.save_exit'|trans }}
+                                        </button>
+                                    {% endif %}
+                                </div>
+                                <div id="button-tab-ppk" class="button-tabs-user hidden" style="display: inline;">
+                                    <button type="button" class="btn btn-primary btn-tab-step" data-current="ppk" data-step="government">
+                                        {{ 'button.previous'|trans }}
+                                    </button>
+                                    <button type="button" class="btn btn-primary btn-tab-step" data-current="ppk" data-step="treasurer">
+                                        {{ 'button.next'|trans }}
+                                    </button>
+                                </div>
+                                <div id="button-tab-treasurer" class="button-tabs-user hidden" style="display: inline;">
+                                    <button type="button" class="btn btn-primary btn-tab-step" data-current="treasurer" data-step="ppk">
+                                        {{ 'button.previous'|trans }}
+                                    </button>
+                                    <button type="button" class="btn btn-primary btn-tab-step" data-current="treasurer" data-step="pic">
+                                        {{ 'button.next'|trans }}
+                                    </button>
+                                </div>
+                                <div id="button-tab-pic" class="button-tabs-user hidden" style="display: inline;">
+                                    <button type="button" class="btn btn-primary btn-tab-step" data-current="pic" data-step="treasurer">
+                                        {{ 'button.previous'|trans }}
+                                    </button>
+                                    <button type="submit" class="btn btn-primary" name="btn_action" value="save">
+                                        {{ 'button.save'|trans }}
+                                    </button>
+                                    <button type="submit" class="btn btn-primary" name="btn_action" value="save_exit">
+                                        {{ 'button.save_exit'|trans }}
+                                    </button>
+                                </div>
+                            {% else %}
+                                <div id="button-tab-address" class="button-tabs-user hidden" style="display: inline;">
+                                    <button type="button" class="btn btn-primary btn-tab-step" data-current="address" data-step="profile">
+                                        {{ 'button.previous'|trans }}
+                                    </button>
+                                    <button type="submit" class="btn btn-primary" name="btn_action" value="save">
+                                        {{ 'button.save'|trans }}
+                                    </button>
+                                    <button type="submit" class="btn btn-primary" name="btn_action" value="save_exit">
+                                        {{ 'button.save_exit'|trans }}
+                                    </button>
+                                    <button id="add-address" type="button" class="btn btn-success">
+                                        {{ 'button.add_label'|trans({'%label%': label_address}) }}
+                                    </button>
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                        <div style="display: inline;">
+                            <a href="{{ path(index_route) }}" class="btn btn-default">{{ 'button.cancel'|trans }}</a>
+                            {% if user_activation == 'yes' %}
+                                <button type="button" class="btn btn-success" id="activation-act" data-id="{{ user_id }}">
+                                    {{ 'button.activate_account'|trans }}
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {% if page_method == 'edit' %}
+        <script>
+            CITY_LIST = {{ city_data|json_encode|raw }};
+        </script>
+
+        {% include '@__main__/admin/user/address/form.html.twig' %}
+    {% endif %}
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        {#const iconLoc = L.icon({iconUrl: "{{ asset('dist/img/marker-icon.png') }}"});#}
+
+        {#var mymap = L.map('map').setView([-8.6725072, 115.1542332], 10);#}
+        {#var popup = L.popup();#}
+        {#var marker;#}
+
+        {#L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {#}
+        {#    attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',#}
+        {#    maxZoom: 18,#}
+        {#    id: 'mapbox/streets-v11',#}
+        {#    tileSize: 512,#}
+        {#    zoomOffset: -1,#}
+        {#    accessToken: LEAFLET_ACCESS_TOKEN#}
+        {#}).addTo(mymap);#}
+
+        console.log(1)
+
+    </script>
+{% endblock %}

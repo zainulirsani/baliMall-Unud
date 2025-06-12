@@ -1,0 +1,66 @@
+{% extends '@__main__/admin/base/layouts/default.html.twig' %}
+
+{% set index_route = 'admin_' ~ page_section ~ '_index' %}
+{% set save_route = 'admin_' ~ page_section ~ '_savedata' %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">{{ 'menu.master_tax'|trans }}</h3>
+                </div>
+                <form action="{{path(save_route)}}" method="POST">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token(token) }}">
+                    <input type="hidden" name="_csrf_token_id" value="{{ token }}">
+                    <div class="box-body">
+                        <div class="panel-body">
+                            <div class="nav-tabs-custom">
+                                <ul class="nav nav-tabs order-tabs">
+                                    <li class="active order-tab-data">
+                                        <a href="#tab-data" data-toggle="tab" data-tab="data">{{ 'label.data'|trans }}</a>
+                                    </li>
+                                </ul>
+                                <div class="tab-content tab-order-content">
+                                    <div id="tab-data" class="tab-pane fade in active">
+                                        <div class="m-top-15"></div>
+                                        <div class="col-lg-12">
+                                            <div class="form-group">
+                                                <label for="select-umkm-category">{{ 'label.umkm_category'|trans }}</label>
+                                                {% set option_umkm = get_parameter('umkm_categories') %}
+                                                <select class="form-control" id="select-umkm-category" name="umkm">
+                                                    <option value="">Pilih UMKM Category</option>
+                                                    {% for key, option in option_umkm %}
+                                                        {% set option_display = key|replace({'_':' '})|title %}
+                                                        <option value="{{key}}">{{option_display}}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="form-group">
+                                                <label for="input-ppn">{{ 'label.ppn'|trans }}</label>
+                                                <input id="input-ppn" class="form-control" value="" name="ppn" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="form-group">
+                                                <label for="input-pph">{{ 'label.pph'|trans }}</label>
+                                                <input id="input-pph" class="form-control" value="" name="pph" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box-footer clearfix">
+                        <button type="submit" class="btn btn-primary">{{ 'button.save'|trans }}</button>
+                        <a href="{{ path(index_route) }}" class="btn btn-default">{{ 'button.cancel'|trans }}</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

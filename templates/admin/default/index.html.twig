@@ -1,0 +1,70 @@
+{% extends '@__main__/admin/base/layouts/default.html.twig' %}
+
+{% set page_create = 'admin_' ~ page_section ~ '_create' %}
+{% set allow_create = true %}
+{% set allow_update = true %}
+{% set allow_import = false %}
+{% set allow_export = false %}
+{% set qrcode_product = page_section == 'product' ? true : false %}
+
+{% if data_package[page_section] is defined %}
+    {% set allow_create = data_package[page_section]['create'] %}
+    {% set allow_update = data_package[page_section]['update'] %}
+    {% set allow_import = data_package[page_section]['import'] %}
+    {% set allow_export = data_package[page_section]['export'] %}
+{% endif %}
+
+{% set page_action = allow_update == true ? path('admin_' ~ page_section ~ '_action') : '' %}
+{% set import_action = allow_import == true ? path('admin_' ~ page_section ~ '_import') : '' %}
+{% set export_action = allow_export == true ? path('admin_' ~ page_section ~ '_export') : '' %}
+{% set default_script_path = '@__main__/admin/default/fragments/script.html.twig' %}
+{% set custom_script_path = '@__main__/admin/' ~ page_section ~ '/fragments/script.html.twig' %}
+
+{% block content %}
+    {% include '@__main__/admin/default/fragments/filter.html.twig' %}
+
+    <div class="row">
+        <div class="col-md-12">
+            {% if allow_create == true %}
+                <h4 class="box-title">{{ 'title.table'|trans({'%name%': page_title|trans}) }}</h4>
+            {% endif %}
+            <div class="box box-primary">
+                <form accept-charset="UTF-8" method="post" action="{{ page_action }}">
+                    {{ csrf_field(token_id) }}
+                    <input type="hidden" name="role-param" value="{{ app.request.query.get('role') }}">
+                    <div class="box-header with-border">
+                        {% if allow_create == true %}
+                            <span class="pull-left">
+                                <a href="{{ path(page_create) }}" class="btn btn-primary">
+                                    <i class="fa fa-plus"></i> {{ 'button.add_item'|trans }}
+                                </a>
+                            </span>
+                        {% else %}
+                            <h3 class="box-title">{{ 'title.table'|trans({'%name%': page_title|trans}) }}</h3>
+                        {% endif %}
+                    </div>
+                    <div class="box-body">
+                        {% include '@__main__/admin/default/fragments/table.html.twig' %}
+                    </div>
+                    <div class="box-footer clearfix">
+                        {% include '@__main__/admin/default/fragments/button.html.twig' %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {% if allow_export == true %}
+        <form id="form-export-table" action="{{ export_action }}" method="get" accept-charset="UTF-8">
+            {% for key, filter in data_table.getFilters %}
+                <input id="export-{{ key }}" type="hidden" name="{{ key }}">
+            {% endfor %}
+        </form>
+    {% endif %}
+
+    {% include '@__main__/admin/' ~ page_section ~ '/fragments/after_content.html.twig' ignore missing %}
+{% endblock %}
+
+{% block javascripts %}
+    {% include [custom_script_path, default_script_path] %}
+{% endblock %}

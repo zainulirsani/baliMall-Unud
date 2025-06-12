@@ -1,0 +1,556 @@
+{% extends '@__main__/admin/base/layouts/default.html.twig' %}
+
+{% set page_method = app.request.get('_controller') %}
+{% set index_route = 'admin_' ~ page_section ~ '_index' %}
+{% set save_route = 'admin_' ~ page_section ~ '_save' %}
+{% set page_action = path(save_route) %}
+{% set page_header = page_title|trans %}
+{% set product_id = form_data['p_id']|default(0) %}
+{% set product_dir_slug = form_data['p_dirSlug']|default() %}
+{% set store_id = 0 %}
+{% set store_name = null %}
+{% set edit_page = false %}
+{% set productType = (form_data['p_isNationalProduct']|default()) == '1' %}
+
+{% if page_method[1] is defined and page_method[1] == 'edit' %}
+    {% set edit_page = true %}
+    {% set trans_parameter = {'%name%': form_data['p_name']} %}
+    {% set update_route = 'admin_' ~ page_section ~ '_update' %}
+    {% set page_action = path(update_route, {id: product_id}) %}
+    {% set page_header = page_title|trans(trans_parameter) %}
+    {% set store_id = form_data['s_id']|default(0) %}
+
+    {% if store_id > 0 %}
+        {% set store_name = form_data['s_name']|default('N/A') %}
+    {% endif %}
+
+    {% set stores = form_data['stores']|default([]) %}
+
+    {% set productType = form_data['p_productViewType']|default() == 'produk_nasional' %}
+{% endif %}
+
+{% if form_data['p_status'] is not defined %}
+    {% set isUpdate = false %}
+{% else %}
+    {% set isUpdate = form_data['p_status'] == 'product_updated' %}
+{% endif %}
+{% block stylesheets %}
+    <style>
+        .prev-value {
+            border: 1px solid red;
+            margin-bottom: 10px;
+        }
+
+        .editor {
+            position: fixed;
+            width: 50%;
+            height: 50%;
+            margin: auto;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 9999;
+            background-color: #000;
+            visibility: hidden;
+        }
+
+        .wrapper-editor {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+            height: 100vmax !important;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 9998;
+        }
+
+        .upBtn {
+            position: absolute;
+            bottom: 5px;
+            z-index: 9999;
+            min-width: 20px;
+            min-height: 10px;
+        }
+
+        .left {
+            left: 10px;
+        }
+
+        .right {
+            right: 10px;
+        }
+
+        @media screen and (max-width: 450px) {
+            .tablinks {
+                font-size: 2vw !important;
+            }
+        }
+
+        @media screen and (max-width: 320px) {
+            .tablinks > i {
+                font-size: 2vw;
+            }
+
+            .tablinks {
+                display: block !important;
+                left: 0 !important;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .upBtn {
+                width: 15vw;
+                font-size: 2vw;
+                margin-bottom: 0;
+                text-align: center;
+            }
+
+            .left {
+                left: 1vw;
+            }
+
+            .right {
+                right: 1vw;
+
+            }
+        }
+
+        @media screen and (max-width: 400px) {
+            .right {
+                right: -5vw;
+            }
+        }
+
+        .sub-menu {
+            width: 100%;
+            left: -7vw;
+            padding-right: 1vw;
+        }
+
+        .sub-menu button {
+            left: 1vw;
+        }
+
+        .preview-file {
+            padding: 6px 12px;
+            border: 1px solid #ccc;
+            border-top: none;
+            height: 500px;
+            overflow-y: scroll;
+        }
+
+        td {
+            padding: 10px;
+        }
+
+        .error {
+            padding-top: 6px;
+        }
+
+        .hide {
+            display: none;
+        }
+
+        .input-bg-white > input {
+            background-color: #fff !important;
+            border: 1px solid #ddd !important;
+        }
+
+        @media screen and (max-width: 463px) {
+            .textTerm {
+                font-size: 10px;
+            }
+        }
+
+        #addressMap {
+            height: 350px;
+            z-index: 99;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="box box-primary">
+                <form id="product-form" enctype="multipart/form-data" accept-charset="UTF-8" method="post" action="{{ page_action }}">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">{{ page_header }}</h3>
+                    </div>
+                    <div class="box-body">
+                        {{ csrf_field(token_id) }}
+                        <div class="panel-body">
+                            <div class="nav-tabs-custom">
+                                <ul class="nav nav-tabs product-tabs">
+                                    <li class="active product-tab-data">
+                                        <a href="#tab-data" data-toggle="tab" data-tab="data">{{ 'label.data'|trans }}</a>
+                                    </li>
+                                    <li class="product-tab-images">
+                                        <a href="#tab-images" data-toggle="tab" data-tab="images">{{ 'label.images'|trans }}</a>
+                                    </li>
+                                </ul>
+                                <div class="tab-content tab-product-content">
+                                    <div id="tab-data" class="tab-pane fade in active">
+                                        <div class="m-top-15"></div>
+
+                                        {% set disable = edit_page ? 'disabled' : '' %}
+                                        {% set hide = edit_page and not productType ? 'hide' : '' %}
+
+                                        <div class="form-group {{ hide }}">
+                                            <label for="input-national-product">{{ 'label.is_national_product'|trans }}</label>
+
+                                            {% set checked = productType ? 'checked' : '' %}
+
+                                            <div class="checkbox">
+                                                <label><input id="input-national-product" data-is-on-edit="{{ edit_page }}" type="checkbox" name="p_isNationalProduct" value="1" {{ checked }} {{ disable }}></label>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group {% if errors['p_nationalProductMerchant']|default() %}has-error{% endif %} national-product-wrapper">
+                                            <label for="national_product_merchant">{{ 'label.national_product_merchant'|trans }}</label>
+                                            <select id="national_product_merchant" name="p_nationalProductMerchant[]" multiple="multiple">
+                                                {% for choice in stores %}
+                                                    {% set selected =  '' %}
+                                                    {% if choice['s_id'] in form_data['p_nationalProductMerchant']|default([]) %}
+                                                        {% set selected = 'selected' %}
+                                                    {% endif %}
+                                                    {% if choice['s_status'] == "ACTIVE" or choice['s_status'] == "UPDATE" %}
+                                                        <option value="{{ choice['s_id'] }}" {{ selected }}>{{ choice['s_name'] }}</option>
+                                                    {% endif %}
+                                                    
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group {% if errors['s_id']|default() %}has-error{% endif %} input-owned-by-wrapper">
+                                            <label for="input-owned-by">{{ 'label.store_name'|trans }}</label>
+                                            {% if errors['s_id']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['s_id'] }}</span>
+                                            {% endif %}
+                                            <select id="input-owned-by" class="form-control" name="s_id">
+                                                {#<option value="">{{ 'label.select_option'|trans }}</option>#}
+                                                {% if store_name is defined and store_name is not empty %}
+                                                    <option value="{{ store_id }}" selected>{{ store_name }}</option>
+                                                {% endif %}
+                                            </select>
+                                        </div>
+                                        <div class="form-group {% if errors['p_idProductTayang']|default() %}has-error{% endif %}">
+                                            <label for="input-id-product-tayang">{{ 'label.id_product_tayang'|trans }}</label>
+                                            {% if errors['p_idProductTayang']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['p_idProductTayang'] }}</span>
+                                            {% endif %}
+                                            <input id="input-id-product-tayang" class="form-control id-tayang-output" name="p_id_product_tayang" value="{{ form_data['p_idProductTayang']|default() }}">
+                                        </div>
+                                        <div class="form-group {% if errors['p_name']|default() %}has-error{% endif %}">
+                                            <label for="input-name">{{ 'label.name'|trans }}</label>
+                                            {% if isUpdate and form_data['p_previousChanges']['p_name'] is defined %}
+                                                <input class="form-control prev-value" value="- {{ form_data['p_previousChanges']['p_name'] }}" readonly>
+                                            {% endif %}
+                                            {% if errors['p_name']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['p_name'] }}</span>
+                                            {% endif %}
+                                            <input id="input-name" class="form-control slug-input" name="p_name" value="{{ form_data['p_name']|default() }}">
+                                        </div>
+                                        <div class="form-group {% if errors['p_slug']|default() %}has-error{% endif %}">
+                                            <label for="input-slug">{{ 'label.slug'|trans }}</label>
+                                            {% if errors['p_slug']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['p_slug'] }}</span>
+                                            {% endif %}
+                                            <input id="input-slug" class="form-control slug-output" name="p_slug" value="{{ form_data['p_slug']|default() }}">
+                                        </div>
+                                        <div class="form-group {% if errors['p_category']|default() %}has-error{% endif %}">
+                                            <label for="input-category">{{ 'label.category'|trans }}</label>
+                                            {% if isUpdate and form_data['p_previousChanges']['p_category'] is defined %}
+                                                {% set textCategory = '' %}
+                                                {% for category in product_category_data %}
+                                                    {% if category['id'] == form_data['p_previousChanges']['p_category'] %}
+                                                        {% set textCategory = category['text'] %}
+                                                    {% endif %}
+                                                {% endfor %}
+
+                                                <input class="form-control prev-value" value="- {{ textCategory }}" readonly>
+                                            {% endif %}
+                                            {% if errors['p_category']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['p_category'] }}</span>
+                                            {% endif %}
+                                            <select id="input-category" class="form-control" name="p_category">
+                                                <option value="">{{ 'label.select_option'|trans }}</option>
+                                                {% for category in product_category_data %}
+                                                    {#{% set selected = category['id'] in form_data['p_category']|default({}) ? 'selected' : '' %}#}
+                                                    {% set selected = category['id'] == form_data['p_category']|default() ? 'selected' : '' %}
+                                                    <option value="{{ category['id'] }}" {{ selected }}>{{ category['text'] }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="form-group {% if errors['p_isPdn']|default() %}has-error{% endif %}">
+                                            <label for="input-pdn">{{ 'label.pdn_or_non_product'|trans }}</label>
+                                            {% if isUpdate and form_data['p_previousChanges']['p_isPdn'] is defined %}
+
+                                                <input class="form-control prev-value" value="- {{ form_data['p_is_pdn'] == null ? 'label.pdn_product'|trans : 'label.' ~ form_data['p_is_pdn'] ~ '_product'|trans }}" readonly>
+                                            {% endif %}
+                                            {% if errors['p_isPdn']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['p_isPdn'] }}</span>
+                                            {% endif %}
+                                            <select id="input-pdn" class="form-control" name="p_isPdn">
+                                                {% for choice in get_parameter('pdn_options') %}
+                                                    {% set label = 'label.' ~ choice ~ '_product' %}
+                                                    {% set label2 = 'label.' ~ choice ~ '_option' %}
+                                                    {% set selected = form_data['p_is_pdn']|default() == choice ? 'selected' : '' %}
+                                                    <option value="{{ choice }}" {{ selected }}>{{ label|trans ~ ' ' ~ label2|trans }} </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="form-group {% if errors['p_keywords']|default() %}has-error{% endif %}">
+                                            <label for="input-keywords">{{ 'label.keywords'|trans }}</label>
+                                            {% if isUpdate and form_data['p_previousChanges']['p_keywords'] is defined %}
+                                                <input class="form-control prev-value" value="- {{ form_data['p_previousChanges']['p_keywords'] }}" readonly>
+                                            {% endif %}
+                                            {% if errors['p_keywords']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['p_keywords'] }}</span>
+                                            {% endif %}
+                                            <input id="input-keywords" class="form-control" name="p_keywords" data-role="tagsinput" value="{{ form_data['p_keywords']|default() }}">
+                                        </div>
+                                        <div class="form-group {% if errors['p_description']|default() %}has-error{% endif %}">
+                                            <label for="input-description">{{ 'label.description'|trans }}</label>
+                                            {% if isUpdate and form_data['p_previousChanges']['p_description'] is defined %}
+                                                <textarea class="form-control prev-value" rows="3" readonly>- {{ form_data['p_previousChanges']['p_description']|striptags|default() }}</textarea>
+                                            {% endif %}
+                                            {% if errors['p_description']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['p_description'] }}</span>
+                                            {% endif %}
+                                            <textarea id="input-description" class="form-control" rows="3" name="p_description">{{ form_data['p_description']|default() }}</textarea>
+                                        </div>
+                                        <div class="form-group {% if errors['p_note']|default() %}has-error{% endif %}">
+                                            <label for="input-note">{{ 'label.publish_note'|trans }}</label>
+                                            {% if isUpdate and form_data['p_previousChanges']['p_note'] is defined %}
+                                                <input class="form-control prev-value" value="- {{ form_data['p_previousChanges']['p_note'] }}" readonly>
+                                            {% endif %}
+                                            {% if errors['p_note']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['p_note'] }}</span>
+                                            {% endif %}
+                                            <textarea id="input-note" class="form-control" rows="3" name="p_note">{{ form_data['p_note']|default() }}</textarea>
+                                        </div>
+                                        <div class="form-group {% if errors['p_adminNote']|default() %}has-error{% endif %}">
+                                            <label for="input-admin-note">{{ 'label.admin_note'|trans }}</label>
+                                            {% if errors['p_adminNote']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['p_adminNote'] }}</span>
+                                            {% endif %}
+                                            <textarea id="input-admin-note" class="form-control" rows="3" name="p_adminNote">{{ form_data['p_adminNote']|default() }}</textarea>
+                                        </div>
+                                        <div class="form-group {% if errors['p_quantity']|default() %}has-error{% endif %}">
+                                            <label for="input-quantity">{{ 'label.stock'|trans }}</label>
+                                            {% if isUpdate and form_data['p_previousChanges']['p_quantity'] is defined %}
+                                                <input class="form-control prev-value" value="- {{ form_data['p_previousChanges']['p_quantity'] }}" readonly>
+                                            {% endif %}
+                                            {% if errors['p_quantity']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['p_quantity'] }}</span>
+                                            {% endif %}
+                                            <input id="input-quantity" class="form-control" name="p_quantity" value="{{ form_data['p_quantity']|default() }}">
+                                        </div>
+                                        <div class="form-group {% if errors['p_price']|default() %}has-error{% endif %}">
+                                            <label for="input-price">{{ 'label.selling_price_without_tax'|trans }}</label>
+                                            {% if isUpdate and form_data['p_previousChanges']['p_price'] is defined %}
+                                                <input class="form-control prev-value" value="- {{ form_data['p_previousChanges']['p_price']|default()  }}" readonly>
+                                            {% endif %}
+                                            {% if errors['p_price']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['p_price'] }}</span>
+                                            {% endif %}
+                                            <input id="input-price" class="form-control input-price" name="p_price" value="{{ form_data['p_price']|default(0)|to_int|number_format}}">
+                                        </div>
+                                        <div class="form-group {% if errors['p_basePrice']|default() %}has-error{% endif %}">
+                                            <label for="input-base-price">{{ 'label.base_price'|trans }}</label>
+                                            {% if isUpdate and form_data['p_previousChanges']['p_basePrice'] is defined %}
+                                                <input class="form-control prev-value" value="- {{ form_data['p_previousChanges']['p_basePrice']|default() }}" readonly>
+                                            {% endif %}
+                                            {% if errors['p_basePrice']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['p_basePrice'] }}</span>
+                                            {% endif %}
+                                            <input id="input-base-price" class="form-control input-price" name="p_basePrice" value="{{ form_data['p_basePrice']|default(0)|to_float|number_format }}">
+                                        </div>
+                                        <div class="form-group {% if errors['p_weight']|default() %}has-error{% endif %}">
+                                            <label for="input-weight">{{ 'label.weight'|trans }}</label>
+                                            {% if isUpdate and form_data['p_previousChanges']['p_weight'] is defined %}
+                                                <input class="form-control prev-value" value="- {{ form_data['p_previousChanges']['p_weight']|default() }}" readonly>
+                                            {% endif %}
+                                            {% if errors['p_weight']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['p_weight'] }}</span>
+                                            {% endif %}
+                                            <input id="input-weight" class="form-control" name="p_weight" value="{{ form_data['p_weight']|default() }}">
+                                        </div>
+                                        <div class="form-group {% if errors['p_status']|default() %}has-error{% endif %}">
+                                            <label for="input-status">{{ 'label.status'|trans }}</label>
+                                            {% if errors['p_status']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['p_status'] }}</span>
+                                            {% endif %}
+                                            <select id="input-status" class="form-control" name="p_status">
+                                                <option value="">{{ 'label.select_option'|trans }}</option>
+                                                {% for choice in get_parameter('publish_draft') %}
+                                                    {% set label = 'label.' ~ choice %}
+                                                    {% set selected = form_data['p_status']|default() == choice ? 'selected' : '' %}
+                                                    <option value="{{ choice }}" {{ selected }}>{{ label|trans }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="form-group {% if errors['p_unit']|default() %}has-error{% endif %}">
+                                            <label for="input-unit">{{ 'label.unit'|trans }}</label>
+                                            {% if isUpdate and form_data['p_previousChanges']['p_unit'] is defined %}
+                                                <input class="form-control prev-value" value="- {{ form_data['p_previousChanges']['p_unit'] }}" readonly>
+                                            {% endif %}
+                                            {% if errors['p_unit']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['p_unit'] }}</span>
+                                            {% endif %}
+                                            <select id="input-unit" class="form-control" name="p_unit">
+                                                <option value="">{{ 'label.select_option'|trans }}</option>
+                                                {% for key, choice in product_unit_types %}
+                                                    {% set selected = form_data['p_unit']|default() == key ? 'selected' : '' %}
+                                                    <option value="{{ key }}" {{ selected }}>{{ choice|trans }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="form-group {% if errors['p_featured']|default() %}has-error{% endif %}">
+                                            <label for="input-featured">{{ 'label.featured'|trans }}</label>
+                                            {% if errors['p_featured']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['p_featured'] }}</span>
+                                            {% endif %}
+                                            <select id="input-featured" class="form-control" name="p_featured">
+                                                {% for choice in get_parameter('yes_no') %}
+                                                    {% set label = 'label.' ~ choice %}
+                                                    {% set selected = form_data['p_featured']|default() == choice ? 'selected' : '' %}
+                                                    <option value="{{ choice }}" {{ selected }}>{{ label|trans }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+
+                                    </div>
+                                    <div id="tab-images" class="tab-pane fade">
+                                        <div class="m-top-15"></div>
+                                        {% if isUpdate and form_data['p_previousChanges']['p_images'] is defined %}
+                                            <div id="tab-images-content" class="custom-gallery prev-value">
+                                                {% for image in form_data['p_previousChanges']['p_images'] %}
+                                                    <figure>
+                                                        <a href="{{ path('sftp_show_file', {'path': image}) }}" class="cbox-gallery">
+                                                            <img class="img-responsive" src="{{ path('sftp_show_file', {'path': image}) }}" alt="">
+                                                        </a>
+                                                    </figure>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                        <div id="tab-images-content" class="custom-gallery">
+                                            {% if form_data['p_images'] is defined %}
+                                                {% for image in form_data['p_images'] %}
+                                                    <figure>
+                                                        <a href="{{ path('sftp_show_file', {'path': image['filePath']}) }}" class="cbox-gallery">
+                                                            <img class="img-responsive" src="{{ path('sftp_show_file', {'path': image['filePath']}) }}" alt="">
+                                                        </a>
+                                                        <a class="pull-right btn-box-tool grid-item-delete" data-id="{{ image['id'] }}" data-path="{{ image['filePath'] }}">
+                                                            <i class="fa fa-times"></i>
+                                                        </a>
+                                                        {% if page_method[1] is defined and page_method[1] != 'edit' %}
+                                                            <input type="hidden" name="p_images[filePath][]" value="{{ image['filePath'] }}">
+                                                            <input type="hidden" name="p_images[fileName][]" value="{{ image['fileName'] }}">
+                                                            <input type="hidden" name="p_images[fileMimeType][]" value="{{ image['fileMimeType'] }}">
+                                                        {% endif %}
+                                                    </figure>
+                                                {% endfor %}
+                                            {% endif %}
+                                            {% if form_data['p_imagesTmp'] is defined %}
+                                                {% for key, image in form_data['p_imagesTmp']['filePath'] %}
+                                                    {% set temp_image = form_data['p_imagesTmp']['filePath'][key]|trim('/', side='left') %}
+                                                    <figure>
+                                                        <a href="{{ path('sftp_show_file', {'path': temp_image}) }}" class="cbox-gallery">
+                                                            <img class="img-responsive" src="{{ path('sftp_show_file', {'path': temp_image}) }}" alt="">
+                                                        </a>
+                                                        <a class="pull-right btn-box-tool grid-item-delete" data-id="0" data-path="{{ temp_image }}">
+                                                            <i class="fa fa-times"></i>
+                                                        </a>
+                                                        <input type="hidden" name="p_imagesTmp[filePath][]" value="{{ temp_image }}">
+                                                        <input type="hidden" name="p_imagesTmp[fileName][]" value="{{ form_data['p_imagesTmp']['fileName'][key] }}">
+                                                        <input type="hidden" name="p_imagesTmp[fileMimeType][]" value="{{ form_data['p_imagesTmp']['fileMimeType'][key] }}">
+                                                    </figure>
+                                                {% endfor %}
+                                            {% endif %}
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="m-top-15"></div>
+                                            <label>{{ 'label.images'|trans }}</label>
+                                            <input id="product-images-input" type="file" class="form-control" name="file_image">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <input id="input-id" type="hidden" name="p_id" value="{{ product_id }}">
+                                    <input id="input-dir-slug" type="hidden" name="p_dirSlug" value="{{ product_dir_slug }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box-footer">
+                        <div id="button-tab-data" class="button-tabs-product" style="display: inline;">
+                            <button type="button" class="btn btn-primary btn-tab-step" data-current="data" data-step="images">
+                                {{ 'button.next'|trans }}
+                            </button>
+                        </div>
+                        <div id="button-tab-images" class="button-tabs-product hidden" style="display: inline;">
+                            <button type="button" class="btn btn-primary btn-tab-step" data-current="images" data-step="data">
+                                {{ 'button.previous'|trans }}
+                            </button>
+                            <button type="submit" class="btn btn-primary" name="btn_action" value="save">
+                                {{ 'button.save'|trans }}
+                            </button>
+                            <button type="submit" class="btn btn-primary" name="btn_action" value="save_exit">
+                                {{ 'button.save_exit'|trans }}
+                            </button>
+                        </div>
+                        <div style="display: inline;">
+                            <a href="{{ path(index_route) }}" class="btn btn-default">{{ 'button.cancel'|trans }}</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        $(document).ready(function(){
+            $(document).on('keyup', function(e) {
+                e.preventDefault();
+               // var value     = e.target.value;
+               // var is_number = value.replace(/\D/gi, '');
+
+               // e.target.value = is_number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            });
+
+            var singleStore = $('.input-owned-by-wrapper');
+            var multipleStore = $('.national-product-wrapper');
+            var inputNationalProduct = $('#input-national-product');
+
+            multipleStore.hide()
+
+            if (inputNationalProduct.is(':checked')) {
+                if (inputNationalProduct.data('is-on-edit') === 1) {
+                    singleStore.show();
+                    multipleStore.hide();
+                }else{
+                    singleStore.hide()
+                    multipleStore.show();
+                }
+            }
+
+            inputNationalProduct.on('change', function (){
+                if ($(this).is(':checked')) {
+                    singleStore.hide();
+                    multipleStore.show();
+                }else {
+                    singleStore.show();
+                    multipleStore.hide();
+                }
+            })
+
+        })
+    </script>
+    {% include '@__main__/admin/product/fragments/template.html.twig' %}
+{% endblock %}
+

@@ -1,0 +1,35 @@
+{% set user_photo_profile = app.user.photoProfile is not empty ? app.user.photoProfile : 'dist/img/no-image.png' %}
+
+<div class="user-pf">
+    <figure>
+        <img src="{{ asset(user_photo_profile) }}" alt="">
+    </figure>
+    <div class="user-info">
+        <h2>{{ app.user.firstName ~ ' ' ~ app.user.lastName }}</h2>
+        <div class="edit-profile">
+            <a href="javascript:void(0);" class="sBtn red"><i class="fas fa-edit"></i>
+                {{ 'label.edit_profile'|trans({}, 'messages', 'id') }}
+            </a>
+        </div>
+        <p>{{ app.user.description }}</p>
+        <div class="stats">
+            <span class="sgl">
+                <b>99+</b> <span>{{ 'label.product_sold'|trans({}, 'messages', 'id') }}</span>
+            </span>
+            <span class="sgl">
+                <b>99+</b> <i class="fas fa-star"></i>
+                <span class="desktop-only">{{ 'label.positive_response'|trans({}, 'messages', 'id') }}</span>
+            </span>
+            <span class="sgl">
+                <b>99+</b> <i class="far fa-thumbs-down"></i>
+                <span class="desktop-only">{{ 'label.negative_response'|trans({}, 'messages', 'id') }}</span>
+            </span>
+        </div>
+        <div class="btn-wrapper">
+            <a href="javascript:void(0);" class="sBtn green">
+                <span>+</span> {{ 'label.product_add'|trans({}, 'messages', 'id') }}
+            </a>
+        </div>
+        <div class="clear"></div>
+    </div>
+</div>

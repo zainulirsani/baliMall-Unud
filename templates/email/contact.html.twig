@@ -1,0 +1,17 @@
+{% extends '@__main__/public/base/layouts/email.html.twig' %}
+
+{% block body %}
+    <div class="text">
+        <h1>Hi, {{ name }}!</h1>
+        <h3>Anda mendapatkan pesan baru.</h3>
+        <p>
+            Silahkan cek selengkapnya di sini: <a href="{{ link }}" target="_blank">Pesan</a>
+        </p>
+        <hr>
+        <h3>Detail:</h3>
+        <ul>
+            <li>Nama: {{ user_name }}</li>
+            <li>Pesan: {{ user_message }}</li>
+        </ul>
+    </div>
+{% endblock %}

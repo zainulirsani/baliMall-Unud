@@ -1,0 +1,170 @@
+{% extends '@__main__/admin/base/layouts/default.html.twig' %}
+
+{% set update_route = 'admin_' ~ page_section ~ '_update' %}
+
+{% block stylesheets %}
+    <style>
+        .box-header .box-tools {
+            position: relative!important;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">{{ 'title.data_report'|trans({'%name%': 'Setting'}) }}</h3>
+                    <div class="box-tools">
+                        <div class="input-group input-group-sm">
+                            <div class="input-group-btn">
+                                <button id="new-setting" type="button" class="btn btn-primary">
+                                    <i class="fa fa-plus"></i> {{ 'button.create'|trans }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <form id="settings-data-form" action="{{ path(update_route) }}" method="post" accept-charset="UTF-8">
+                    {{ csrf_field('setting_save') }}
+                    <div class="box-body">
+                        {% if settings|length > 0 %}
+                            {% for setting in settings %}
+                                {% set sid = 'sid-' ~ setting.getId %}
+                                {% set type = setting.getType %}
+                                {% set name = setting.getName %}
+                                {% set value = setting.getDefaultValue %}
+                                {% set slug = setting.getSlug %}
+                                <div class="form-group">
+                                    <label for="{{ sid }}">{{ name }}</label>
+                                    {% if type == 'image' %}
+                                        {% set src = value != '' ? value : 'dist/img/no-image.png' %}
+                                        <img src="{{ asset(src) }}" class="img-responsive img-setting {{ sid }}-src" alt="">
+                                        <input id="{{ sid }}" type="file" class="setting-dz-upload" data-id="{{ setting.getId }}">
+                                        <input id="{{ sid }}-value" type="hidden" name="{{ slug }}" value="{{ src }}">
+                                    {% elseif type == 'checkbox' %}
+                                        {% set values = value|json_decode %}
+                                        {% set options = setting.getOptions|json_decode %}
+                                        {% for key, label in options %}
+                                            {% set checked = key in values ? 'checked' : '' %}
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input type="checkbox" name="{{ slug }}[]" value="{{ key }}" {{ checked }}> {{ label }}
+                                                </label>
+                                            </div>
+                                        {% endfor %}
+                                    {% elseif type == 'radio' %}
+                                        {% set options = setting.getOptions|json_decode %}
+                                        {% for key, label in options %}
+                                            {% set checked = key == value ? 'checked' : '' %}
+                                            <div class="radio">
+                                                <label>
+                                                    <input type="radio" name="{{ slug }}" id="{{ sid }}" value="{{ key }}" {{ checked }}> {{ label }}
+                                                </label>
+                                            </div>
+                                        {% endfor %}
+                                    {% elseif type == 'select' %}
+                                        {% set options = setting.getOptions|json_decode %}
+                                        <select id="{{ sid }}" name="{{ slug }}" class="form-control">
+                                            <option value="">{{ 'label.select_option'|trans }}</option>
+                                            {% for key, label in options %}
+                                                {% set selected = key in value ? 'selected' : '' %}
+                                                <option value="{{ key }}" {{ selected }}>{{ label }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    {% elseif type == 'select_multiple' %}
+                                        {% set values = value|json_decode %}
+                                        {% set options = setting.getOptions|json_decode %}
+                                        <select id="{{ sid }}" name="{{ slug }}[]" class="form-control" data-placeholder="{{ name }}" multiple>
+                                            <option value="">{{ 'label.select_option'|trans }}</option>
+                                            {% for key, label in options %}
+                                                {% set selected = key in values ? 'selected' : '' %}
+                                                <option value="{{ key }}" {{ selected }}>{{ label }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    {% elseif type == 'password' %}
+                                        <input id="{{ sid }}" type="password" name="{{ slug }}" class="form-control" placeholder="{{ name }}" value="{{ value }}">
+                                    {% elseif type == 'textarea' %}
+                                        <textarea id="{{ sid }}" name="{{ slug }}" class="form-control" placeholder="{{ name }}">{{ value }}</textarea>
+                                    {% else %}
+                                        <input id="{{ sid }}" type="text" name="{{ slug }}" class="form-control" placeholder="{{ name }}" value="{{ value }}">
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <p class="text-center"><strong>{{ 'message.info.no_data'|trans }}</strong></p>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="box-footer">
+                        {% if settings|length > 0 %}
+                            <button type="submit" class="btn btn-primary">{{ 'button.save'|trans }}</button>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal-setting" tabindex="-1" role="dialog" aria-labelledby="modal-setting-label" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">{{ 'label.new'|trans ~ ' Setting' }}</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="form-setting">
+                        {{ csrf_field('admin_ajax_request') }}
+                        <div class="form-group">
+                            <label for="setting-name">Name</label>
+                            <span class="help-block custom-help-block"></span>
+                            <input id="setting-name" type="text" name="name" class="form-control" placeholder="Name">
+                        </div>
+                        <div class="form-group">
+                            <label for="setting-slug">Slug</label>
+                            <span class="help-block custom-help-block"></span>
+                            <input id="setting-slug" type="text" name="slug" class="form-control" placeholder="Slug">
+                        </div>
+                        <div class="form-group">
+                            <label for="setting-description">Description</label>
+                            <span class="help-block custom-help-block"></span>
+                            <textarea id="setting-description" name="description" class="form-control" placeholder="Description"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="setting-type">Type</label>
+                            <span class="help-block custom-help-block"></span>
+                            <select id="setting-type" name="type" class="form-control">
+                                <option value="">{{ 'label.select_option'|trans }}</option>
+                                {% for key, type in get_parameter('setting_types') %}
+                                    <option value="{{ key }}">{{ type }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="setting-value">Value</label>
+                            <span class="help-block custom-help-block"></span>
+                            <input id="setting-value" type="text" name="value" class="form-control" placeholder="Value">
+                            <input id="setting-file-value" type="file" style="display: none">
+                            <input id="setting-image-value" type="hidden" name="image_value">
+                            <img id="setting-image-src" src="" alt="" style="display: none;">
+                        </div>
+                        <div class="form-group">
+                            <label for="setting-options">Options</label>
+                            <span class="help-block custom-help-block"></span>
+                            <textarea id="setting-options" name="options" class="form-control" placeholder="Options"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">{{ 'button.close'|trans }}</button>
+                    <button id="save-setting" type="button" class="btn btn-primary">{{ 'button.save'|trans }}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

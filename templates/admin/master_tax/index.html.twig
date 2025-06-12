@@ -1,0 +1,58 @@
+{% extends '@__main__/admin/base/layouts/default.html.twig' %}
+
+{% set edit_route = 'admin_' ~ page_section ~ '_edit' %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">{{ 'menu.master_tax'|trans }}</h3>
+                </div>
+                <div class="box-body">
+					<div class="panel-body">
+						<div class="nav-tabs-custom">
+							<ul class="nav nav-tabs order-tabs">
+								<li class="active order-tab-data">
+									<a href="#tab-data" data-toggle="tab" data-tab="data">{{ 'label.data'|trans }}</a>
+								</li>
+							</ul>
+							<div class="tab-content tab-order-content">
+								<div id="tab-data" class="tab-pane fade in active">
+									<div class="m-top-15"></div>
+                                    <div class="col-lg-12">
+                                        <table class="table table-bordered">
+                                            <thead>
+                                                <tr>
+                                                <th scope="col">#</th>
+                                                <th scope="col">{{'label.umkm_category'|trans}}</th>
+                                                <th scope="col">{{'label.ppn'|trans}}</th>
+                                                <th scope="col">{{'label.pph'|trans}}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for key, val in tax %}
+                                                    <tr>
+                                                        <th scope="row">{{key + 1}}</th>
+                                                        <td>{{val.getUmkmCategory|replace({'_':' '})|title}}</td>
+                                                        <td>{{val.getPpn}} %</td>
+                                                        <td>{{val.getPph}} %</td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+								</div>
+							</div>
+
+						</div>
+					</div>
+                </div>
+                <div class="box-footer clearfix">
+                    <a href="{{ path(edit_route) }}" type="button" class="btn btn-info">{{ 'button.edit'|trans }}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+

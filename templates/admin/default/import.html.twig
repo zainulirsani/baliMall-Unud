@@ -1,0 +1,36 @@
+{% extends '@__main__/admin/base/layouts/default.html.twig' %}
+
+{% set allow_import = data_package[page_section] is defined ? data_package[page_section]['import'] : false %}
+
+{% block content %}
+    {% if allow_import == true %}
+        <div class="row">
+            <div class="col-md-12">
+                <div class="box box-primary">
+                    <form accept-charset="UTF-8" method="post" action="{{ path('admin_' ~ page_section ~ '_import') }}" enctype="multipart/form-data">
+                        {{ csrf_field(token_id) }}
+                        <div class="box-header with-border">
+                            <h3 class="box-title">{{ page_title|trans }}</h3>
+                            {% if page_section == 'product' %}
+                                <p><a href="{{asset('assets/excel/format_import_product_be.xlsx')}}">Download</a> Format Excel</p>
+                            {% endif %}
+                        </div>
+                        <div class="box-body">
+                            <div class="form-group {% if errors['file_doc']|default() %}has-error{% endif %}">
+                                <div class="m-top-15"></div>
+                                <label>{{ 'label.file'|trans }}</label>
+                                {% if errors['file_doc']|default() %}
+                                    <span class="help-block custom-help-block">{{ errors['file_doc'] }}</span>
+                                {% endif %}
+                                <input type="file" class="form-control" name="file_doc">
+                            </div>
+                        </div>
+                        <div class="box-footer clearfix">
+                            <button type="submit" class="btn btn-primary">{{ 'button.submit'|trans }}</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

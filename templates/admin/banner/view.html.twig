@@ -1,0 +1,107 @@
+{% extends '@__main__/admin/base/layouts/default.html.twig' %}
+
+{% set trans_parameter = {'%name%': form_data.getName} %}
+{% set index_route = 'admin_' ~ page_section ~ '_index' %}
+{% set edit_route = 'admin_' ~ page_section ~ '_edit' %}
+
+{% set banner_id = form_data.getId %}
+{% set banner_name = form_data.getName|default() %}
+{% set banner_position = form_data.getPosition|default()  %}
+{% set external_url = form_data.getExternalUrl|default() %}
+{% set external_url_checked = external_url is not empty %}
+{% set banner_category = form_data.getCategoryId|default() %}
+{% set banner_keyword = form_data.getKeyword|default() %}
+{% set is_active = form_data.getStatus == 'active' %}
+{% set banner_image = form_data.getImage %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-12">
+                <h1 class="page-header">{{ page_title|trans(trans_parameter) }}</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading"></div>
+                    <div class="panel-body">
+                        <div class="nav-tabs-custom">
+                            <ul class="nav nav-tabs user-tabs">
+                                <li class="active user-tab-data">
+                                    <a href="#tab-data" data-toggle="tab" data-tab="data">{{ 'label.data'|trans }}</a>
+                                </li>
+                            </ul>
+                            <div class="tab-content tab-user-content">
+                                <div id="tab-data" class="tab-pane fade in active">
+                                    <div class="m-top-15"></div>
+                                    <div class="form-group">
+                                        <label for="input-banner-name">{{ 'label.name'|trans }}</label>
+                                        <input id="input-banner-name" class="form-control" name="banner_name" value="{{ banner_name }}" disabled>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="position">{{ 'label.position'|trans }}</label>
+                                        <select id="position" class="form-control" name="position" disabled>
+                                            <option value="">{{ 'label.select_option'|trans }}</option>
+                                            {% for choice in position %}
+                                                {% set selected = banner_position == choice ? 'selected' : '' %}
+                                                <option value="{{ choice }}" {{ selected }}>{{ choice|capitalize }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="external-url-check">External Url</label>
+                                        <input id="external-url-check" type="checkbox" name="external_url_check" {{ external_url_checked ? 'checked' : '' }} disabled>
+                                    </div>
+
+                                    <div class="form-group external-url-content"
+                                        {% if not external_url_checked %} style="display: none"{% endif %}>
+                                        <label for="external-url">Url</label>
+                                        <input id="external-url" class="form-control" name="external_url" value="{{ external_url }}" disabled>
+                                    </div>
+
+                                    <div class="form-group internal-url-content"
+                                        {% if external_url_checked %} style="display: none" {% endif %}>
+                                        <label for="input-category-id">{{ 'label.category'|trans }}</label>
+                                        <select id="input-category-id" class="form-control" name="category_id" disabled>
+                                            <option value="">{{ 'label.select_option'|trans }}</option>
+                                            {% for choice in product_category_data %}
+                                                {% set selected = banner_category == choice['id'] ? 'selected' : '' %}
+                                                <option value="{{ choice['id'] }}" {{ selected }}>{{ choice['text'] }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group internal-url-content"
+                                        {% if external_url_checked %} style="display: none" {% endif %}>
+                                        <label for="input-name">Keyword</label>
+                                        <input id="keyword" class="form-control" name="keyword" value="{{ banner_keyword }}" disabled>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="is-active">Is Active</label>
+                                        <input id="is-active" type="checkbox" name="is_active" {{ is_active ? 'checked' : '' }} disabled>
+                                    </div>
+                                    <hr>
+                                    <div class="col-md-6 form-group" style="padding-left: 0;">
+                                        <p id="img-res"></p>
+                                        <label for="input-desktop-image">Banner Image  </label>
+                                        <img src="{{ path('sftp_show_file', {'path': banner_image}) }}" class="banner-img img-responsive" alt="" style="width: 250px;">
+                                        <div class="m-top-15"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel-footer">
+                        <div style="display: inline;">
+                            <a href="{{ path(edit_route, {'id': banner_id}) }}" class="btn btn-primary">{{ 'button.edit'|trans }}</a>
+                            <a href="{{ path(index_route) }}" class="btn btn-default">{{ 'button.cancel'|trans }}</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

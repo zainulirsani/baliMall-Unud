@@ -1,0 +1,298 @@
+{% extends '@__main__/admin/base/layouts/default.html.twig' %}
+
+{% set edit_route = 'admin_' ~ page_section ~ '_edit' %}
+{% set buyer_name = orders[0]['o_name'] %}
+{% set buyer_phone_no = orders[0]['o_phone'] %}
+{% set order_vouchers_list = order_vouchers(shared_id) %}
+{% set order_vouchers_lists = order_vouchers(shared_id, 'no') %}
+{% set order_total_amount = 0 %}
+{% set amount_with_voucher = 0 %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <ul class="timeline">
+                <li class="time-label">
+                    <span class="bg-green">{{ orders[0]['o_createdAt']|date('d F Y') }}</span>
+                    <h3 style="display: inline;">{{ orders[0]['o_sharedInvoice'] }}</h3>
+                </li>
+                <!-- START timeline item -->
+                {% for key, order in orders %}
+                    {% set grand_total = order['o_total'] + order['o_shippingPrice'] %}
+                    {% set temp_grand_total = order['o_total'] %}
+
+                    {% for product in order['o_products'] %}
+                        {% set grand_total = grand_total + product['op_taxNominal'] %}
+                        {% set temp_grand_total = temp_grand_total + product['op_taxNominal'] %}
+                    {% endfor %}
+
+                    {% set order_total_amount = order_total_amount + grand_total %}
+                    {% set amount_with_voucher = order_total_amount %}
+                    <li>
+                        <i class="fa fa-archive bg-blue"></i>
+                        <div class="timeline-item">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="nav-tabs-custom" style="margin-bottom: 10px; box-shadow: none;">
+                                        <ul class="nav nav-tabs">
+                                            <li class="active">
+                                                <a href="#tab-data-{{ key }}" data-toggle="tab" data-tab="data">{{ 'label.data'|trans }}</a>
+                                            </li>
+                                            <li>
+                                                <a href="#tab-products-{{ key }}" data-toggle="tab" data-tab="products">{{ 'label.products'|trans }}</a>
+                                            </li>
+                                            <li>
+                                                <a href="#tab-payment-{{ key }}" data-toggle="tab" data-tab="payment">{{ 'label.payment'|trans }}</a>
+                                            </li>
+                                            {% if order['o_taxDocumentEmail'] is not empty %}
+                                                <li>
+                                                    <a href="#tab-tax-{{ key }}" data-toggle="tab" data-tab="tax">{{ 'label.with_tax'|trans }}</a>
+                                                </li>
+                                            {% endif %}
+                                        </ul>
+                                        <div class="tab-content" style="padding: 10px;">
+                                            <div id="tab-data-{{ key }}" class="tab-pane fade in active">
+                                                <div class="m-top-15"></div>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label for="input-invoice">{{ 'label.invoice'|trans }}</label>
+                                                            <input id="input-invoice" class="form-control" value="{{ order['o_invoice'] }}" readonly>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="input-status">{{ 'label.status'|trans }}</label>
+                                                            <input id="input-status" class="form-control" value="{{ order['o_status'] }}" readonly>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="input-shipping-courier">{{ 'label.shipping_courier'|trans }}</label>
+                                                            <input id="input-shipping-courier" class="form-control" value="{{ order['o_shippingCourier'] }}" readonly>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="input-shipping-price">{{ 'label.shipping_price'|trans }}</label>
+                                                            <input id="input-shipping-price" class="form-control" value="{{ order['o_shippingPrice']|number_format }}" readonly>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label for="input-store-name">{{ 'label.store_name'|trans }}</label>
+                                                            <input id="input-store-name" class="form-control" value="{{ order['s_name']|raw }}" readonly>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="input-total">{{ 'label.total'|trans }}</label>
+                                                            <input id="input-total" class="form-control" value="{{ temp_grand_total|number_format }}" readonly>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="input-shipping-service">{{ 'label.shipping_service'|trans }}</label>
+                                                            <input id="input-shipping-service" class="form-control" value="{{ order['o_shippingService'] }}" readonly>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="input-tracking-code">{{ 'label.tracking_code'|trans }}</label>
+                                                            <input id="input-tracking-code" class="form-control" value="{{ order['o_trackingCode'] }}" readonly>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="input-grand-total">{{ 'label.grand_total'|trans }}</label>
+                                                    <input id="input-grand-total" class="form-control" value="{{ grand_total|number_format }}" readonly>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="input-address">{{ 'label.address'|trans }}</label>
+                                                    <textarea id="input-address" class="form-control" rows="3" readonly>{{ order['o_address'] }}</textarea>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-4">
+                                                        <div class="form-group">
+                                                            <label for="input-city">{{ 'label.city'|trans }}</label>
+                                                            <input id="input-city" class="form-control" value="{{ order['o_city'] }}" readonly>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="form-group">
+                                                            <label for="input-province">{{ 'label.province'|trans }}</label>
+                                                            <input id="input-province" class="form-control" value="{{ order['o_province'] }}" readonly>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="form-group">
+                                                            <label for="input-post-code">{{ 'label.post_code'|trans }}</label>
+                                                            <input id="input-post-code" class="form-control" value="{{ order['o_postCode'] }}" readonly>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div id="tab-products-{{ key }}" class="tab-pane fade">
+                                                <div class="m-top-15"></div>
+                                                {% for product in order['o_products'] %}
+                                                    {% set sub_total = order['o_total'] %}
+                                                    {#{% set sub_total = product['op_totalPrice'] %}#}
+
+                                                    {#{% if product['op_withTax'] == 1 %}
+                                                        {% set sub_total = product['op_totalPrice'] + product['op_taxNominal'] %}
+                                                    {% endif %}#}
+                                                    <div class="col-md-3">
+                                                        <div class="box box-success">
+                                                            <div class="box-header with-border">
+                                                                <h3 class="box-title">{{ product['p_name'] }}</h3>
+                                                            </div>
+                                                            <div class="box-body">
+                                                                <p class="text-muted">
+                                                                    <strong>Qty:</strong> {{ product['op_quantity'] }}<br>
+                                                                    <strong>Price:</strong> {{ product['op_price']|number_format }}<br>
+                                                                    <strong>Total:</strong> {{ sub_total|number_format }}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                            <div id="tab-payment-{{ key }}" class="tab-pane fade">
+                                                <div class="m-top-15"></div>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label for="input-payment-type">{{ 'label.payment_type'|trans }}</label>
+                                                            <input id="input-payment-type" class="form-control" value="{{ order['op_type'] }}" readonly>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="input-bank-name">{{ 'label.bank_name'|trans }}</label>
+                                                            <input id="input-bank-name" class="form-control" value="{{ order['op_bankName'] }}" readonly>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            {% set order_paid_nominal = order['op_nominal']|default(0) %}
+                                                            <label for="input-nominal">{{ 'label.nominal'|trans }}</label>
+                                                            <input id="input-nominal" class="form-control" value="{{ order_paid_nominal > 0 ? order['op_nominal']|number_format : '' }}" readonly>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            {% set order_paid_at = order['op_createdAt']|default() %}
+                                                            <label for="input-paid-at">{{ 'label.paid'|trans }}</label>
+                                                            <input id="input-paid-at" class="form-control" value="{{ order_paid_at is not empty ? order_paid_at|date('d F Y, H:i') : '' }}" readonly>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="input-payment-message">{{ 'label.message'|trans }}</label>
+                                                    <textarea id="input-payment-message" class="form-control" rows="3" readonly>{{ order['op_message'] }}</textarea>
+                                                </div>
+                                                <div class="form-group">
+                                                    {% if order['op_type'] == 'bank_transfer' and order['op_attachment'] is not empty %}
+                                                        <figure>
+                                                            {% if '.pdf' in order['op_attachment'] %}
+                                                                <a href="{{ site_url(order['op_attachment']) }}" title="{{ 'button.download'|trans }}" target="_blank">
+                                                                    <img class="img-responsive" src="{{ site_url('dist/img/doc-placeholder.jpg') }}" alt="" style="width: 120px;">
+                                                                </a>
+                                                            {% else %}
+                                                                <a href="{{ site_url(order['op_attachment']) }}" title="{{ 'button.view'|trans }}" class="cbox-gallery">
+                                                                    <img class="img-responsive" src="{{ site_url(order['op_attachment']) }}" alt="">
+                                                                </a>
+                                                            {% endif %}
+                                                        </figure>
+                                                    {% endif %}
+                                                </div>
+                                                {#{% if order['o_status'] == 'paid' %}
+                                                    <a id="delete-order-payment" href="javascript:void(0);" class="btn btn-danger m-bottom-15" data-oid="{{ order['o_id'] }}" data-pid="{{ order['op_id'] }}">
+                                                        {{ 'button.delete'|trans }}
+                                                    </a>
+                                                {% endif %}#}
+                                            </div>
+                                            {% if order['o_taxDocumentEmail'] is not empty %}
+                                                <div id="tab-tax-{{ key }}" class="tab-pane fade">
+                                                    <div class="m-top-15"></div>
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                <label for="input-tax-email">{{ 'label.email'|trans }}</label>
+                                                                <input id="input-tax-email" class="form-control" value="{{ order['o_taxDocumentEmail'] }}" readonly>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                <label for="input-tax-phone">{{ 'label.phone'|trans }}</label>
+                                                                <input id="input-tax-phone" class="form-control" value="{{ order['o_taxDocumentPhone'] }}" readonly>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <figure>
+                                                            <a href="{{ site_url(order['o_taxDocumentFile']) }}" class="cbox-gallery">
+                                                                <img class="img-responsive" src="{{ site_url(order['o_taxDocumentFile']) }}" alt="">
+                                                            </a>
+                                                        </figure>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="timeline-footer">
+                                <a href="{{ path(edit_route, {'id': order['o_id']}) }}" class="btn btn-primary">{{ 'button.edit'|trans }}</a>
+                                {% if va is not empty and va.paidStatus == '0' %}
+                                    <a href="{{ path('admin_order_payment_check', {'channel': 'virtual-account', 'id': order['o_sharedId']}) }}" class="btn btn-success">
+                                        {{ 'button.check_va_status'|trans }}
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </li>
+                {% endfor %}
+                <li>
+                    <i class="fa fa-archive bg-blue"></i>
+                    {% if order_vouchers_list|length > 0 %}
+                        {% set v_lists = [] %}
+                        <div class="timeline-item">
+                            <h3 class="timeline-header">{{ 'menu.voucher'|trans }}</h3>
+                            <div class="timeline-body">
+                                {% for voucher_list in order_vouchers_lists %}
+                                    {% if voucher_list['v_code'] not in v_lists %}
+                                        {% set amount_with_voucher = amount_with_voucher - voucher_list['v_amount'] %}
+                                        <div class="form-group">
+                                            <label for="input-voucher-{{ loop.index }}">{{ 'label.code'|trans ~ ': ' ~ voucher_list['v_code'] }}</label>
+                                            <input id="input-voucher-{{ loop.index }}" class="form-control" value="{{ voucher_list['v_amount']|number_format }}" readonly>
+                                        </div>
+                                        {% set v_lists = v_lists|merge([voucher_list['v_code']]) %}
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                    <div class="timeline-item">
+                        {#<span class="time"><i class="fa fa-clock-o"></i> 12:05</span>#}
+                        <h3 class="timeline-header">{{ 'label.order_detail'|trans }}</h3>
+                        <div class="timeline-body">
+                            <div class="form-group">
+                                <label for="input-buyer-name">{{ 'label.buyer_name'|trans }}</label>
+                                <input id="input-buyer-name" class="form-control" value="{{ buyer_name }}" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="input-buyer-phone">{{ 'label.phone'|trans }}</label>
+                                <input id="input-buyer-phone" class="form-control" value="{{ buyer_phone_no }}" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="input-buyer-name">{{ 'label.grand_total'|trans }}</label>
+                                <input id="input-buyer-name" class="form-control" value="{{ order_total_amount|number_format }}" readonly>
+                            </div>
+                            {% if order_vouchers_list|length > 0 %}
+                                {% set amount_with_voucher_value = amount_with_voucher|number_format %}
+                                {% if amount_with_voucher < 0 %}
+{#                                    {% set amount_with_voucher = (amount_with_voucher * -1) %}#}
+{#                                    {% set amount_with_voucher_value = '(' ~ amount_with_voucher|number_format ~ ')' %}#}
+                                    {% set amount_with_voucher_value = 0 %}
+                                {% endif %}
+                                <div class="form-group">
+                                    <label for="input-buyer-phone">{{ 'label.grand_total_with_voucher'|trans }}</label>
+                                    <input id="input-buyer-phone" class="form-control" value="{{ amount_with_voucher_value }}" readonly>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </li>
+                <!-- END timeline item -->
+                <li>
+                    <i class="fa fa-database bg-gray"></i>
+                </li>
+            </ul>
+        </div>
+    </div>
+{% endblock %}

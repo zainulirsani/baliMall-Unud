@@ -1,0 +1,11 @@
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,900">
+{#<link rel="stylesheet" href="{{ asset('vendor/selectric/selectric.css') }}">#}
+<link rel="stylesheet" href="{{ asset('dist/compiled/site.css') }}">
+{% if date_picker is defined and date_picker == true %}
+    <link rel="stylesheet" href="{{ asset('vendor/flatpickr/flatpickr.min.css') }}">
+{% endif %}
+{% if colorbox is defined and colorbox == true %}
+    <link rel="stylesheet" href="{{ asset('vendor/colorbox/colorbox.min.css') }}">
+{% endif %}
+<link rel="stylesheet" href="{{ asset('assets/css/additional.css') }}">
+{# <link rel="stylesheet" href="{{ asset('balimall/css/style.css') }}"> #}

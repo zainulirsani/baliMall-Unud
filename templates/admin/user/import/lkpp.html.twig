@@ -1,0 +1,35 @@
+{% extends '@__main__/admin/base/layouts/default.html.twig' %}
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="box box-primary">
+                <form accept-charset="UTF-8" method="post" action="" enctype="multipart/form-data">
+                    {{ csrf_field(token_id) }}
+                    <div class="box-header with-border">
+                        <h3 class="box-title">{{ page_title|trans }}</h3>
+                    </div>
+                    <div class="box-body">
+                        <div class="form-group {% if errors['file_lkpp']|default() %}has-error{% endif %}">
+                            <div class="m-top-15"></div>
+                            <label>{{ 'label.file'|trans }}</label>
+                            {% if errors['file_lkpp']|default() %}
+                                <span class="help-block custom-help-block">{{ errors['file_lkpp'] }}</span>
+                            {% endif %}
+                            <input type="file" class="form-control" name="file_lkpp">
+                        </div>
+                        {% if errors is not empty %}
+                            <div class="form-group has-error">
+                                <label>{{ 'label.user_exist'|trans }}</label>
+                                <pre>{{ errors[0] }}</pre>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="box-footer clearfix">
+                        <button type="submit" class="btn btn-primary">{{ 'button.submit'|trans }}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

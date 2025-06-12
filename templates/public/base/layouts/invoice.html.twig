@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="id">
+    <head>
+        <title>Invoice Template</title>
+        <style type="text/css">
+            .clear{
+                clear: both;
+            }
+            .email{
+                font-family: sans-serif;
+                line-height: 140%;
+                font-size: 12px;
+                padding: 0 15px;
+                margin-bottom: 0;
+            }
+            .logo{
+                display: block;
+                /*margin: 30px auto;*/
+                margin-left: 272px;
+                margin-bottom: 20px;
+            }
+            p{
+                text-align: justify;
+                line-height: 170%;
+            }
+            .top{
+                text-align: center;
+            }
+            h1,h2,h3,p{
+                margin-bottom: 10px;
+            }
+            h1{
+                font-size: 32px;
+                text-align: center;
+            }
+            h2{
+                font-size: 20px;
+            }
+            h3{
+                font-size: 16px;
+            }
+            h5{
+                font-size: 14px;
+                font-weight: 600;
+            }
+            .user.right{
+                text-align: right;
+            }
+            .user.right p{
+                text-align: right;
+            }
+            .title{
+                font-size: 16px;
+            }
+            li{
+                margin: 0 0 10px 15px;
+                padding-left: 10px;
+            }
+            ul,ol{
+                margin-bottom: 20px;
+            }
+            ul li{
+                list-style: disc;
+            }
+            ol li{
+                list-style: decimal;
+            }
+            .user{
+                float: left;
+                width: 50%;
+            }
+            footer {
+                background: #f8f8f8;
+                padding: 20px 15px 10px;
+                text-align: center;
+                margin-top: 30px;
+            }
+            a{
+                font-weight: 600;
+                color: #2F64AF !important;
+            }
+            a:hover{
+                color: #25518B !important;
+            }
+            footer p{
+                text-align: center;
+            }
+            footer .social-btn{
+                margin: 10px 0;
+            }
+            footer .social-btn a{
+                margin: 0 10px;
+            }
+            hr{
+                margin: 20px 0;
+                border: none;
+                border-bottom: solid 1px #d3d3d3;
+            }
+            table{
+                width: 100%;
+                margin-bottom: 30px;
+            }
+            th{
+                padding: 20px 10px;
+                background: #2F64AF;
+                color: white;
+                font-size: 20px;
+            }
+            td{
+                padding: 10px;
+                line-height: 200%;
+                vertical-align: middle;
+            }
+            tr:nth-child(2n){
+                background: #fafafa;
+            }
+            .name{
+                text-align: left;
+            }
+            .single{
+                text-align: right;
+            }
+
+            .content p{
+                text-align: right;
+            }
+            .content .right-side{
+                width: 200px;
+                float: right;
+                font-weight: 900;
+                margin-right: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <main class="email">
+            <section>
+                <img src="dist/img/balimall.png" class="logo" alt="Logo">
+                {% block body %}{% endblock %}
+            </section>
+            <footer>
+                <div class="social-email">
+                    {{ 'label.find_us'|trans }}
+                    <div class="social-btn">
+                        <a href="https://www.facebook.com" target="_blank">Facebook</a>
+                        <a href="https://twitter.com" target="_blank">Twitter</a>
+                        <a href="https://www.instagram.com" target="_blank">Instagram</a>
+                    </div>
+                </div>
+                <p>{{ 'label.copyrights'|trans }} &copy; 2020 {{ get_parameter('app_name') }}</p>
+            </footer>
+        </main>
+    </body>
+</html>

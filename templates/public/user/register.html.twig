@@ -1,0 +1,33 @@
+
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% set avatar = '' %}
+{% set avatar_style = avatar is empty ? 'display: none;' : '' %}
+{% set name_placeholder = reg_as == 'government' ? 'label.instance_name' : 'label.full_name' %}
+{% set reg_link_label = reg_as != 'government' ? 'message.info.government_instance' : 'message.info.regular_instance' %}
+{% set reg_link_href = reg_as != 'government' ? path('register', {'as': 'government'}) : path('register') %}
+
+{% if form_data['photo_profile_src'] is defined and form_data['photo_profile_src'] != '' %}
+    {% set avatar = form_data['photo_profile_src'] %}
+    {% set avatar_style = avatar is empty ? 'display: none;' : '' %}
+{% endif %}
+
+{% block content %}
+    {% if reg_as == 'vendor' %}
+        {% include '@__main__/public/user/register-merchant.html.twig' %}
+    {% elseif (reg_as == 'government') or (reg_as == 'business')  %}
+        {% include '@__main__/public/user/registers.html.twig' %}
+    {% else %}
+        {% include '@__main__/public/user/registers.html.twig' %}
+    {% endif %}
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        CITY_LIST = {{ city_data|json_encode|raw }};
+
+        var requiredMsg = "{{ 'label.required'|trans }}"
+        var passwordFormat = "{{ 'label.password_format'|trans }}"
+        var phoneFormat = "{{ 'label.phone_number_format'|trans }}"
+    </script>
+{% endblock %}

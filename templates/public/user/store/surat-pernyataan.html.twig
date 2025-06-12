@@ -1,0 +1,74 @@
+{% block stylesheets %}
+    <style>
+
+
+        .table-footer-pernyataan td {
+            padding: 0.75rem;
+            vertical-align: top;
+            text-align: center;
+            width: 30%;
+        }
+
+        .font-italic {
+            font-style: italic;
+        }
+    </style>
+
+{% endblock %}
+
+<div style="font-family: 'Times New Roman'; text-align: justify">
+    <div>
+        <p>Yang bertanda tangan dibawah ini :</p>
+        <p>
+            <span>Nama</span>&nbsp;&nbsp;&nbsp;
+            <span style="padding-left: 3em">:</span>
+            <span class="namaPemilik"></span>
+        </p>
+        <p>
+            <span>NIK</span>&nbsp;&nbsp;
+            <span  style="padding-left: 4em">:</span>
+            <span class="nikPemilik"></span>
+        </p>
+        <p>
+            <span>Alamat</span>&nbsp;
+            <span style="padding-left: 3em">:</span>
+            <span class="alamatPemilik"></span>
+        </p>
+        <p>
+            <span>No HP</span>&nbsp;&nbsp;
+            <span style="padding-left: 3em" class="noHpPemilik">: {{ user_phone_number }}</span>
+        </p>
+        <p>
+            <span>dalam hal ini bertindak untuk dan atas nama pelaku usaha</span>
+            <span class="namaMerchant"></span>
+        </p>
+    </div>
+    <div>
+        <p>dengan ini menyatakan bahwa :</p>
+        <p>1. Secara hukum mempunyai kapasitas untuk mengikatkan diri dalam kontrak/ perjanjian tertulis</p>
+        <p>2. Tidak masuk dalam daftar hitam dan tidak dalam pengawasan pengadilan.</p>
+        <p>3. Sanggup memenuhi standar produk (kualitas, kuantitas, waktu dan keaslian produk) dan Syarat & Ketentuan Umum <span class="font-italic">Merchant</span> yang ditetapkan  oleh PT. Bali Unggul Sejahtera (Balimall.id).</p>
+        <p>4. Sanggup memenuhi pesanan melalui Balimall.id sesuai dengan jumlah persediaan yang ditayangkan dan bertanggungjawab penuh atas pemenuhan kesesuaian produk dengan pesanan.</p>
+        <p>5. Tidak akan menjual produk yang dikerjasamakan dengan PT. Bali Unggul Sejahtera (Balimall.id) kepada pihak lain (bukan <span class="font-italic">reseller</span>) dengan harga yang lebih rendah.</p>
+        <p>6. Data <span class="font-italic">Merchant</span> yang diterbitkan melalui Balimall.id atas dasar data yang diinput merchant. Kebenaran dan keabsahan atas data yang ditampilkan dan data yang tersimpan dalam Sistem Balimall.id menjadi tanggung jawab merchant sepenuhnya.</p>
+        <p>7. Merchant bertanggungjawab penuh atas jaminan kualitas dan harga produk. Apabila dikemudian hari ditemukan kemahalan harga dan ketidaksesuaian kualitas produk akan menjadi tanggung jawab Merchant.</p>
+        <p>Demikian surat pernyataan ini saya buat agar dapat dipergunakan sebagaimana mestinya.</p>
+        <table class="table table-footer-pernyataan">
+            <tr>
+                <td></td>
+                <td></td>
+                <td><span id="pernyataan-city"></span>, {{ pernyataan_date }}</td>
+            </tr>
+            <tr>
+                <td>
+                    <br><br><br>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td class="namaPemilik">#</td>
+            </tr>
+        </table>
+    </div>
+</div>

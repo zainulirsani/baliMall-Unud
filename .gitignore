@@ -1,0 +1,16 @@
+###> app ###
+/.idea
+/.vscode
+/node_modules
+task.local
+###< app ###
+
+###> symfony/framework-bundle ###
+.env
+/public/bundles
+/vendor
+###< symfony/framework-bundle ###
+
+.DS_STORE
+
+.env.dist

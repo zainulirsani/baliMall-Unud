@@ -1,0 +1,514 @@
+{% set avatar = '' %}
+{% set avatar_style = avatar is empty ? 'display: none;' : '' %}
+{% set name_placeholder = reg_as == 'government' ? 'label.instance_name' : 'label.full_name' %}
+{% set reg_link_label = reg_as != 'government' ? 'message.info.government_instance' : 'message.info.regular_instance' %}
+{% set reg_link_href = reg_as != 'government' ? path('register', {'as': 'government'}) : path('register') %}
+{% set store_delivery_couriers = form_data['delivery_couriers']|default([]) %}
+
+{% if form_data['photo_profile_src'] is defined and form_data['photo_profile_src'] != '' %}
+    {% set avatar = form_data['photo_profile_src'] %}
+    {% set avatar_style = avatar is empty ? 'display: none;' : '' %}
+{% endif %}
+
+<main class="pdl dbu">
+	<section>
+		<div class="container">
+			<div class="box">
+				<div class="row">
+					<div class="dc4 tc4 mc4">
+						<div class="tab">
+                            <button class="tablinks" onclick="myTabs(event, 'Toko')" id="defaultOpen">
+                                {# <i class="fas fa-check green"></i> #}
+                                Data Toko
+                            </button>
+                            <button class="tablinks" onclick="myTabs(event, 'PemilikUsaha')">
+                                Data Pemilik Usaha
+                            </button>
+                            <button class="tablinks" onclick="myTabs(event, 'Keuangan')">
+                                Data Keuangan
+                            </button>
+                            <button class="tablinks" onclick="myTabs(event, 'Perpajakan')">
+                                Data Perpajakan
+                            </button>
+                            <button class="tablinks" onclick="myTabs(event, 'Kerjasama')">
+                                Kerjasama
+                            </button>
+                            <button class="tablinks" onclick="myTabs(event, 'finish')">
+                                finish
+                            </button>
+                        </div>
+					</div>
+					<div class="dc8 tc8 mc8">
+                        <form id="registration-form" action="{{ path('register-vendor')}}" method="post" accept-charset="UTF-8">
+                            <div id="Toko" class="tabcontent">
+                                <div class="row">
+                                    <div class="dc8 mc12">
+                                        {% set error = errors['name'] is defined ? 'error' : null %}
+                                        <div class="input form-group {{ error }}">
+                                            <label for="">Nama Toko <span>*</span></label>
+                                            <input type="text" name="nama_toko" id="nama_toko" class="form-control">
+                                            {% if error %}<p class="{{ error }}">{{ errors['name'] }}</p>{% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="dc2 mc12 btn-u">
+                                        <div class="file-input">
+                                            <p>Logo Toko</p>
+                                            <div class='file file--upload'>
+                                                <label for='input-file-logo'>
+                                                    Upload
+                                                </label>
+                                                <input id='input-file-logo' type='file' name="logo-img" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="dc2 mc12 btn-u">
+                                        <div class="file-input">
+                                            <p>Foto Dashboard Toko</p>
+                                            <div class='file file--upload'>
+                                                <label for='input-file-img-dash'>
+                                                    Upload
+                                                </label>
+                                                <input id='input-file-img-dash' type='file' name="dashboard-img" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="dc8 mc12">
+                                        {% set error = errors['name'] is defined ? 'error' : null %}
+                                        <div class="input form-group {{ error }}">
+                                            <label for="">Nama Usaha <span>*</span></label>
+                                            <input type="text" name="nama_usaha" id="nama_usaha" class="form-control">
+                                            {% if error %}<p class="{{ error }}">{{ errors['name'] }}</p>{% endif %}
+                                            <div class="text-small">(Sesuai dengan nama yang tercantum di Ijin Usaha)</div>
+                                        </div>
+                                        {% include '@__main__/public/user/fragments/address_form.html.twig' %}
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="dc8 mc12">
+                                        <div class="input form-group">
+                                            <label for="">Jenis Usaha <span>*</span></label>
+                                            <select class="form-control" name="jenis_usaha" onchange="rekeningOnChange(this)">
+                                                <option disabled selected>--Pilih--</option>
+                                                <option value="perseorangan">Perseorangan</option>
+                                                <option value="badan usaha">Badan Usaha</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="dc8 mc12">
+                                        {% set error = errors['npwp'] is defined ? 'error' : null %}
+                                        <div class="input form-group">
+                                            <label for="">No NPWP Pemilik Usaha/Badan Usaha<span>*</span></label>
+                                            <input type="text" name="no_npwp" id="no_npwp" class="form-control">
+                                            {% if error %}<p class="{{ error }}">{{ errors['npwp'] }}</p>{% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="dc2 mc12 btn-u">
+                                        <div class="file-input">
+                                            <p class="label">NPWP <span>*</span></p>
+                                            <div class='file file--upload'>
+                                                <label for='input-file-npwp'>
+                                                    Upload
+                                                </label>
+                                                <input class="file-name" id='input-file-npwp' type='file' name="npwp_img"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="dc8 mc12">
+                                        <div class="input form-group">
+                                            <label for="">Surat Ijin Usaha <span>*</span></label>
+                                            <div class="imagesUp">
+                                                <div class="img">
+                                                    <img id="previewImg" src="../assets/img/bali-bangkit.png" alt="">
+                                                </div>
+                                                <label class="pic" for="file-input-siu">
+                                                    <i class="fas fa-plus"></i>
+                                                </label>
+
+                                                <input id="file-input-siu" type="file" name="surat-ijin-usaha-img" onchange="previewFile(this);" style="display: none;" />
+                                            </div>
+                                            <div id="file-upload-filename"></div>
+                                        </div>
+
+                                        <div class="input form-group">
+                                            <label for="">Dokumen Tambahan (PIRT/BPOM/HAKI/lainnya) <span>*</span></label>
+                                            <div class="imagesUp">
+                                                <div class="img">
+                                                    <img id="previewImg" src="../assets/img/bali-bangkit.png" alt="">
+                                                </div>
+                                                <label class="pic" for="file-input-dok">
+                                                    <i class="fas fa-plus"></i>
+                                                </label>
+
+                                                <input id="file-input-dok" type="file" name="dokumen-tambahan-img" onchange="previewFile(this);" style="display: none;" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="dc12">
+                                        <div class="input form-group">
+                                        <div class="checklist">
+                                            {% for key, courier in get_parameter('raja_ongkir_couriers') %}
+                                                {% set checked = key in store_delivery_couriers ? 'checked' : '' %}
+                                                    <input type="checkbox" id="{{ key }}" name="delivery_couriers[]" value="{{ key }}" {{ checked }}>
+                                                    <label style="display: inline;">{{ courier }}</label><br>
+                                            {% endfor %}
+                                        </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div class="input">
+                                    <button type="button" class="sBtn red" onclick="myTabs(event, 'PemilikUsaha');">Simpan/Lanjut</button>
+                                </div>
+                            </div>
+
+                            <div id="PemilikUsaha" class="tabcontent">
+                                <div class="row">
+                                    <div class="dc8 mc12">
+                                        {% set error = errors['firstName'] is defined ? 'error' : null %}
+                                        <div class="input form-group {{ error }}">
+                                            <label for="">Nama Lengkap Pemilik Usaha <span>*</span></label>
+                                            <input type="text" name="full_name" id="full_name" class="form-control" value="{{ form_data['full_name']|default() }}">
+                                            {% if error %}<p class="{{ error }}">{{ errors['firstName'] }}</p>{% endif %}
+                                        </div>
+                                        {% set error = errors['email'] is defined ? 'error' : null %}
+                                        <div class="input {{ error }}">
+                                            <label for="">{{ 'label.email'|trans }}<span>*</span></label>
+                                            <input class="form-control" id="valid-email" type="email" name="email" value="{{ form_data['email']|default() }}" title="" placeholder="{{ 'label.email'|trans }}" data-id="0">
+                                            <p id="valid-email-error" class="error" style="display: none;"></p>
+                                            {% if error %}<p class="{{ error }}">{{ errors['email'] }}</p>{% endif %}
+                                        </div>
+                                        {% set error = errors['password'] is defined ? 'error' : null %}
+                                        <div class="input form-group {{ error }}">
+                                            <label for="">{{ 'label.password'|trans }}<span>*</span></label>
+                                            <input class="form-control" id="input-password" type="password" name="password" title="" placeholder="{{ 'label.password'|trans }}">
+                                            <p id="input-password-error" class="error" style="display: none;">{{ 'message.info.password_not_match'|trans }}</p>
+                                            <p id="input-password-weak" class="error" style="display: none;">{{ 'message.info.password_weak'|trans }}</p>
+                                            {% if error %}<p class="{{ error }}">{{ errors['password'] }}</p>{% endif %}
+                                        </div>
+                                        {% set errorConfirm = errors['passwordMatch'] is defined ? 'error' : null %}
+                                        <div class="input form-group {{ error ~ ' ' ~ errorConfirm }}">
+                                            <label for="">{{ 'label.confirm_password'|trans }}<span>*</span></label>
+                                            <input class="form-control" id="input-confirm-password" type="password" name="confirm_password" title="" placeholder="{{ 'label.confirm_password'|trans }}">
+                                            {% if errorConfirm %}
+                                                <p class="{{ errorConfirm }}">{{ errors['passwordMatch'] }}</p>
+                                            {% elseif error %}
+                                                <p class="{{ error }}">{{ errors['password'] }}</p>
+                                            {% endif %}
+                                        </div>
+                                        {% set error = errors['nik'] is defined ? 'error' : null %}
+                                        <div class="input form-group {{ error }}">
+                                            <label for="">NIK <span>*</span></label>
+                                            <input type="text" name="nik" id="nik" class="form-control" value="{{ form_data['nik']|default() }}">
+                                            {% if error %}<p class="{{ error }}">{{ errors['nik'] }}</p>{% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="dc2 mc12 btn-u">
+                                        <div class="file-input">
+                                            <p class="label">KTP <span>*</span></p>
+                                            <div class='file file--upload'>
+                                                <label for='input-file-ktp'>
+                                                    Upload
+                                                </label>
+                                                <input class="file-name" id='input-file-ktp' type='file' name="ktp_img"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="dc8 mc12">
+                                        {% set error = errors['dob'] is defined ? 'error' : null %}
+                                        <div class="input form-group {{ error }}">
+                                            <label for="">Tanggal Lahir <span>*</span></label>
+                                            <input type="date" name="dob" id="dob" class="form-control" value="{{ form_data['dob']|default() }}">
+                                            {% if error %}<p class="{{ error }}">{{ errors['dob'] }}</p>{% endif %}
+                                        </div>
+                                        {% set error = errors['gender'] is defined ? 'error' : null %}
+                                        <div class="input form-group {{ error }}">
+                                            <label for="">Jenis Kelamin <span>*</span></label>
+                                            <select class="form-control" id="input-gender" name="gender" title="">
+                                                {% set label = 'label.gender'|trans %}
+                                                <option value="">{{ 'label.select_label'|trans({'%label%': label}) }}</option>
+                                                {% for key, gender in get_parameter('gender_choices') %}
+                                                    {% set selected = form_data['gender']|default() == key ? 'selected' : '' %}
+                                                    <option value="{{ key }}" {{ selected }}>{{ gender|trans }}</option>
+                                                {% endfor %}
+                                            </select>
+                                            {# {% if error %}<p class="{{ error }}">{{ errors['gender'] }}</p>{% endif %} #}
+                                        </div>
+                                        {% set error = errors['phoneNumber'] is defined ? 'error' : null %}
+                                        <div class="input form-group {{ error }}">
+                                            <label for="">No HP<span>*</span></label>
+                                            <input type="text" name="phone" id="phone" class="form-control" value="{{ form_data['phone']|default() }}">
+                                            {% if error %}<p class="{{ error }}">{{ errors['phoneNumber'] }}</p>{% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="input">
+                                    <button type="button" class="sBtn red" onclick="myTabs(event, 'Keuangan');">Simpan/Lanjut</button>
+                                </div>
+                            </div>
+
+                            <div id="Keuangan" class="tabcontent">
+                                <div class="row">
+                                    <div class="dc8 mc12">
+                                        {% set error = errors['modalUsaha'] is defined ? 'error' : null %}
+                                        <div class="input form-group {{ error }}">
+                                            <label for="">Modal Usaha<span>*</span></label>
+                                            <input type="text" name="modal_usaha" id="modal_usaha" class="form-control">
+                                            {% if error %}<p class="{{ error }}">{{ errors['modalUsaha'] }}</p>{% endif %}
+                                            <div class="text-small">(Nilai modal usaha sesuai dengan yang tercantum pada ijin usaha)</div>
+                                        </div>
+                                        {% set error = errors['totalManpower'] is defined ? 'error' : null %}
+                                        <div class="input form-group {{ error }}">
+                                            <label for="">Jumlah Tenaga Kerja<span>*</span></label>
+                                            <input type="text" name="total_manpower" id="total_manpower" class="form-control">
+                                            {% if error %}<p class="{{ error }}">{{ errors['totalManpower'] }}</p>{% endif %}
+                                        </div>
+                                        {% set error = errors['rekeningName'] is defined ? 'error' : null %}
+                                        <div class="input form-group {{ error }}">
+                                            <label for="rekening_name" id="perusahaan" style="display:none;">Nama Rekening Perusahaan<span>*</span></label>
+                                            <label for="rekening_name" id="pemilikusaha" style="display:none;">Nama Rekening Pemilik Usaha<span>*</span></label>
+                                            <input type="text" name="rekening_name" id="rekening_name" class="form-control">
+                                            {% if error %}<p class="{{ error }}">{{ errors['rekeningName'] }}</p>{% endif %}
+                                        </div>
+                                        {% set error = errors['bankName'] is defined ? 'error' : null %}
+                                        <div class="input form-group {{ error }}">
+                                            <label for="">Bank<span>*</span></label>
+                                            <input type="text" name="bank_name" id="bank_name" class="form-control">
+                                            {% if error %}<p class="{{ error }}">{{ errors['bankName'] }}</p>{% endif %}
+                                        </div>
+                                        {% set error = errors['nomorRekening'] is defined ? 'error' : null %}
+                                        <div class="input form-group {{ error }}">
+                                            <label for="">No Rekening<span>*</span></label>
+                                            <input type="text" name="nomor_rekening" id="nomor_rekening" class="form-control">
+                                            {% if error %}<p class="{{ error }}">{{ errors['nomorRekening'] }}</p>{% endif %}
+                                        </div>
+                                        <div class="input form-group">
+                                            <label for="">Foto/Scan Halaman Depan Buku Tabungan
+                                                Yang Menunjukan Rekening <span>*</span></label>
+                                            <div class="imagesUp">
+                                                <div class="img">
+                                                    <img id="previewImg" src="../assets/img/bali-bangkit.png" alt="">
+                                                </div>
+                                                <label class="pic" for="file-input-rekening">
+                                                    <i class="fas fa-plus"></i>
+                                                </label>
+
+                                                <input id="file-input-rekening" type="file" name="rekening-img" onchange="previewFile(this);" style="display: none;" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="input">
+                                    <button type="button" class="sBtn red" onclick="myTabs(event, 'Perpajakan');">Simpan/Lanjut</button>
+                                </div>
+                            </div>
+                            
+                            <div id="Perpajakan" class="tabcontent">
+                                <div class="row">
+                                    <div class="dc8 mc12">
+                                        {% set error = errors['isPKP'] is defined ? 'error' : null %}
+                                        <div class="input form-group {{ error }}">
+                                            <label for="">Status Pajak <span>*</span></label>
+                                            <select class="form-control" name="status_pajak" id="status_pajak" onchange="showDiv(this)">
+                                                <option disabled selected>--Pilih--</option>
+                                                <option value="1">PKP</option>
+                                                <option value="0">NON PKP</option>
+                                            </select>
+                                            {% if error %}<p class="{{ error }}">{{ errors['isPKP'] }}</p>{% endif %}
+                                        </div>
+                                        <div id="sppkp_div" class="input form-group">
+                                            <label for="">Surat Pengukuhan Pengusaha Kena Pajak (SPPKP)<span>*</span></label>
+                                            <div class="imagesUp">
+                                                <div class="img">
+                                                    <img id="previewImg" src="../assets/img/bali-bangkit.png" alt="">
+                                                </div>
+                                                <label class="pic" for="file-input-sppkp">
+                                                    <i class="fas fa-plus"></i>
+                                                </label>
+
+                                                <input id="file-input-sppkp" type="file" name="sppkp-img" onchange="previewFile(this);" style="display: none;" />
+                                            </div>
+                                            <div class="text-small">Format jpeg/pdf.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="input">
+                                    <button type="button" class="sBtn red" onclick="myTabs(event, 'Kerjasama')">Simpan/Lanjut</button>
+                                </div>
+                            </div>
+
+                            <div id="Kerjasama" class="tabcontent">
+                                <div class="row">
+                                    <div class="dc12">
+                                        <div class="tabs">
+                                            <button type="button" class="linkTab" onclick="myNav(event, 'Pernyataan')" id="Opened">
+                                                <i class="fas fa-check green"></i>
+                                                Surat Pernyataan
+                                            </button>
+                                            <button type="button" class="linkTab" onclick="myNav(event, 'Perjanjian')">
+                                                Perjanjian Kerjasama
+                                            </button>
+                                        </div>
+                                        <div id="Pernyataan" class="contentTab">
+                                            <h3 class="ct">Surat Pernyataan</h3>
+                                            <p>Isi text disini</p>
+                                        </div>
+                                        
+                                        <div id="Perjanjian" class="contentTab">
+                                            <h3 class="ct">Perjanjian Kerjasama</h3>
+                                            <p>Isi text disini</p> 
+                                        </div>
+                                    </div>
+                                    <div class="dc12">
+                                        {% set error = errors['tnc'] is defined ? 'error' : null %}
+                                        <div class="input form-group {{error}}">
+                                            {% set checked = form_data['tnc']|default() == 'yes' ? 'checked' : '' %}
+                                            <div class="checklist2">
+                                                <input type="checkbox" id="tnc" name="tnc" value="yes" {{ checked }}>
+                                                <label for="kantor" class="checkL"></label>
+                                                <div class="textTerm">
+                                                    <p><b>{{ 'message.confirm.tnc'|trans|raw }}</b></p>
+                                                </div>
+                                            </div>
+                                            {% if error %}<p class="{{ error }}">{{ errors['tnc'] }}</p>{% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="input">
+                                    <input type="hidden" name="_csrf_token" value="{{ csrf_token(token_id) }}">
+                                    <input type="hidden" name="_csrf_token_id" value="{{ token_id }}">
+                                    <input type="hidden" name="reg_as" value="{{ reg_as }}">
+                                    <input type="submit" class="sBtn red" value="{{ 'button.save'|trans }}" data-message="{{ 'message.confirm.user_reg_alt'|trans }}" onclick="myTabs(event, 'finish')">
+                                </div>
+                            </div>
+
+                            <div id="finish" class="tabcontent">
+                                <div class="icon-f ct">
+                                    <i class="far fa-check-circle"></i>
+                                </div>
+                                <h5 class="ct finH">
+                                    TERIMAKASIH TELAH MENGISI DATA USAHA DENGAN LENGKAP MOHON MENUNGGU PROSES VERIFIKASI DATA
+                                </h5>
+                                <p class="ct finP">
+                                    Pemberitahuan hasil verifikasi akan disampaikan melalui email atau melalui dashboard Toko
+                                </p>
+                            </div>
+
+                        </form>
+                    </div>
+				</div>
+			</div>	
+		</div>
+	</section>
+</main>
+
+<script>
+        function myTabs(evt, tabsName) {
+        var i, tabcontent, tablinks, checkGreen;
+        tabcontent = document.getElementsByClassName("tabcontent");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+        tablinks = document.getElementsByClassName("tablinks");
+    
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        
+        document.getElementById(tabsName).style.display = "block";
+        evt.currentTarget.className += " active";
+        }
+        
+        // Get the element with id="defaultOpen" and click on it
+        document.getElementById("defaultOpen").click();
+    </script>
+
+    {# <script>
+        function handleMyButtonClick() {
+                var i, checkGreen;
+                var icon = '<i class="fas fa-check green"></i>';
+
+                checkGreen = document.getElementById("checkGreen");
+                checkGreen.insertAdjacentHTML('beforeend', '<i class="fas fa-check green"></i>');
+                console.log(checkGreen);
+        }
+    </script> #}
+
+    <!-- Script Kerjasama -->
+    <script>
+        function myNav(evt, navName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("contentTab");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("linkTab");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+                
+            }
+            document.getElementById(navName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+        document.getElementById("Opened").click();
+    </script>
+    <!-- Script Kerjasama -->
+
+    <script>
+        const file = document.querySelector('#input-file');
+        {# console.log(file); #}
+        file.addEventListener('change', (e) => {
+        // Get the selected file
+        const [file] = e.target.files;
+        // Get the file name and size
+        const { name: fileName, size } = file;
+        // Convert size in bytes to kilo bytes
+        const fileSize = (size / 1000).toFixed(2);
+        // Set the text content
+        const fileNameAndSize = `${fileName} - ${fileSize}KB`;
+        document.querySelector('.file-name').textContent = fileNameAndSize;
+        });
+    </script>
+
+    <script type="text/javascript">
+        function showDiv(select){
+            if(select.value==0){
+                document.getElementById('sppkp_div').style.display = "none";
+            } else{
+                document.getElementById('sppkp_div').style.display = "block";
+            }
+        } 
+    </script>
+
+    <script type="text/javascript">
+        function rekeningOnChange(select){
+            if(select.value == 'perseorangan'){
+                document.getElementById('pemilikusaha').style.display = "block";
+                document.getElementById('perusahaan').style.display = "none";
+            }else if(select.value == 'badan usaha'){
+                document.getElementById('perusahaan').style.display = "block";
+                document.getElementById('pemilikusaha').style.display = "none";
+            }else{
+                document.getElementById('pemilikusaha').style.display = "none";
+                document.getElementById('perusahaan').style.display = "none";
+            }
+        } 
+    </script>
+
+    {# <script>
+        function previewFile(input){
+            var file = $(".file-image-dokumen").get(0).files[0];
+
+            if(file){
+            var reader = new FileReader();
+
+            reader.onload = function(){
+                $("#previewImg").attr("src", reader.result);
+            }
+
+            reader.readAsDataURL(file);
+            }
+        }
+    </script> #}
+

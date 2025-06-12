@@ -1,0 +1,103 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% block content %}
+    <main class="pdl">
+        {% include '@__main__/public/base/partials/breadcrumb.html.twig' %}
+        <section>
+            <div class="container">
+                <div class="box">
+                    <div class="row">
+                        {% include '@__main__/public/user/fragments/menu.html.twig' %}
+                        <div class="dc9 tc12">
+                            {% if store_owner == true %}
+                                <div class="sub-title">
+                                    <div class="text">
+                                        {% if is_edit|default(false) %}
+                                            <h3>{{ 'label.edit_admin_merchant'|trans }}</h3>
+                                        {% else %}
+                                            <h3>{{ 'label.add_admin_merchant'|trans }}</h3>
+                                        {% endif %}
+                                    </div>
+                                    <div class="clear"></div>
+                                </div>
+                            {% else %}
+                                <div class="sub-title">
+                                    <div class="text">
+                                        {% if is_edit|default(false) %}
+                                            <h3>{{ 'label.edit_work_unit'|trans }}</h3>
+                                        {% else %}
+                                            <h3>{{ 'label.add_work_unit'|trans }}</h3>
+                                        {% endif %}
+                                    </div>
+                                    <div class="clear"></div>
+                                </div>
+                            {% endif %}
+                            <div class="pr-card">
+                                <div class="row">
+                                    <div class="container fc">
+                                        <form id="user-address-form" action="" method="post" accept-charset="UTF-8">
+                                            {% set error = errors['fullname'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                                <input id="input-fullname" type="text" name="fullname" value="{{ form_data['fullname']|default() }}" title="" placeholder="{{ 'label.name'|trans }}">
+                                                {% if error %}<p class="{{ error }}">{{ errors['fullname'] }}</p>{% endif %}
+                                            </div>
+
+                                            {% set error = errors['address'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                                <textarea id="input-address" name="address" class="no-resize" title="" placeholder="{{ 'label.address'|trans }}">{{ form_data['address']|default() }}</textarea>
+                                                {% if error %}<p class="{{ error }}">{{ errors['address'] }}</p>{% endif %}
+                                            </div>
+
+                                            {% set error = errors['phone'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                                <input id="input-phone" type="text" name="phone" value="{{ form_data['phone']|default() }}" title="" placeholder="{{ 'label.phone'|trans }}">
+                                                {% if error %}<p class="{{ error }}">{{ errors['phone'] }}</p>{% endif %}
+                                            </div>
+
+                                            {% if store_owner == false %}
+                                                {% set error = errors['work_unit'] is defined ? 'error' : null %}
+                                                <div class="input {{ error }}">
+                                                    <input id="input-work-unit" type="text" name="work_unit" value="{{ form_data['work_unit']|default() }}" title="" placeholder="{{ 'label.work_unit'|trans }}">
+                                                    {% if error %}<p class="{{ error }}">{{ errors['work_unit'] }}</p>{% endif %}
+                                                </div>
+                                            {% endif %}
+
+                                            {% if store_owner == true %}
+                                                {% set error = errors['role'] is defined ? 'error' : null %}
+                                                <div class="input {{ error }}">
+                                                    <select id="input-role" name="role" title="" >
+                                                        <option value="">{{ 'label.select_option'|trans }}</option>
+                                                        {% for role in get_parameter('admin_merchant_roles') %}
+                                                            {% if role != 'ROLE_ADMIN_MERCHANT_OWNER' %}
+                                                                {% set selected = form_data['role']|default == role ? 'selected' : '' %}
+                                                                <option value="{{ role }}" {{ selected }}>{{ role }}</option>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    </select>
+                                                    {% if error %}<p class="{{ error }}">{{ errors['role'] }}</p>{% endif %}
+                                                </div>
+                                            {% endif %}
+
+                                            <div class="input">
+                                                <input type="hidden" name="_csrf_token" value="{{ csrf_token(token_id) }}">
+                                                <input type="hidden" name="_csrf_token_id" value="{{ token_id }}">
+                                            </div>
+                                            <div class="input">
+                                                <input type="submit" value="{{ 'button.save'|trans }}" class="sBtn red">
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+    </script>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% if left_banner is not empty %}
+    {% set promo = left_banner|first %}
+    <div class="dc6 tc12">
+        <div class="featured-promo">
+            {% if promo['route'] is not empty %}
+                {% if promo['route'] == 'search' %}
+                    {% set route = path(promo['route'], promo['parameters']|json_decode) %}
+                {% elseif promo['route'] == 'external' %}
+                    {% set route = promo['externalUrl'] %}
+                {% endif %}
+            {% else %}
+                {% set route = 'javascript:void(0);' %}
+            {% endif %}
+
+            <a href="{{ route }}">
+                <img src="{{ path('sftp_show_file', {'path': promo['image']}) }}" alt="">
+            </a>
+            {% if promo['buttons'] is not empty %}
+                <div class="banner-btn">
+                    {% for btn in promo['buttons_content'] %}
+                        {% if btn['route'] == 'external' %}
+                            {% set href = btn['url'] %}
+                        {% else %}
+                            {% set href = btn['route'] is not empty ? path(btn['route'], btn['parameters']) : 'javascript:void(0);' %}
+                        {% endif %}
+                        <a href="{{ href }}" class="btn p-btn">{{ btn['label'] }}</a>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% else %}
+    <div class="dc6 tc12">
+        <div class="featured-promo">
+            <a href='javascript:void(0);'>
+                <img src="{{ asset('dist/img/no-image.png') }}" alt="">
+            </a>
+        </div>
+    </div>
+{% endif %}
+
+{% if right_banner is not empty %}
+    {% set promo = right_banner|first %}
+    <div class="dc6 tc12">
+        <div class="featured-promo">
+            {% if promo['route'] is not empty %}
+                {% if promo['route'] == 'search' %}
+                    {% set route = path(promo['route'], promo['parameters']|json_decode) %}
+                {% elseif promo['route'] == 'external' %}
+                    {% set route = promo['externalUrl'] %}
+                {% endif %}
+            {% else %}
+                {% set route = 'javascript:void(0);' %}
+            {% endif %}
+
+            <a href="{{ route }}">
+                <img src="{{ path('sftp_show_file', {'path': promo['image']}) }}" alt="">
+            </a>
+            {% if promo['buttons'] is not empty %}
+                <div class="banner-btn">
+                    {% for btn in promo['buttons_content'] %}
+                        {% if btn['route'] == 'external' %}
+                            {% set href = btn['url'] %}
+                        {% else %}
+                            {% set href = btn['route'] is not empty ? path(btn['route'], btn['parameters']) : 'javascript:void(0);' %}
+                        {% endif %}
+                        <a href="{{ href }}" class="btn p-btn">{{ btn['label'] }}</a>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% else %}
+    <div class="dc6 tc12">
+        <div class="featured-promo">
+            <a href='javascript:void(0);'>
+                <img src="{{ asset('dist/img/no-image.png') }}" alt="">
+            </a>
+        </div>
+    </div>
+{% endif %}

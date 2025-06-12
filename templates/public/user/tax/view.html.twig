@@ -1,0 +1,62 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% block content %}
+    <main class="pdl">
+        {% include '@__main__/public/base/partials/breadcrumb.html.twig' %}
+        <section>
+            <div class="container">
+                <div class="box">
+                    <div class="row">
+                        {% include '@__main__/public/user/fragments/menu.html.twig' %}
+                        <div class="dc9 tc12">
+                            <div class="sub-title">
+                                <div class="text">
+                                    <h3>{{ 'label.tax_document'|trans }}</h3>
+                                </div>
+                                <div class="clear"></div>
+                            </div>
+                            <div class="pr-card">
+                                <div class="row">
+                                    <div class="container fc">
+                                        <form id="user-tax-document-form" action="" method="post" accept-charset="UTF-8">
+                                            <div class="input">
+                                                <input type="text" value="{{ form_data['title']|default() }}" title="" placeholder="{{ 'label.title'|trans }}" readonly>
+                                            </div>
+                                            <div class="input">
+                                                <input type="text" value="{{ form_data['number']|default() }}" title="" placeholder="{{ 'label.number_alt'|trans }}" readonly>
+                                            </div>
+                                            <div class="input">
+                                                <input type="email" value="{{ form_data['email']|default() }}" title="" placeholder="{{ 'label.email'|trans }}" readonly>
+                                            </div>
+                                            <div class="input">
+                                                <input type="text" value="{{ form_data['phone']|default() }}" title="" placeholder="{{ 'label.phone'|trans }}" readonly>
+                                            </div>
+                                            <div class="input">
+                                                <div class="row">
+                                                    <div class="dc3 tc6 img-id">
+                                                        <div class="inner">
+                                                            <span class="badge">{{ 'label.image'|trans }}</span>
+                                                            <img id="img-src" class="upload-image" src="{{ asset(form_data['image']|default()) }}" alt="">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="input">
+                                                <a href="{{ path('user_tax_edit', {'id': form_data['id']}) }}" class="gBtn red">
+                                                    {{ 'button.edit'|trans }}
+                                                </a>
+                                                <a href="{{ path('user_tax_index') }}" class="sBtn red">
+                                                    {{ 'button.return'|trans }}
+                                                </a>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}

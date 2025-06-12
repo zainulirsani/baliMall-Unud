@@ -1,0 +1,9 @@
+{% extends '@__main__/public/base/layouts/base.html.twig' %}
+
+{% block body %}
+    {% for image in images %}
+        <a href="javascript:void(0);" class="cke-img-picker" data-image="{{ asset(image) }}" data-func="{{ func_num }}">
+            <img src="{{ asset(image) }}" width="180" height="auto" alt="">
+        </a>
+    {% endfor %}
+{% endblock %}

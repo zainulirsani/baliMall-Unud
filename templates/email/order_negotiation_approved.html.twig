@@ -1,0 +1,11 @@
+{% extends '@__main__/public/base/layouts/email.html.twig' %}
+
+{% block body %}
+    <div class="text">
+        <h1>Hi, {{ store_name }}!</h1>
+        <h3>Negosiasi dengan no invoice {{ invoice }} telah disetujui.</h3>
+        <p>
+            Gunakan tautan berikut untuk melihat riwayat pesanan: <a href="{{ link }}" target="_blank">Riwayat Transaksi</a>
+        </p>
+    </div>
+{% endblock %}

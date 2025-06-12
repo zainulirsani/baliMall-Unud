@@ -1,0 +1,24 @@
+<div class="box box-success">
+    <div class="box-header with-border">
+        <h3 class="box-title">{{ address.getTitle }}</h3>
+    </div>
+    <div class="box-body">
+        <strong><i class="fa fa-map-marker margin-r-5"></i> {{ 'label.location'|trans }}</strong>
+        <p class="text-muted">
+            {{ address.getAddress }}<br>
+            {{ address.getDistrict ~ ', ' ~ address.getCity ~ ', ' ~ address.getPostCode }}<br>
+            {{ address.getProvince ~ ' - ' ~ get_country_name(address.getCountry) }}
+        </p>
+        {% if type == 'edit' %}
+            <hr>
+            <a href="javascript:void(0);" class="btn btn-sm btn-success btn-edit-address" data-id="{{ address.getId }}">
+                <b>{{ 'button.edit'|trans }}</b>
+            </a>
+            {% if addresses_count > 1 %}
+                <a href="javascript:void(0);" class="btn btn-sm btn-danger btn-delete-address" data-id="{{ address.getId }}">
+                    <b>{{ 'button.delete'|trans }}</b>
+                </a>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>

@@ -1,0 +1,1093 @@
+{% extends '@__main__/admin/base/layouts/default.html.twig' %}
+
+{% set controller = app.request.get('_controller') %}
+{% set page_method = controller[1] is defined ? controller[1] : 'n/a' %}
+{% set page_header = page_title|trans %}
+{% set index_route = 'admin_' ~ page_section ~ '_index' %}
+{% set save_route = 'admin_' ~ page_section ~ '_save' %}
+{% set page_action = path(save_route) %}
+{% set store_id = form_data['s_id']|default(0) %}
+{% set store_status = form_data['s_status']|default() %}
+{% set store_verified = form_data['s_isVerified']|default() %}
+{% set store_owner_id = 0 %}
+{% set store_owner_full_name = null %}
+{% set store_delivery_couriers = form_data['s_deliveryCouriers']|default([]) %}
+{% set province_id = form_data['s_provinceId']|default(0) %}
+{% set city_data_select = province_id > 0 ? city_data[province_id] : []  %}
+{% set store_pkp = form_data['s_isPKP']|default(false) %}
+{% set used_erzap = form_data['s_isUsedErzap']|default(false) %}
+{% set isUpdate = false %}
+{% set type_of_business = form_data['s_typeOfBusiness']|default %}
+{% set business_criteria = form_data['s_businessCriteria']|default %}
+{% set position = form_data['s_position']|default %}
+{% set user_dob = form_data['u_dob']|default %}
+{% set gender = form_data['u_gender']|default %}
+{% set photo_profile = form_data['u_photoProfile']|default(null) %}
+{% set photo_banner = form_data['u_bannerProfile']|default(null) %}
+{% set ktp_file = form_data['u_ktpFile']|default(null) %}
+{% set rekening_file = form_data['s_rekeningFile']|default(null) %}
+{% set npwp_file = form_data['u_npwpFile']|default(null) %}
+{% set signature_file = form_data['u_user_signature']|default(null) %}
+{% set stamp_file = form_data['u_user_stamp']|default(null) %}
+{% set sppkp_file = form_data['s_sppkpFile']|default(null) %}
+{% set surat_ijin_file = form_data['u_suratIjin']|default(null) %}
+{% set dokumen_tambahan_file = form_data['u_dokumenFile']|default(null) %}
+{% set register_number = register_number|default %}
+{% set status_list = get_parameter('store_status')|filter(v => v == 'ACTIVE') %}
+{% set selectedProductCategories = form_data['s_productCategories']|default([]) %}
+{# {{ dump(selectedProductCategories) }} #}
+
+{% if page_method == 'edit' %}
+    {% set trans_parameter = {'%name%': form_data['s_name']} %}
+    {% set page_header = page_title|trans(trans_parameter) %}
+    {% set update_route = 'admin_' ~ page_section ~ '_update' %}
+    {% set page_action = path(update_route, {id: store_id}) %}
+    {% set page_action = path(update_route, {id: store_id}) %}
+    {% set store_status = form_data['s_status'] %}
+    {% set store_verified = store_verified == true ? 1 : 0 %}
+    {% set store_owner_id = form_data['u_id']|default(0) %}
+    {% set typeOfBusiness = form_data['s_typeOfBusiness'] %}
+    {% set businessCriteria = form_data['s_businessCriteria'] %}
+    {% set position = form_data['s_position'] %}
+    {% set user_dob = form_data['u_dob']|date('Y-m-d') %}
+    {% set gender = form_data['u_gender'] %}
+    {% set register_number = form_data['s_registeredNumber'] %}
+    {% set status_list = get_parameter('store_status') %}
+    {% set selectedProductCategories = form_data['s_productCategories'] %}
+
+    {% set isUpdate = form_data['s_status'] == 'UPDATE' %}
+
+    {% if store_owner_id > 0 %}
+        {% set store_owner_full_name = form_data['u_firstName'] ~ ' ' ~ form_data['u_lastName'] %}
+    {% endif %}
+
+    {% if form_data['s_deliveryCouriers'] is not empty %}
+        {% set store_delivery_couriers = form_data['s_deliveryCouriers']|json_decode %}
+    {% endif %}
+{% endif %}
+
+{% block stylesheets %}
+    <style>
+        .prev-value {
+            border: 1px solid red;
+            margin-bottom: 10px;
+        }
+
+        .red {
+            color: red;
+        }
+    </style>
+
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="box box-primary">
+                <form id="store-form" accept-charset="UTF-8" method="post" action="{{ page_action }}" enctype="multipart/form-data">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">{{ page_header|raw }}</h3>
+                    </div>
+                    <div class="box-body">
+                        {{ csrf_field(token_id) }}
+                        <div class="panel-body">
+                            <div class="nav-tabs-custom">
+                                <ul class="nav nav-tabs store-tabs">
+                                    <li class="active store-tab-data">
+                                        <a href="#tab-data" data-toggle="tab" data-tab="data">{{ 'label.data'|trans }}</a>
+                                    </li>
+                                    <li class="store-tab-owner">
+                                        <a href="#tab-owner" data-toggle="tab" data-tab="owner">{{ 'label.business_owner'|trans }}</a>
+                                    </li>
+                                    <li class="store-tab-address">
+                                        <a href="#tab-address" data-toggle="tab" data-tab="address">{{ 'label.address'|trans }}</a>
+                                    </li>
+                                    <li class="store-tab-financial">
+                                        <a href="#tab-financial" data-toggle="tab" data-tab="financial">{{ 'label.financial_data'|trans }}</a>
+                                    </li>
+                                    <li class="store-tab-document">
+                                        <a href="#tab-document" data-toggle="tab" data-tab="document">{{ 'label.document'|trans }}</a>
+                                    </li>
+
+                                </ul>
+                                <div class="tab-content tab-store-content">
+                                    <div id="tab-data" class="tab-pane fade in active">
+                                        <div class="m-top-15"></div>
+                                        <div class="form-group {% if errors['u_id']|default() %}has-error{% endif %}">
+                                            <label for="input-owned-by">{{ 'label.owned_by'|trans }}</label>
+                                            {% if errors['u_id']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['u_id'] }}</span>
+                                            {% endif %}
+                                            <select id="input-owned-by" class="form-control" name="u_id">
+                                                {#<option value="">{{ 'label.select_option'|trans }}</option>#}
+                                                {% if store_owner_full_name is defined and store_owner_full_name is not empty %}
+                                                    <option value="{{ store_owner_id }}" selected>{{ store_owner_full_name }}</option>
+                                                {% endif %}
+                                            </select>
+                                        </div>
+                                        <div class="form-group {% if errors['s_name']|default() %}has-error{% endif %}">
+                                            <label for="input-s-name">{{ 'label.store_name'|trans }}</label>
+                                            {% if isUpdate and form_data['s_previousChanges']['s_name'] is defined %}
+                                                <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['s_name'] }}" disabled>
+                                            {% endif %}
+
+                                            {% if errors['s_name']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['s_name'] }}</span>
+                                            {% endif %}
+                                            <input id="input-s-name" class="form-control slug-input" name="s_name" value="{{ form_data['s_name']|default()|raw }}">
+                                        </div>
+                                        <div class="form-group {% if errors['s_brand']|default() %}has-error{% endif %}">
+                                            <label for="input-s-name">{{ 'label.brand'|trans }}</label>
+                                            {% if isUpdate and form_data['s_previousChanges']['s_brand'] is defined %}
+                                                <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['s_brand'] }}" disabled>
+                                            {% endif %}
+
+                                            {% if errors['s_brand']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['s_brand'] }}</span>
+                                            {% endif %}
+                                            <input id="input-s-brand" class="form-control" name="s_brand" value="{{ form_data['s_brand']|default()|raw }}">
+                                        </div>
+                                        <div class="form-group {% if errors['s_idTayang']|default() %}has-error{% endif %}">
+                                            <label for="input-id-tayang">{{ 'label.id_tayang'|trans }}</label>
+                                            {% if errors['s_idTayang']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['s_idTayang'] }}</span>
+                                            {% endif %}
+                                            <input id="input-id-tayang" class="form-control id-tayang-output" name="s_id_tayang" value="{{ form_data['s_idTayang']|default() }}">
+                                        </div>
+                                        <div class="form-group {% if errors['s_slug']|default() %}has-error{% endif %}">
+                                            <label for="input-slug">{{ 'label.slug'|trans }}</label>
+                                            {% if errors['s_slug']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['s_slug'] }}</span>
+                                            {% endif %}
+                                            <input id="input-slug" class="form-control slug-output" name="s_slug" value="{{ form_data['s_slug']|default() }}">
+                                        </div>
+                                        {#<div class="form-group {% if errors['s_color']|default() %}has-error{% endif %}">
+                                            <label for="input-color">{{ 'label.color'|trans }}</label>
+                                            {% if errors['s_color']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['s_color'] }}</span>
+                                            {% endif %}
+                                            <input id="input-color" class="form-control color-picker" name="s_color" value="{{ form_data['s_color']|default() }}">
+                                        </div>
+                                        <div class="form-group {% if errors['s_theme']|default() %}has-error{% endif %}">
+                                            <label for="input-theme">{{ 'label.theme'|trans }}</label>
+                                            {% if errors['s_theme']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['s_theme'] }}</span>
+                                            {% endif %}
+                                            <select id="input-theme" class="form-control" name="s_theme">
+                                                <option value="">{{ 'label.select_option'|trans }}</option>
+                                            </select>
+                                        </div>#}
+                                        <div class="form-group {% if errors['s_description']|default() %}has-error{% endif %}">
+                                            <label for="input-description">{{ 'label.description'|trans }}</label>
+                                            {% if isUpdate and form_data['s_previousChanges']['s_description'] is defined %}
+                                                <textarea class="form-control prev-value" rows="3" disabled >{{ form_data['s_previousChanges']['s_description'] }}</textarea>
+                                            {% endif %}
+
+                                            {% if errors['s_description']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['s_description'] }}</span>
+                                            {% endif %}
+                                            <textarea id="input-descriptions" class="form-control" rows="3" name="s_description">{{ form_data['s_description']|default() }}</textarea>
+                                        </div>
+                                        <div class="form-group {% if errors['s_note']|default() %}has-error{% endif %}">
+                                            <label for="input-note">{{ 'label.note'|trans }}</label>
+                                            {% if errors['s_note']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['s_note'] }}</span>
+                                            {% endif %}
+                                            <textarea id="input-note" class="form-control" rows="3" name="s_note">{{ form_data['s_note']|default() }}</textarea>
+                                        </div>
+                                        <div class="form-group {% if errors['s_fileHash']|default() %}has-error{% endif %}">
+                                            <label for="input-filehash">{{ 'label.filehash'|trans }}</label>
+                                            {% if errors['s_fileHash']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['s_fileHash'] }}</span>
+                                            {% endif %}
+                                            <input id="input-filehash" class="form-control" name="s_fileHash" value="{{ form_data['s_fileHash']|default() }}" readonly>
+                                        </div>
+                                        <div class="form-group {% if errors['s_status']|default() %}has-error{% endif %}">
+                                            <label for="input-status">{{ 'label.status'|trans }}</label>
+
+                                            {% if errors['s_status']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['s_status'] }}</span>
+                                            {% endif %}
+                                            <select id="input-status" class="form-control" name="s_status">
+                                                <option value="">{{ 'label.select_option'|trans }}</option>
+                                                {% for key in status_list %}
+                                                    {% set selected = store_status == key ? 'selected' : '' %}
+                                                    <option value="{{ key }}" {{ selected }}>{{ key }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="form-group {% if errors['s_isVerified']|default() %}has-error{% endif %}">
+                                            <label for="input-verified">{{ 'label.verified'|trans }}</label>
+                                            {% if errors['s_isVerified']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['s_isVerified'] }}</span>
+                                            {% endif %}
+                                            <select id="input-verified" class="form-control" name="s_isVerified">
+                                                <option value="">{{ 'label.select_option'|trans }}</option>
+                                                {% for key, choice in get_parameter('verified_unverified') %}
+                                                    {% set label = 'label.' ~ choice %}
+                                                    {% set selected = store_verified == key ? 'selected' : '' %}
+                                                    <option value="{{ key }}" {{ selected }}>{{ label|trans }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="">{{ 'label.pkp'|trans }}</label>
+
+                                            {% set checked = store_pkp == true ? 'checked' : '' %}
+                                            <div class="checkbox">
+                                                <label><input id="isPkp" type="checkbox" name="s_isPKP" value="1" {{ checked }}></label>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="">{{ 'label.used_erzap'|trans }}</label>
+
+                                            {% set checked = used_erzap == true ? 'checked' : '' %}
+                                            <div class="checkbox">
+                                                <label><input id="isUsedErzap" type="checkbox" name="s_isUsedErzap" value="1" {{ checked }}></label>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group {% if errors['s_registeredNumber']|default() %}has-error{% endif %}">
+                                            <label for="input-registerNumber">{{ 'label.register_number'|trans }}</label>
+                                            {% if errors['s_registeredNumber']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['s_registeredNumber'] }}</span>
+                                            {% endif %}
+                                            <input id="input-registerNumber" class="form-control" name="s_registeredNumber" value="{{ register_number }}" readonly>
+                                        </div>
+                                        <div class="form-group {% if errors['s_typeOfBusiness']|default() %}has-error{% endif %}">
+                                            <label for="input-typeOfBusiness">{{ 'label.type_of_business'|trans }}</label>
+                                            {% if errors['s_typeOfBusiness']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['s_typeOfBusiness'] }}</span>
+                                            {% endif %}
+
+                                            {% if isUpdate and form_data['s_previousChanges']['s_typeOfBusiness'] is defined %}
+                                                {% set choiceType = get_parameter('type_of_business')[form_data['s_previousChanges']['s_typeOfBusiness']]['label'] %}
+                                                {% set labelType = 'label.' ~ choiceType %}
+                                                <input class="form-control prev-value" value="- {{ labelType|trans }}" readonly>
+                                            {% endif %}
+
+                                            <select id="input-typeOfBusiness" class="form-control" name="s_typeOfBusiness">
+                                                <option value="">{{ 'label.select_option'|trans }}</option>
+                                                {% for key, choice in get_parameter('type_of_business') %}
+                                                    {% set label = 'label.' ~ choice['label'] %}
+                                                    {% set selected = type_of_business == key ? 'selected' : '' %}
+                                                    <option value="{{ key }}" {{ selected }}>{{ label|trans }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group {% if errors['s_businessCriteria']|default() %}has-error{% endif %}">
+                                            <label for="input-business-criteria">{{ 'label.business_criteria'|trans }}</label>
+                                            {% if errors['s_businessCriteria']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['s_businessCriteria'] }}</span>
+                                            {% endif %}
+
+                                            {% if isUpdate and form_data['s_previousChanges']['s_businessCriteria'] is defined %}
+                                                {% set prevLabelForBusinessCriteria =
+                                                    get_parameter('business_criteria')[form_data['s_previousChanges']['s_businessCriteria']] %}
+
+                                                <input class="form-control prev-value" value="- {{ prevLabelForBusinessCriteria['display'] }}" readonly>
+                                            {% endif %}
+
+                                            <select id="input-business-criteria" class="form-control" name="s_businessCriteria">
+                                                <option value="">{{ 'label.select_option'|trans }}</option>
+                                                {% for key, choice in get_parameter('business_criteria') %}
+                                                    {% set label = 'label.' ~ choice['label'] %}
+                                                    {% set selected = business_criteria == key ? 'selected' : '' %}
+                                                    <option value="{{ key }}" {{ selected }}>{{ label|trans }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        
+                                        {# npwp name #}
+                                        <div class="form-group {% if errors['u_npwpName']|default() %}has-error{% endif %}">
+                                            <label for="input-npwp">{{ 'label.npwp_name'|trans }}</label>
+
+                                            {% if isUpdate and form_data['s_previousChanges']['u_npwpName'] is defined %}
+                                                <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['u_npwpName'] }}" readonly>
+                                            {% endif %}
+
+                                            {% if errors['u_npwpName']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['u_npwpName'] }}</span>
+                                            {% endif %}
+                                            <input id="input-npwp" class="form-control" name="u_npwp" value="{{ form_data['u_npwpName']|default() }}">
+                                        </div>
+
+                                        <div class="form-group {% if errors['u_npwp']|default() %}has-error{% endif %}">
+                                            <label for="input-npwp">{{ 'label.npwp'|trans }}</label>
+
+                                            {% if isUpdate and form_data['s_previousChanges']['u_npwp'] is defined %}
+                                                <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['u_npwp'] }}" readonly>
+                                            {% endif %}
+
+                                            {% if errors['u_npwp']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['u_npwp'] }}</span>
+                                            {% endif %}
+                                            <input id="input-npwp" class="form-control" name="u_npwp" value="{{ form_data['u_npwp']|default() }}">
+                                        </div>
+
+                                        <div class="form-group {% if errors['s_deliveryCouriers']|default() %}has-error{% endif %}">
+                                            <label for="">{{ 'label.delivery_couriers'|trans }}</label>
+
+                                            {% if isUpdate and form_data['s_previousChanges']['s_deliveryCouriers'] is defined %}
+                                                <div class="prev-value">
+                                                    {% for key, courier in get_parameter('raja_ongkir_couriers') %}
+                                                        {% set checkedCourier = key in form_data['s_previousChanges']['s_deliveryCouriers'] ? 'checked' : '' %}
+                                                        {% if checkedCourier %}
+                                                            <div class="checkbox">     
+                                                                <label>
+                                                                    <input type="checkbox" value="{{ key }}" {{ checkedCourier }} disabled> {{ courier }}
+                                                                </label>
+                                                            </div>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+
+                                            {% if errors['s_deliveryCouriers']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['s_deliveryCouriers'] }}</span>
+                                            {% endif %}
+                                            {% for key, courier in get_parameter('raja_ongkir_couriers') %}
+                                                {% set checked = key in store_delivery_couriers ? 'checked' : '' %}
+                                                <div class="checkbox">
+                                                    <label>
+                                                        <input type="checkbox" name="s_deliveryCouriers[]" value="{{ key }}" {{ checked }}> {{ courier }}
+                                                    </label>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+
+                                        <div class="form-group {% if errors['s_productCategories']|default() %}has-error{% endif %}">
+                                            <label for="">{{ 'label.category'|trans }}</label>
+                                            {% if errors['s_productCategories']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['s_productCategories'] }}</span>
+                                            {% endif %}
+                                            {% if productCategories|length > 0 %}
+                                                {% for category in productCategories|filter((v,k) => v['level'] != 1) %}
+                                                    {% set checked = category['id'] in selectedProductCategories ? 'checked' : '' %}
+                                                    <div class="checkbox">
+                                                        <label>
+                                                            <input type="checkbox" name="s_productCategories[]" value="{{ category['id'] }}" {{ checked }}> {{ category['text'] }}
+                                                        </label>
+                                                    </div>
+                                                {% endfor %}
+                                            {% endif %}
+                                        </div>
+
+                                    </div>
+                                    <div id="tab-owner" class="tab-pane fade in">
+                                        <div class="m-top-15"></div>
+                                        <div class="form-group {% if errors['u_name']|default() %}has-error{% endif %}">
+                                            <label for="input-name">{{ 'label.owned_by'|trans }}</label>
+
+                                            {% if isUpdate and form_data['s_previousChanges']['u_fullName'] is defined %}
+                                                <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['u_fullName'] }}" readonly>
+                                            {% endif %}
+
+                                            {% if errors['u_name']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['u_name'] }}</span>
+                                            {% endif %}
+                                            <input id="input-name" class="form-control" name="u_name" value="{{ store_owner_full_name|default }}">
+                                        </div>
+
+                                        <div class="form-group {% if errors['s_position']|default() %}has-error{% endif %}">
+                                            <label for="input-position">{{ 'label.position'|trans }}</label>
+                                            {% if errors['s_position']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['s_position'] }}</span>
+                                            {% endif %}
+
+                                            {% if isUpdate and form_data['s_previousChanges']['s_position'] is defined %}
+                                                {% set choiceType = get_parameter('position')[form_data['s_previousChanges']['s_position']]['label'] %}
+                                                {% set labelType = 'label.' ~ choiceType %}
+                                                <input class="form-control prev-value" value="- {{ labelType|trans }}" readonly>
+                                            {% endif %}
+
+                                            <select id="input-position" class="form-control" name="s_position">
+                                                <option value="">{{ 'label.select_option'|trans }}</option>
+                                                {% for key, choice in get_parameter('position') %}
+                                                    {% set label = 'label.' ~ choice['label'] %}
+                                                    {% set selected = position == key ? 'selected' : '' %}
+                                                    <option value="{{ key }}" {{ selected }}>{{ label|trans }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group {% if errors['u_nik']|default() %}has-error{% endif %}">
+                                            <label for="input-nik">{{ 'label.nik'|trans }}</label>
+
+                                            {% if isUpdate and form_data['s_previousChanges']['u_nik'] is defined %}
+                                                <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['u_nik'] }}" readonly>
+                                            {% endif %}
+
+                                            {% if errors['u_nik']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['u_nik'] }}</span>
+                                            {% endif %}
+                                            <input id="input-nik" class="form-control" name="u_nik" value="{{ form_data['u_nik']|default()|raw }}">
+                                        </div>
+
+                                        <div class="form-group {% if errors['u_email']|default() %}has-error{% endif %}">
+                                            <label for="input-email">{{ 'label.email'|trans }}</label>
+
+                                            {% if isUpdate and form_data['s_previousChanges']['u_email'] is defined %}
+                                                <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['u_email'] }}" readonly>
+                                            {% endif %}
+
+                                            {% if errors['u_email']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['u_email'] }}</span>
+                                            {% endif %}
+                                            <input id="input-email" type="email" class="form-control" name="u_email" value="{{ form_data['u_email']|default()|raw }}">
+                                        </div>
+
+                                        <div class="form-group {% if errors['u_phoneNumber']|default() %}has-error{% endif %}">
+                                            <label for="input-phone-number">{{ 'label.phone'|trans }}</label>
+
+                                            {% if isUpdate and form_data['s_previousChanges']['u_phoneNumber'] is defined %}
+                                                <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['u_phoneNumber'] }}" readonly>
+                                            {% endif %}
+
+                                            {% if errors['u_phoneNumber']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['u_phoneNumber'] }}</span>
+                                            {% endif %}
+                                            <input id="input-phone-number" type="number" maxlength="12" class="form-control" name="u_phoneNumber" value="{{ form_data['u_phoneNumber']|default()|raw }}">
+                                        </div>
+
+                                        <div class="form-group {% if errors['u_dob']|default() %}has-error{% endif %}">
+                                            <label for="input-dob">{{ 'label.dob'|trans }}</label>
+
+                                            {% if isUpdate and form_data['s_previousChanges']['u_dob'] is defined %}
+                                                <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['u_dob'] }}" readonly>
+                                            {% endif %}
+
+                                            {% if errors['u_dob']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['u_dob'] }}</span>
+                                            {% endif %}
+                                            <input type="date" id="input-dob" class="form-control" name="u_dob" value="{{ user_dob }}">
+                                        </div>
+                                        <div class="form-group {% if errors['u_gender']|default() %}has-error{% endif %}">
+                                            <label for="input-gender">{{ 'label.gender'|trans }}</label>
+
+                                            {% if isUpdate and form_data['s_previousChanges']['u_gender'] is defined %}
+                                                {% set prevGenderLabel = get_parameter('gender_choices')[form_data['s_previousChanges']['u_gender']] %}
+                                                <input class="form-control prev-value" value="- {{ prevGenderLabel|trans }}" readonly>
+                                            {% endif %}
+
+                                            {% if errors['u_gender']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['u_gender'] }}</span>
+                                            {% endif %}
+                                            <select id="input-gender" class="form-control" name="u_gender">
+                                                {% for key,label in get_parameter('gender_choices') %}
+                                                    {% set selected = key == gender ? 'selected' : '' %}
+                                                    <option value="{{ key }}" {{ selected}} >{{ label|trans }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div id="tab-address" class="tab-pane fade">
+                                        <div class="m-top-15"></div>
+                                        <div class="form-group {% if errors['s_address']|default() %}has-error{% endif %}">
+                                            <label for="input-address">{{ 'label.address'|trans }}</label>
+
+                                            {% if isUpdate and form_data['s_previousChanges']['s_address'] is defined %}
+                                                <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['s_address'] }}" readonly>
+                                            {% endif %}
+
+                                            {% if errors['s_address']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['s_address'] }}</span>
+                                            {% endif %}
+                                            <textarea id="input-address" class="form-control" rows="3" name="s_address">{{ form_data['s_address']|default() }}</textarea>
+                                        </div>
+                                        <div class="form-group {% if errors['s_province']|default() %}has-error{% endif %}">
+                                            <label for="input-province">{{ 'label.province'|trans }}</label>
+
+                                            {% if isUpdate and form_data['s_previousChanges']['s_province'] is defined %}
+                                                <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['s_province'] }}" readonly>
+                                            {% endif %}
+
+                                            {% if errors['s_province']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['s_province'] }}</span>
+                                            {% endif %}
+                                            <select id="input-province" class="form-control" name="s_provinceId">
+                                                <option value="">{{ 'label.select_option'|trans }}</option>
+                                                {% for province in province_data %}
+                                                    {% set selected = province_id == province['province_id'] ? 'selected' : '' %}
+                                                    <option value="{{ province['province_id'] }}" {{ selected }}>{{ province['province'] }}</option>
+                                                {% endfor %}
+                                            </select>
+                                            <input id="input-province-name" type="hidden" name="s_province" value="{{ form_data['s_province']|default() }}">
+                                        </div>
+                                        <div class="form-group {% if errors['s_city']|default() %}has-error{% endif %}">
+                                            <label for="input-city">{{ 'label.city'|trans }}</label>
+
+                                            {% if isUpdate and form_data['s_previousChanges']['s_city'] is defined %}
+                                                <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['s_city'] }}" readonly>
+                                            {% endif %}
+
+                                            {% if errors['s_city']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['s_city'] }}</span>
+                                            {% endif %}
+                                            <select id="input-city" class="form-control" name="s_cityId">
+                                                <option value="">{{ 'label.select_option'|trans }}</option>
+                                                {% for city in city_data_select %}
+                                                    {% set selected = form_data['s_cityId']|default(0) == city['city_id'] ? 'selected' : '' %}
+                                                    <option value="{{ city['city_id'] }}" {{ selected }}>{{ city['city_name'] }}</option>
+                                                {% endfor %}
+                                            </select>
+                                            <input id="input-city-name" type="hidden" name="s_city" value="{{ form_data['s_city']|default() }}">
+                                        </div>
+                                        <div class="form-group {% if errors['s_district']|default() %}has-error{% endif %}">
+                                            <label for="input-district">{{ 'label.district'|trans }}</label>
+
+                                            {% if isUpdate and form_data['s_previousChanges']['s_district'] is defined %}
+                                                <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['s_district'] }}" readonly>
+                                            {% endif %}
+
+                                            {% if errors['s_district']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['s_district'] }}</span>
+                                            {% endif %}
+                                            <input id="input-district" class="form-control" name="s_district" value="{{ form_data['s_district']|default() }}">
+                                        </div>
+                                        <div class="form-group {% if errors['s_postCode']|default() %}has-error{% endif %}">
+                                            <label for="input-post_code">{{ 'label.post_code'|trans }}</label>
+
+                                            {% if isUpdate and form_data['s_previousChanges']['s_postCode'] is defined %}
+                                                <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['s_postCode'] }}" readonly>
+                                            {% endif %}
+
+                                            {% if errors['s_postCode']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['s_postCode'] }}</span>
+                                            {% endif %}
+                                            <input id="input-post_code" maxlength="5" class="form-control" name="s_postCode" value="{{ form_data['s_postCode']|default() }}">
+                                        </div>
+                                    </div>
+                                    <div id="tab-financial" class="tab-pane fade">
+                                        <div class="m-top-15"></div>
+                                        <div class="form-group {% if errors['s_modalUsaha']|default() %}has-error{% endif %}">
+                                            <label for="input-modal-usaha">{{ 'label.store_capital'|trans }}</label>
+
+                                            {% if isUpdate and form_data['s_previousChanges']['s_modalUsaha'] is defined %}
+                                                <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['s_modalUsaha']|number_format }}" readonly>
+                                            {% endif %}
+
+                                            {% if errors['s_modalUsaha']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['s_modalUsaha'] }}</span>
+                                            {% endif %}
+                                            <input type="hidden" id="input-modal-usaha" class="form-control" name="s_modalUsaha" value="{{ form_data['s_modalUsaha']|default()|to_int }}">
+                                            <input id="input-modal-usaha-show" class="form-control" value="{{ form_data['s_modalUsaha']|default()|to_int }}">
+                                        </div>
+                                        <div class="form-group {% if errors['s_totalManpower']|default() %}has-error{% endif %}">
+                                            <label for="input-totalManPower">{{ 'label.total_manpower'|trans }}</label>
+
+                                            {% if isUpdate and form_data['s_previousChanges']['s_totalManpower'] is defined %}
+                                                <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['s_totalManpower'] }}" readonly>
+                                            {% endif %}
+
+                                            {% if errors['s_totalManpower']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['s_totalManpower'] }}</span>
+                                            {% endif %}
+                                            <input id="input-totalManPower" type="number" class="form-control" name="s_totalManpower" value="{{ form_data['s_totalManpower']|default() }}">
+                                        </div>
+                                        <div class="form-group {% if errors['s_rekeningName']|default() %}has-error{% endif %}">
+                                            <label for="input-rekening">{{ 'label.account_owner'|trans }}</label>
+
+                                            {% if isUpdate and form_data['s_previousChanges']['s_rekeningName'] is defined %}
+                                                <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['s_rekeningName'] }}" readonly>
+                                            {% endif %}
+
+                                            {% if errors['s_rekeningName']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['s_rekeningName'] }}</span>
+                                            {% endif %}
+                                            <input id="input-rekening" class="form-control" name="s_rekeningName" value="{{ form_data['s_rekeningName']|default()}}">
+                                        </div>
+                                        <div class="form-group {% if errors['s_bankName']|default() %}has-error{% endif %}">
+                                            <label for="input-bank">{{ 'label.bank'|trans }}</label>
+
+                                            {% if isUpdate and form_data['s_previousChanges']['s_bankName'] is defined %}
+                                                <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['s_bankName'] }}" readonly>
+                                            {% endif %}
+
+                                            {% if errors['s_bankName']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['s_bankName'] }}</span>
+                                            {% endif %}
+                                            <input id="input-bank" class="form-control" name="s_bankName" value="{{ form_data['s_bankName']|default()}}">
+                                        </div>
+                                        <div class="form-group {% if errors['s_nomorRekening']|default() %}has-error{% endif %}">
+                                            <label for="input-noRekening">{{ 'label.account_number'|trans }}</label>
+
+                                            {% if isUpdate and form_data['s_previousChanges']['s_nomorRekening'] is defined %}
+                                                <input class="form-control prev-value" value="- {{ form_data['s_previousChanges']['s_nomorRekening'] }}" readonly>
+                                            {% endif %}
+
+                                            {% if errors['s_nomorRekening']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['s_nomorRekening'] }}</span>
+                                            {% endif %}
+                                            <input id="input-noRekening" type="number" class="form-control" name="s_nomorRekening" value="{{ form_data['s_nomorRekening']|default()}}">
+                                        </div>
+                                </div>
+                                    <div id="tab-document" class="tab-pane fade">
+                                        <div class="m-top-15"></div>
+                                        {% if isUpdate and form_data['totalPreviousFiles'] > 0 %}
+                                            <table class="table prev-value">
+                                                <thead>
+                                                <tr>
+                                                    <th width="50%">{{ 'label.filename'|trans }}</th>
+                                                    <th width="30%">{{ 'label.category'|trans }}</th>
+                                                    <th width="20%">{{ 'label.actions'|trans }}</th>
+                                                    <th></th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                {% if form_data['s_previousChanges']['u_ktpFile'] is defined %}
+                                                    <tr>
+                                                        <td>{{ form_data['s_previousChanges']['u_ktpFileName'] }}</td>
+                                                        <td>{{ 'label.photo_ktp'|trans }}</td>
+                                                        <td class="py-0 align-middle">
+                                                            <div class="btn-group btn-group-sm">
+                                                                <a href="{{ form_data['s_previousChanges']['u_ktpFile'] }}" target="_blank" class="btn btn-info"><i class="fa fa-eye"></i></a>
+                                                            </div>
+                                                            <div class="btn-group btn-group-sm">
+                                                                <a href="{{ form_data['s_previousChanges']['u_ktpFileDownload'] }}" class="btn btn-info"><i class="fa fa-download"></i></a>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                {% endif %}
+
+                                                {% if form_data['s_previousChanges']['s_rekeningFile'] is defined %}
+                                                    <tr>
+                                                        <td>{{ form_data['s_previousChanges']['s_rekeningFileName'] }}</td>
+                                                        <td>{{ 'label.account_file'|trans }}</td>
+                                                        <td class="py-0 align-middle">
+                                                            <div class="btn-group btn-group-sm">
+                                                                <a href="{{ form_data['s_previousChanges']['s_rekeningFile'] }}" target="_blank" class="btn btn-info"><i class="fa fa-eye"></i></a>
+                                                            </div>
+                                                            <div class="btn-group btn-group-sm">
+                                                                <a href="{{ form_data['s_previousChanges']['s_rekeningFileDownload'] }}" class="btn btn-info"><i class="fa fa-download"></i></a>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                {% endif %}
+                                                {% if form_data['s_previousChanges']['u_npwpFile'] is defined %}
+                                                    <tr>
+                                                        <td>{{ form_data['s_previousChanges']['u_npwpFileName'] }}</td>
+                                                        <td>{{ 'label.npwp_file'|trans }}</td>
+                                                        <td class="py-0 align-middle">
+                                                            <div class="btn-group btn-group-sm">
+                                                                <a href="{{ form_data['s_previousChanges']['u_npwpFile'] }}" target="_blank" class="btn btn-info"><i class="fa fa-eye"></i></a>
+                                                            </div>
+                                                            <div class="btn-group btn-group-sm">
+                                                                <a href="{{ form_data['s_previousChanges']['u_npwpFileDownload'] }}" class="btn btn-info"><i class="fa fa-download"></i></a>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                {% endif %}
+                                                {% if form_data['s_previousChanges']['s_sppkpFile'] is defined %}
+                                                    {% for item in form_data['s_previousChanges']['s_sppkpFile'] %}
+                                                        <tr>
+                                                            <td>{{ item['filename'] }}</td>
+                                                            <td>{{ 'label.sppkp_file'|trans }}</td>
+                                                            <td class="py-0 align-middle">
+                                                                <div class="btn-group btn-group-sm">
+                                                                    <a href="{{ item['path'] }}" target="_blank" class="btn btn-info"><i class="fa fa-eye"></i></a>
+                                                                </div>
+                                                                <div class="btn-group btn-group-sm">
+                                                                    <a href="{{ item['download'] }}" class="btn btn-info"><i class="fa fa-download"></i></a>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                {% endif %}
+                                                {% if form_data['s_previousChanges']['u_suratIjinFile'] is defined %}
+                                                    {% for item in form_data['s_previousChanges']['u_suratIjinFile'] %}
+                                                        <tr>
+                                                            <td>{{ item['filename'] }}</td>
+                                                            <td>{{ 'label.business_license_file'|trans }}</td>
+                                                            <td class="py-0 align-middle">
+                                                                <div class="btn-group btn-group-sm">
+                                                                    <a href="{{ item['path'] }}" target="_blank" class="btn btn-info"><i class="fa fa-eye"></i></a>
+                                                                </div>
+                                                                <div class="btn-group btn-group-sm">
+                                                                    <a href="{{ item['download'] }}" class="btn btn-info"><i class="fa fa-download"></i></a>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                {% endif %}
+                                                {% if form_data['s_previousChanges']['u_dokumenFile'] is defined %}
+                                                    {% for item in form_data['s_previousChanges']['u_dokumenFile'] %}
+                                                        <tr>
+                                                            <td>{{ item['filename'] }}</td>
+                                                            <td>{{ 'label.additional_document'|trans }}</td>
+                                                            <td class="py-0 align-middle">
+                                                                <div class="btn-group btn-group-sm">
+                                                                    <a href="{{ item['path'] }}" target="_blank" class="btn btn-info"><i class="fa fa-eye"></i></a>
+                                                                </div>
+                                                                <div class="btn-group btn-group-sm">
+                                                                    <a href="{{ item['download'] }}" target="_blank" class="btn btn-info"><i class="fa fa-download"></i></a>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                {% endif %}
+                                                </tbody>
+                                            </table>
+                                            <hr>
+                                        {% endif %}
+
+                                        <table class="table">
+                                            <thead>
+                                            <tr>
+                                                <th width="50%">{{ 'label.filename'|trans }}</th>
+                                                <th width="30%">{{ 'label.category'|trans }}</th>
+                                                <th width="20%">{{ 'label.actions'|trans }}</th>
+                                                <th></th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+
+                                            {% if photo_profile is not null %}
+                                                <tr>
+                                                    <td>{{ form_data['u_photoProfileName'] }}</td>
+                                                    <td>{{ 'label.photo_profile'|trans }}</td>
+                                                    <td class="py-0 align-middle">
+                                                        <div class="btn-group btn-group-sm">
+                                                            <input type="file" name="u_photoProfile" accept="image/jpeg,image/gif,image/png">
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% else %}
+                                                <tr>
+                                                    <td> - </td>
+                                                    <td>{{ 'label.photo_profile'|trans }}</td>
+                                                    <td class="py-0 align-middle">
+                                                        <div class="btn-group btn-group-sm">
+                                                            <input type="file" name="u_photoProfile" accept="image/jpeg,image/gif,image/png">
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+
+                                            {% if photo_banner is not null %}
+                                                <tr>
+                                                    <td>{{ form_data['u_bannerProfileName'] }}</td>
+                                                    <td>{{ 'label.photo_banner'|trans }}</td>
+                                                    <td class="py-0 align-middle">
+                                                        <div class="btn-group btn-group-sm">
+                                                            <input type="file" name="u_photoBanner" accept="image/jpeg,image/gif,image/png">
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% else %}
+                                                <tr>
+                                                    <td> - </td>
+                                                    <td>{{ 'label.photo_banner'|trans }}</td>
+                                                    <td class="py-0 align-middle">
+                                                        <div class="btn-group btn-group-sm">
+                                                            <input type="file" name="u_photoBanner" accept="image/jpeg,image/gif,image/png">
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+
+                                            {% if ktp_file is not null %}
+                                                <tr>
+                                                    <td>{{ form_data['u_ktpFileName'] }}</td>
+                                                    <td>{{ 'label.photo_ktp'|trans }}</td>
+                                                    <td class="py-0 align-middle">
+                                                        <div class="btn-group btn-group-sm">
+                                                            <input id="ktp-file" type="file" name="u_ktpFile" accept="image/jpeg,image/gif,image/png,application/pdf">
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% else %}
+                                                <tr>
+                                                    <td> - </td>
+                                                    <td>{{ 'label.photo_ktp'|trans }}</td>
+                                                    <td class="py-0 align-middle">
+                                                        <div class="btn-group btn-group-sm">
+                                                            {% if errors['u_ktpFile']|default() %}
+                                                                <span class="help-block custom-help-block red">{{ errors['u_ktpFile'] }}</span>
+                                                            {% endif %}
+                                                            <input id="ktp-file" type="file" name="u_ktpFile" accept="image/jpeg,image/gif,image/png,application/pdf">
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+
+                                            {% if rekening_file is not null %}
+                                                <tr>
+                                                    <td>{{ form_data['s_rekeningFileName'] }}</td>
+                                                    <td>{{ 'label.account_file'|trans }}</td>
+                                                    <td class="py-0 align-middle">
+                                                        <div class="btn-group btn-group-sm">
+                                                            <input id="rekening-file" type="file" name="s_rekeningFile" accept="image/jpeg,image/gif,image/png,application/pdf">
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% else %}
+                                                <tr>
+                                                    <td> - </td>
+                                                    <td>{{ 'label.account_file'|trans }}</td>
+                                                    <td class="py-0 align-middle">
+                                                        <div class="btn-group btn-group-sm">
+                                                            {% if errors['s_rekeningFile']|default() %}
+                                                                <span class="help-block custom-help-block red">{{ errors['s_rekeningFile'] }}</span>
+                                                            {% endif %}
+                                                            <input id="rekening-file" type="file" name="s_rekeningFile" accept="image/jpeg,image/gif,image/png,application/pdf">
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+
+                                            {% if npwp_file is not null %}
+                                                <tr>
+                                                    <td>{{ form_data['u_npwpFileName'] }}</td>
+                                                    <td>{{ 'label.npwp_file'|trans }}</td>
+                                                    <td class="py-0 align-middle">
+                                                        <div class="btn-group btn-group-sm">
+                                                            <input id="npwp-file" type="file" name="u_npwpFile" accept="image/jpeg,image/gif,image/png,application/pdf">
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% else %}
+                                                <tr>
+                                                    <td> - </td>
+                                                    <td>{{ 'label.npwp_file'|trans }}</td>
+                                                    <td class="py-0 align-middle">
+                                                        <div class="btn-group btn-group-sm">
+                                                            {% if errors['u_npwpFile']|default() %}
+                                                                <span class="help-block custom-help-block red">{{ errors['u_npwpFile'] }}</span>
+                                                            {% endif %}
+                                                            <input id="npwp-file" type="file" name="u_npwpFile" accept="image/jpeg,image/gif,image/png,application/pdf">
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+
+                                            {% if sppkp_file is not null %}
+                                                {% set sppkFileNames = [] %}
+                                                {% for item in sppkp_file %}
+                                                    {% set sppkFileNames = sppkFileNames|merge([item['filename']]) %}
+                                                {% endfor %}
+                                                <tr>
+                                                    <td>{{ sppkFileNames|join(' | ') }}</td>
+                                                    <td>{{ 'label.sppkp_file'|trans }}</td>
+                                                    <td class="py-0 align-middle">
+                                                        <div class="btn-group btn-group-sm">
+                                                            <input id="sppkp-file" type="file" name="s_sppkpFile[]" accept="image/jpeg,image/gif,image/png,application/pdf" multiple>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% else %}
+                                                <tr>
+                                                    <td> - </td>
+                                                    <td>{{ 'label.sppkp_file'|trans }}</td>
+                                                    <td class="py-0 align-middle">
+                                                        <div class="btn-group btn-group-sm">
+                                                            {% if errors['s_sppkpFile']|default() %}
+                                                                <span class="help-block custom-help-block red">{{ errors['s_sppkpFile'] }}</span>
+                                                            {% endif %}
+                                                            <input id="sppkp-file" type="file" name="s_sppkpFile[]" accept="image/jpeg,image/gif,image/png,application/pdf" multiple>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+
+                                            {% if surat_ijin_file is not null %}
+                                                {% set suratFilenames = [] %}
+                                                {% for item in surat_ijin_file %}
+                                                    {% set suratFilenames = suratFilenames|merge([item['filename']]) %}
+                                                {% endfor %}
+                                                <tr>
+                                                    <td>{{ suratFilenames|join(' | ') }}</td>
+                                                    <td>{{ 'label.business_license_file'|trans }}</td>
+                                                    <td class="py-0 align-middle">
+                                                        <div class="btn-group btn-group-sm">
+                                                            <input id="surat-ijin-file" type="file" name="u_suratIjin[]" accept="image/jpeg,image/gif,image/png,application/pdf" multiple>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% else %}
+                                                <tr>
+                                                    <td> - </td>
+                                                    <td>{{ 'label.business_license_file'|trans }}</td>
+                                                    <td class="py-0 align-middle">
+                                                        <div class="btn-group btn-group-sm">
+                                                            {% if errors['u_suratIjin']|default() %}
+                                                                <span class="help-block custom-help-block red">{{ errors['u_suratIjin'] }}</span>
+                                                            {% endif %}
+                                                            <input id="surat-ijin-file" type="file" name="u_suratIjin[]" accept="image/jpeg,image/gif,image/png,application/pdf" multiple>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+
+                                            {% if dokumen_tambahan_file is not null %}
+                                                {% set dokumenFilenames = [] %}
+                                                {% for item in dokumen_tambahan_file %}
+                                                    {% set dokumenFilenames = dokumenFilenames|merge([item['filename']]) %}
+                                                {% endfor %}
+                                                <tr>
+                                                    <td>{{ dokumenFilenames|join('|') }}</td>
+                                                    <td>{{ 'label.additional_document'|trans }}</td>
+                                                    <td class="py-0 align-middle">
+                                                        <div class="btn-group btn-group-sm">
+                                                            <input  type="file" name="u_dokumenFile[]" accept="image/jpeg,image/gif,image/png,application/pdf" multiple>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% else %}
+                                                <tr>
+                                                    <td> - </td>
+                                                    <td>{{ 'label.additional_document'|trans }}</td>
+                                                    <td class="py-0 align-middle">
+                                                        <div class="btn-group btn-group-sm">
+                                                            <input type="file" name="u_dokumenFile[]" accept="image/jpeg,image/gif,image/png,application/pdf" multiple>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+
+                                            {% if signature_file is not null %}
+                                                <tr>
+                                                    <td>{{ form_data['u_user_signatureName'] }}</td>
+                                                    <td>{{ 'label.user_signature'|trans }}</td>
+                                                    <td class="py-0 align-middle">
+                                                        <div class="btn-group btn-group-sm">
+                                                            <input id="user-signature" type="file" name="u_user_signature" accept="image/jpeg,image/gif,image/png">
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% else %}
+                                                <tr>
+                                                    <td> - </td>
+                                                    <td>{{ 'label.user_signature'|trans }}</td>
+                                                    <td class="py-0 align-middle">
+                                                        <div class="btn-group btn-group-sm">
+                                                            {% if errors['u_user_signature']|default() %}
+                                                                <span class="help-block custom-help-block red">{{ errors['u_user_signature'] }}</span>
+                                                            {% endif %}
+                                                            <input id="user-signature" type="file" name="u_user_signature" accept="image/jpeg,image/gif,image/png">
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+
+                                            {% if stamp_file is not null %}
+                                                <tr>
+                                                    <td>{{ form_data['u_user_stampName'] }}</td>
+                                                    <td>{{ 'label.user_stamp'|trans }}</td>
+                                                    <td class="py-0 align-middle">
+                                                        <div class="btn-group btn-group-sm">
+                                                            <input id="user-stamp" type="file" name="u_user_stamp" accept="image/jpeg,image/gif,image/png">
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% else %}
+                                                <tr>
+                                                    <td> - </td>
+                                                    <td>{{ 'label.user_stamp'|trans }}</td>
+                                                    <td class="py-0 align-middle">
+                                                        <div class="btn-group btn-group-sm">
+                                                            {% if errors['u_user_stamp']|default() %}
+                                                                <span class="help-block custom-help-block red">{{ errors['u_user_stamp'] }}</span>
+                                                            {% endif %}
+                                                            <input id="user-stamp" type="file" name="u_user_stamp" accept="image/jpeg,image/gif,image/png">
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                <div>
+                                    <input id="input-id" type="hidden" name="s_id" value="{{ store_id }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box-footer">
+                        <div id="button-tab-data" class="button-tabs-store" style="display: inline;">
+                            <button type="button" class="btn btn-primary btn-tab-step" data-current="data" data-step="owner">
+                                {{ 'button.next'|trans }}
+                            </button>
+                        </div>
+
+                        <div id="button-tab-owner" class="button-tabs-store hidden" style="display: inline;">
+                            <button type="button" class="btn btn-primary btn-tab-step" data-current="owner" data-step="data">
+                                {{ 'button.previous'|trans }}
+                            </button>
+                            <button type="button" class="btn btn-primary btn-tab-step" data-current="data" data-step="address">
+                                {{ 'button.next'|trans }}
+                            </button>
+                            <button type="submit" class="btn btn-primary" name="btn_action" value="save" id="btn-save">
+                                {{ 'button.save'|trans }}
+                            </button>
+                            <button type="submit" class="btn btn-primary" name="btn_action" value="save_exit">
+                                {{ 'button.save_exit'|trans }}
+                            </button>
+                        </div>
+
+                        <div id="button-tab-address" class="button-tabs-store hidden" style="display: inline;">
+                            <button type="button" class="btn btn-primary btn-tab-step" data-current="address" data-step="owner">
+                                {{ 'button.previous'|trans }}
+                            </button>
+                            <button type="button" class="btn btn-primary btn-tab-step" data-current="address" data-step="financial">
+                                {{ 'button.next'|trans }}
+                            </button>
+                            <button type="submit" class="btn btn-primary" name="btn_action" value="save" id="btn-save">
+                                {{ 'button.save'|trans }}
+                            </button>
+                            <button type="submit" class="btn btn-primary" name="btn_action" value="save_exit">
+                                {{ 'button.save_exit'|trans }}
+                            </button>
+                        </div>
+
+                        <div id="button-tab-financial" class="button-tabs-store hidden" style="display: inline;">
+                            <button type="button" class="btn btn-primary btn-tab-step" data-current="financial" data-step="address">
+                                {{ 'button.previous'|trans }}
+                            </button>
+                            <button type="button" class="btn btn-primary btn-tab-step" data-current="financial" data-step="document">
+                                {{ 'button.next'|trans }}
+                            </button>
+                            <button type="submit" class="btn btn-primary" name="btn_action" value="save" id="btn-save">
+                                {{ 'button.save'|trans }}
+                            </button>
+                            <button type="submit" class="btn btn-primary" name="btn_action" value="save_exit">
+                                {{ 'button.save_exit'|trans }}
+                            </button>
+                        </div>
+
+                        <div id="button-tab-document" class="button-tabs-store hidden" style="display: inline;">
+                            <button type="button" class="btn btn-primary btn-tab-step" data-current="document" data-step="financial">
+                                {{ 'button.previous'|trans }}
+                            </button>
+                            <button type="submit" class="btn btn-primary" name="btn_action" value="save" id="btn-save">
+                                {{ 'button.save'|trans }}
+                            </button>
+                            <button type="submit" class="btn btn-primary" name="btn_action" value="save_exit">
+                                {{ 'button.save_exit'|trans }}
+                            </button>
+                        </div>
+
+
+                        <div style="display: inline;">
+                            {% if store_id > 0 %}
+                                <a href="{{ path('admin_store_change_owner', {'id': store_id}) }}" class="btn btn-primary">
+                                    {{ 'label.change_owner'|trans }}
+                                </a>
+                            {% endif %}
+                            <a href="{{ path(index_route) }}" class="btn btn-default">{{ 'button.cancel'|trans }}</a>
+                        </div>
+                    </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        CITY_LIST = {{ city_data|json_encode|raw }};
+    </script>
+{% endblock %}

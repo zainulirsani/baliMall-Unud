@@ -1,0 +1,30 @@
+{
+    "name": "app",
+    "version": "1.0.0",
+    "description": "",
+    "dependencies": {
+        "gulp-replace": "^1.1.4"
+    },
+    "devDependencies": {
+        "@babel/core": "^7.15.0",
+        "@babel/preset-env": "^7.15.0",
+        "del": "^3.0.0",
+        "gulp": "^3.9.1",
+        "gulp-babel": "^8.0.0",
+        "gulp-bundle-assets": "^2.29.0",
+        "gulp-concat": "^2.6.1",
+        "gulp-uglify": "^3.0.2"
+    },
+    "scripts": {
+        "gulp": "gulp"
+    },
+    "keywords": [
+        "app"
+    ],
+    "author": "",
+    "private": true,
+    "license": "ISC",
+    "overrides": {
+        "graceful-fs": "^4.2.9"
+    }
+}

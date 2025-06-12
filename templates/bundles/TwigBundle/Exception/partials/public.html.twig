@@ -1,0 +1,25 @@
+<div id="top-wrapper" class="{{ class }}">
+    {% include '@__main__/public/base/partials/header.html.twig' %}
+    <div class="red-box"></div>
+    <main class="nothing-page">
+        <section>
+            <div class="container">
+                <div class="box">
+                    <div class="box">
+                        <div class="item-list">
+                            <h1 class="large ct red">{{ status_code }}</h1>
+                            <p class="ct">{{ translate|trans|raw }}</p>
+                            <div class="ct input btn-wrapper">
+                                <a href="{{ path('homepage') }}" class="sBtn red">{{ 'button.return'|trans }}</a>
+                            </div>
+                            {{ render(controller('App\\Plugins\\ProductPlugin::onError')) }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <div class="push"></div>
+</div>
+{% include '@__main__/public/base/partials/footer.html.twig' %}
+{% include '@__main__/public/base/partials/popup.html.twig' %}

@@ -1,0 +1,91 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% set timestamp = '' %}
+{% set chat_detail_element = 'chat-detail' %}
+{% set chat_detail_room = room %}
+{% set chat_detail_id = app.user.id %}
+
+{% if order_status == 'invalid' %}
+    {% set chat_detail_element = '' %}
+    {% set chat_detail_room = '' %}
+    {% set chat_detail_id = '' %}
+{% endif %}
+
+{% block content %}
+    <main class="pdl">
+        {% include '@__main__/public/base/partials/breadcrumb.html.twig' %}
+        <section>
+            <div id="{{ chat_detail_element }}" class="container" data-room="{{ chat_detail_room }}" data-id="{{ chat_detail_id }}">
+                <div class="box">
+                    <div class="row">
+                        {% include '@__main__/public/user/fragments/menu.html.twig' %}
+                        <div class="dc9 tc12">
+                            <div class="sub-title">
+                                <div class="text">
+                                    <h3>
+                                        {% if recipient_name is not empty %}
+                                            {{ 'label.message_with'|trans }} "{{ recipient_name|raw }}"
+                                        {% else %}
+                                            {{ 'label.message'|trans }}
+                                        {% endif %}
+                                    </h3>
+                                </div>
+                                <div class="clear"></div>
+                            </div>
+                            <div class="msg-list">
+                                <div class="tabs msg-tab row">
+                                    <div class="tab-content dc12 tc12">
+                                        <div class="active">
+                                            <div class="msg-wrp">
+                                                <div id="messages-content">
+                                                    {% for chat in messages %}
+                                                        {% set class = 'msg ls' %}
+                                                        {% set user_name = chat['s_firstName'] ~ ' ' ~ chat['s_lastName'] %}
+
+                                                        {% if app.user.id == chat['cm_sender'] %}
+                                                            {% set class = 'msg rs' %}
+                                                        {% else %}
+                                                            {% set timestamp = chat['cm_createdAt']|date('Y-m-d H:i:s') %}
+                                                        {% endif %}
+                                                        <div id="cm-{{ chat['cm_id'] }}" class="{{ class }}">
+                                                            <a href="javascript:void(0);" class="name">{{ user_name|raw }}</a>
+                                                            <time>{{ chat['cm_createdAt']|date('d F Y H:i') }}</time>
+                                                            <div class="clear"></div>
+                                                            <span class="msg-body">{{ chat['cm_message'] }}</span>
+                                                        </div>
+                                                        <div class="clear"></div>
+                                                    {% endfor %}
+                                                </div>
+                                                {% if order_status == 'valid' %}
+                                                    <div class="input">
+                                                        <textarea id="chat-message" class="no-resize" title="" placeholder="{{ 'label.message'|trans }}"></textarea>
+                                                        <input id="chat-ts" type="hidden" value="{{ timestamp }}">
+                                                        <button id="send-chat" type="button" class="sBtn red">
+                                                            {{ 'button.submit'|trans }}
+                                                        </button>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    {% if order_status == 'valid' %}
+        <template id="user-chat-template">
+            <div id="cm-**id**" class="**class**">
+                <a href="javascript:void(0);" class="name">**name**</a>
+                <time>**ts**</time>
+                <div class="clear"></div>
+                <span class="msg-body">**msg**</span>
+            </div>
+            <div class="clear"></div>
+        </template>
+    {% endif %}
+{% endblock %}

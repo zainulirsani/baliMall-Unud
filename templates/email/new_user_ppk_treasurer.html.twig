@@ -1,0 +1,46 @@
+{% extends '@__main__/public/base/layouts/email_info.html.twig' %}
+
+{% block body %}
+    <div class="text">
+        <p>Yth. Bapak/Ibu {{ name }}</p>
+        
+        {% if type == 'pic' %}
+            <p>Bersama ini kami informasikan bahwa anda telah didaftarkan PIC dari Satker {{satker}} {{klpd}} oleh Pejabat Pengadaan {{pp}}.</p>
+        {% else %}
+            <p>Bersama ini kami informasikan bahwa anda adalah {{type == 'ppk' ? 'PPK' : 'Bendahara'}} dari Satker {{satker}} {{klpd}}.</p>
+            <p>Untuk mengelola data transaksi anda silahkan login melalui tautan berikut</p>
+            <p><a href="tokodaring.balimall.id">tokodaring.balimall.id</a></p>
+            <p>Dengan menggunakan akun berikut</p>
+            <table>
+                <tr>
+                    <td>Username</td>
+                    <td>:</td>
+                    <td>{{username}}</td>
+                </tr>
+                <tr>
+                    <td>Password</td>
+                    <td>:</td>
+                    <td>{{password}}</td>
+                </tr>
+            </table>
+        {% endif %}
+        
+        <p>Terima Kasih</p><br>
+        <p>Salam</p>
+        <img src="{{ site_url('dist/img/balimall.png') }}" class="logo" alt="Logo">
+        <br>
+        <span>Bmall.id</span>
+        <table>
+            <tr>
+                <td>Whatsapp</td>
+                <td>:</td>
+                <td>0811 3116 4999</td>
+            </tr>
+            <tr>
+                <td>Email</td>
+                <td>:</td>
+                <td>info@balimall.id</td>
+            </tr>
+        </table>
+    </div>
+{% endblock %}

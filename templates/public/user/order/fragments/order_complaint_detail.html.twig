@@ -1,0 +1,16 @@
+<div class="ccp__section ccp__box">
+    <div class="row">
+        <div class="dc6 tc12">
+            <h5>{{ 'label.order_complain'|trans }}</h5>
+            <p>{{ order['oc_description']|default() }}</p>
+        </div>
+        {% if order['oc_isResolved'] == true %}
+            <div class="dc6 tc12">
+                <h5>{{ 'label.resolved_at'|trans }}</h5>
+                <div id="order-content-status">
+                    <p>{{ order['oc_resolvedAt']|date('d/m/Y - H:i') }}</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>

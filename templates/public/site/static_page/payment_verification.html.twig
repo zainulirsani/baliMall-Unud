@@ -1,0 +1,98 @@
+{% extends '@__main__/base/public/layouts/default.html.twig' %}
+
+{% set attachment = form_data['attachment']|default() %}
+{% set attachment_style = attachment is empty ? 'display: none;' : '' %}
+
+{% block content %}
+    <main class="global-page">
+        <section>
+            <div class="container">
+                <h2>Verifikasi Pembayaran</h2>
+                <p>Berikut rekening pembayaran untuk Bali Mall:</p>
+                <pre><strong>Bank:</strong> BCA<br><strong>Akun:</strong> 1234-5678-9090<br><strong>Nama:</strong> John Doe</pre>
+                <br>
+                <p>Jika sudah melakukan pembayaran, silahkan verifikasi melalui form di bawah.</p>
+                <hr>
+                <form id="payment-verification-form" action="" method="post" accept-charset="UTF-8">
+                    {% set error = errors['name'] is defined ? 'error' : null %}
+                    <div class="input {{ error }}">
+                        <input id="input-name" type="text" name="name" title="" placeholder="{{ 'label.name'|trans }}" value="{{ form_data['name']|default() }}">
+                        {% if error %}<p class="{{ error }}">{{ errors['name']|trans({}, 'validators', app.request.locale) }}</p>{% endif %}
+                    </div>
+                    {% set error = errors['email'] is defined ? 'error' : null %}
+                    <div class="input {{ error }}">
+                        <input id="input-email" type="email" name="email" title="" placeholder="{{ 'label.email'|trans }}" value="{{ form_data['email']|default() }}">
+                        {% if error %}<p class="{{ error }}">{{ errors['email']|trans({}, 'validators', app.request.locale) }}</p>{% endif %}
+                    </div>
+                    {% set error = errors['date'] is defined ? 'error' : null %}
+                    <div class="input {{ error }}">
+                        <input id="input-date" type="text" name="date" title="" placeholder="{{ 'label.payment_date'|trans }}" value="{{ form_data['date']|default() }}">
+                        {% if error %}<p class="{{ error }}">{{ errors['date']|trans({}, 'validators', app.request.locale) }}</p>{% endif %}
+                    </div>
+                    {% set error = errors['invoice'] is defined ? 'error' : null %}
+                    <div class="input {{ error }}">
+                        <input id="input-invoice" type="text" name="invoice" title="" placeholder="{{ 'label.invoice_no'|trans }}" value="{{ form_data['invoice']|default() }}">
+                        {% if error %}<p class="{{ error }}">{{ errors['invoice']|trans({'%limit%': max_length}, 'validators', app.request.locale) }}</p>{% endif %}
+                    </div>
+                    {% set error = errors['nominal'] is defined ? 'error' : null %}
+                    <div class="input {{ error }}">
+                        <input id="input-nominal" type="text" name="nominal" title="" placeholder="{{ 'label.nominal'|trans }}" value="{{ form_data['nominal']|default() }}">
+                        {% if error %}<p class="{{ error }}">{{ errors['nominal']|trans({}, 'validators', app.request.locale) }}</p>{% endif %}
+                    </div>
+                    {% set error = errors['attachment'] is defined ? 'error' : null %}
+                    <div class="input">
+                        <p>{{ 'label.payment_date_image'|trans }}</p>
+                        {% if error %}<p class="{{ error }}">{{ errors['attachment']|trans({}, 'validators', app.request.locale) }}</p>{% endif %}
+                        <div class="rctr">
+                            <div class="dc2 tc6 img-id">
+                                <div class="inner">
+                                    <a id="input-attachment" href="javascript:void(0);" class="mask add-img upload-attachment">
+                                        <span class="upload-attachment">+</span>
+                                    </a>
+                                    <div id="input-attachment-tools" style="{{ attachment_style }}">
+                                        <a href="javascript:void(0);" class="fas fa-trash-alt delete-attachment"></a>
+                                    </div>
+                                    <img id="img-attachment" src="{{ asset(attachment) }}" alt="" style="{{ attachment_style }}">
+                                    <input id="input-attachment-temp" type="hidden" name="attachment" value="{{ attachment }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% set error = errors['message'] is defined ? 'error' : null %}
+                    <div class="input">
+                        <textarea name="message" class="no-resize" title="" placeholder="{{ 'label.messages'|trans }}">{{ form_data['message']|default() }}</textarea>
+                        {% if error %}<p class="{{ error }}">{{ errors['message']|trans({}, 'validators', app.request.locale) }}</p>{% endif %}
+                    </div>
+                    <div class="input">
+                        <input type="hidden" id="input-attachment-slug" value="{{ 'now'|date('Y-m-d') }}">
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token(token_id) }}">
+                        <input type="hidden" name="_csrf_token_id" value="{{ token_id }}">
+                    </div>
+                    <div class="input">
+                        <input type="submit" value="{{ 'button.submit'|trans }}" class="sBtn blue payment-verification-btn">
+                        <div class="clear"></div>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+{% endblock %}
+
+{#{% block javascripts %}
+    <script>
+        $(function() {
+            datepicker('#payment-date', {
+                minDate: new Date(2018, 0, 1),
+                // disableYearOverlay: true,
+                formatter: function(el, date, instance) {
+                    // console.log(date.toDateString());
+                    el.value = date.toLocaleDateString('en', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                },
+            });
+        });
+    </script>
+{% endblock %}#}

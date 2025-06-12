@@ -1,0 +1,51 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% block content %}
+    <main class="home-page">
+        <section>
+            <div class="container">
+                {{ render(controller('App\\Plugins\\BannerPlugin::homepage')) }}
+                <div class="row">
+                    {{ render(controller('App\\Plugins\\PromoPlugin::homepage')) }}
+                    {{ render(controller('App\\Plugins\\ProductCategoryPlugin::categories')) }}
+                    {# {{ render(controller('App\\Plugins\\ProductPlugin::showcase')) }} #}
+                    {# {{ render(controller('App\\Plugins\\ProductPlugin::showcaseBestSeller')) }} #}
+                </div>
+                {{ render(controller('App\\Plugins\\ProductPlugin::showcaseRecommendations')) }}
+                <div class="box">
+                    <div class="home-tags home-tags--ghost">
+                        <div class="row">
+                            <h6 style="float: left; margin-top: 10px;">{{ 'message.info.craftsman_info'|trans }}</h6>
+                            <div class="input" style="float: left; width: 250px; height: auto; margin-left: 5px;">
+                                <div class="searchable-province">
+                                    <input id="homepage-select-province" type="text" placeholder="{{ 'label.select_province'|trans }}" onkeyup="filterFunction(this, event);" value="Bali" title="">
+                                    <ul id="homepage-list-province"></ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="homepage-list-region" class="row">
+                            {% for region in local_regions %}
+                                <div class="dc4 mc12">
+                                    <a href="javascript:void(0);" class="find-region" data-region="{{ region|lower }}">{{ region }}</a>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {# {{ render(controller('App\\Plugins\\BannerPlugin::homepage', {region: 'bottom'})) }} #}
+                <br>
+                {# <div class="container">
+                    <div class="text-center" style="text-align: center; margin-top: 20px;">
+                        <h3>Partner By:</h3>
+                        <div class="row" style="display: flex; justify-content: center; align-items: center; margin-top: 10px;">
+                            <img src="{{ asset('dist/img/partner-1.png') }}" width="10%" alt="Partner 1" class="partner-logo" style="margin: 0 10px;">
+                            <img src="{{ asset('dist/img/partner-2.png') }}" width="10%" alt="Partner 1" class="partner-logo" style="margin: 0 10px;">
+                            <img src="{{ asset('dist/img/partner-3.png') }}" width="10%" alt="Partner 1" class="partner-logo" style="margin: 0 10px;">
+                            <img src="{{ asset('dist/img/partner-4.png') }}" width="10%" alt="Partner 1" class="partner-logo" style="margin: 0 10px;">
+                        </div>
+                    </div>
+                </div> #}
+            </div>
+        </section>
+    </main>
+{% endblock %}

@@ -1,0 +1,17 @@
+.input .tags-input {
+    width: 100%;
+}
+
+.sgd-text-center {
+    text-align: center;
+}
+
+.negotiation-price, .negotiated-price, .negotiated-price-one, .negotiated-time, .negotiated-price-shipping {
+  background-color: #EDEDED;
+  height: 48px;
+  width: 100%;
+  font-weight: 400;
+  padding: 0 16px;
+  border-radius: 8px;
+  color: black;
+}

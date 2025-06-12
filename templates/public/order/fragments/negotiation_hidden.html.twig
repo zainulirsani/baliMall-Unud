@@ -1,0 +1,10 @@
+<input type="hidden" name="negotiated[{{ hash }}]" value="1" title="">
+<input type="hidden" name="negotiated[{{ hash }}]" class="check check-negotiated" value="1" title="" data-hash="{{ hash }}">
+
+{% for item in merchant['items'] %}
+    {% set attr_nego = item['attributes'] %}
+    <input type="hidden" name="negotiated_price[{{ hash }}][{{ attr_nego['image'] }}]" class="negotiation-price negotiated-item-{{ hash }}" value="{{ attr_nego['price']|to_int }}" min="1" title="">
+{% endfor %}
+<input type="hidden" name="negotiated_time[{{ hash }}]" class="negotiation-time negotiated-item-{{ hash }}" value="30" title="" placeholder="{{ 'label.input_negotiation_time'|trans }}">
+
+<input type="hidden" name="negotiated_note[{{ hash }}]" class="negotiation-note" value="Pengajuan Harga dari Penjual" title="">

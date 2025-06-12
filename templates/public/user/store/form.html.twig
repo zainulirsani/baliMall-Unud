@@ -1,0 +1,1426 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% set pdfThumbnail = '../../assets/img/pdf-logo.png' %}
+{% set imgThumbnail = '../../assets/img/upload-logo.png' %}
+
+{% set controller = app.request.get('_controller') %}
+{% set page_method = controller[1] is defined ? controller[1] : 'n/a' %}
+{% set province_id = form_data['province_id']|default(0) %}
+{% set province_name = form_data['province']|default() %}
+{% set city_id = form_data['city_id']|default(0) %}
+{% set city_name = form_data['city']|default() %}
+{% set city_data_select = province_id > 0 ? city_data[province_id] : [] %}
+{% set store_delivery_couriers = form_data['delivery_couriers']|default([]) %}
+{% set store_name = form_data['name']|default() %}
+{% set brand = form_data['brand']|default() %}
+{% set store_description = form_data['description']|default() %}
+{% set store_address = form_data['address']|default() %}
+{% set store_district = form_data['district']|default() %}
+{% set store_post_code = form_data['post_code']|default() %}
+{% set store_pkp = form_data['pkp']|default('') %}
+{% set store_modal_usaha = form_data['modal_usaha']|default() %}
+{% set store_total_manpower = form_data['total_manpower']|default() %}
+{% set store_rekening_name = form_data['rekening_name']|default() %}
+{% set store_bank_name = form_data['bank_name']|default() %}
+{% set store_nomor_rekening = form_data['nomor_rekening']|default() %}
+{% set user_npwp = form_data['no_npwp']|default() %}
+{% set user_npwp_name = form_data['nama_npwp']|default() %}
+{% set user_name = form_data['user_name']|default() %}
+{% set user_nik = form_data['user_nik']|default() %}
+{% set user_dob = form_data['user_dob']|default() %}
+{% set type_of_business = form_data['jenis_usaha']|default() %}
+{% set business_criteria = form_data['kriteria_usaha']|default %}
+{% set rekening_file = form_data['rekeningFile']|default %}
+{% set sppkp_file = form_data['sppkpFile']|default %}
+{% set status_merchant = form_data['status']|default('DRAFT') %}
+{% set position = form_data.getJabatan|default %}
+{% set store_tnc = form_data.getTnc|default(0) %}
+{% set used_erzap = form_data.getIsUsedErzap|default(0) %}
+{% set status_log = [] %}
+{% set addressLat = form_data['addressLat']|default %}
+{% set addressLng = form_data['addressLng']|default %}
+
+{% set user_dir_slug = user.getDirSlug|default() %}
+{% set user_phone_number = user.getPhoneNumber | default %}
+{% set logo_toko = user.getPhotoProfile | default %}
+{% set logo_banner = user.getBannerProfile | default %}
+{% set npwp_file = user.getNpwpFile | default %}
+{% set surat_ijin_file = user.getSuratIjinFile| default([]) %}
+{% set dokumen_tambahan_file = user.getDokumenFile| default([]) %}
+{% set ktp_file = user.getKtpFile| default %}
+{% set ttd_file = user.getUserSignature| default %}
+{% set cap_file = user.getUserStamp| default %}
+{% set user_email = user.getEmail|default %}
+{% set user_tnc = user_tnc|default('no') %}
+{% set used_erzap = used_erzap|default(0) %}
+
+{% set store_created_at = 'now'|default %}
+{% set kesepakatan_number = kesepakatan_number| default %}
+{% set kesepakatan_date = kesepakatan_date|default %}
+{% set pernyataan_date  = pernyataan_date | default %}
+
+{% set total_complete_form = total_complete_form | default(0) %}
+{% set fileHash = '' %}
+{% set selected_product_categories = form_data.getProductCategories|default([]) %}
+    {% set store_address_npwp = '' %}
+
+
+{% if page_method == 'edit' %}
+    {% set province_id = form_data.getProvinceId %}
+    {% set province_name = form_data.getProvince %}
+    {% set city_id = form_data.getCityId %}
+    {% set city_name = form_data.getCity %}
+    {% set city_data_select = province_id > 0 ? city_data[province_id] : [] %}
+    {% set store_delivery_couriers = form_data.getDeliveryCouriers %}
+    {% set store_name = form_data.getName %}
+    {% set store_description = form_data.getDescription %}
+    {% set store_address = form_data.getAddress %}
+    {% set store_address_npwp = form_data.user.getNpwpAddress|default() %}
+    {% set store_district = form_data.getDistrict %}
+    {% set store_post_code = form_data.getPostCode %}
+    {% set store_pkp = form_data.getIsPKP %}
+    {% set store_modal_usaha = form_data.getModalUsaha|to_int %}
+    {% set store_total_manpower = form_data.getTotalManpower %}
+    {% set store_rekening_name = form_data.getRekeningName %}
+    {% set store_bank_name = form_data.getBankName %}
+    {% set store_nomor_rekening = form_data.getNomorRekening %}
+    {% set store_tnc = form_data.getTnc %}
+    {% set selected_product_categories = form_data.getProductCategories %}
+
+    {% set user_tnc = form_data.user.getTnc ? 'yes' : 'no' %}
+    {% set user_npwp_name = form_data.user.getNpwpName %}
+    {% set user_npwp = form_data.user.getNpwp %}
+    {% set user_name = form_data.user.getFirstName ~ ' ' ~ form_data.user.getLastName %}
+    {% set user_nik = form_data.user.getNik %}
+    {% set user_dob = form_data.user.getDob|default %}
+    {% set user_gender = form_data.user.getGender %}
+    {% set user_dir_slug = form_data.user.getDirSlug %}
+    {% set surat_ijin_file = form_data.user.getSuratIjinFile %}
+    {% set type_of_business = form_data.getTypeOfBusiness %}
+    {% set user_phone_number = form_data.user.getPhoneNumber %}
+    {% set user_email = form_data.user.getEmail %}
+    {% set kesepakatan_number = form_data.getRegisteredNumber %}
+    {% set kesepakatan_date = kesepakatan_date %}
+    {% set pernyataan_date = pernyataan_date %}
+    {% set store_created_at = form_data.getCreatedAt %}
+    {% set business_criteria = form_data.getBusinessCriteria %}
+    {% set logo_toko = form_data.user.getPhotoProfile %}
+    {% set logo_banner = form_data.user.getBannerProfile %}
+    {% set npwp_file = form_data.user.getNpwpFile %}
+    {% set surat_ijin_file = form_data.user.getSuratIjinFile %}
+    {% set dokumen_tambahan_file = form_data.user.getDokumenFile %}
+    {% set ktp_file = form_data.user.getKtpFile %}
+    {% set ttd_file = form_data.user.getUserSignature %}
+    {% set cap_file = form_data.user.getUserStamp %}
+    {% set rekening_file = form_data.getRekeningFile %}
+    {% set sppkp_file = form_data.getSppkpFile %}
+    {% set status_merchant = form_data.getStatus %}
+    {% set business_criteria = form_data.getBusinessCriteria|default('') %}
+    {% set brand = form_data.getBrand %}
+    {% set position = form_data.getPosition %}
+    {% set status_log = form_data.getStatusLog %}
+    {% set addressLat = form_data.getAddressLat %}
+    {% set addressLng = form_data.getAddressLng %}
+    {% set fileHash = form_data.getFileHash %}
+
+    {% set total_complete_form = total_complete_form %}
+{% endif %}
+
+{% block stylesheets %}
+    <style>
+        .preview-img-upload {
+            object-fit: fill;
+            width: 65%;
+        }
+
+        .disable-click {
+            pointer-events: none;
+        }
+
+        .editor {
+            position: fixed;
+            width: 50%;
+            height: 50%;
+            margin: auto;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 9999;
+            background-color: #000;
+            visibility: hidden;
+        }
+
+        .wrapper-editor {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+            height: 100vmax !important;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 9998;
+        }
+
+        .upBtn {
+            position: absolute;
+            bottom: 5px;
+            z-index: 9999;
+            min-width: 20px;
+            min-height: 10px;
+        }
+
+        .left {
+            left: 10px;
+        }
+
+        .right {
+            right: 10px;
+        }
+
+        @media screen and (max-width: 450px) {
+            .tablinks {
+                font-size: 2vw !important;
+            }
+        }
+
+        @media screen and (max-width: 320px) {
+            .tablinks > i {
+                font-size: 2vw;
+            }
+
+            .tablinks {
+                display: block !important;
+                left: 0 !important;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .upBtn {
+                width: 15vw;
+                font-size: 2vw;
+                margin-bottom: 0;
+                text-align: center;
+            }
+
+            .left {
+                left: 1vw;
+            }
+
+            .right {
+                right: 1vw;
+
+            }
+        }
+
+        @media screen and (max-width: 400px) {
+            .right {
+                right: -5vw;
+            }
+        }
+
+        .sub-menu {
+            width: 100%;
+            left: -7vw;
+            padding-right: 1vw;
+        }
+
+        .sub-menu button {
+            left: 1vw;
+        }
+
+        .preview-file {
+            padding: 6px 12px;
+            border: 1px solid #ccc;
+            border-top: none;
+            height: 500px;
+            overflow-y: scroll;
+        }
+
+        td {
+            padding: 10px;
+        }
+
+        .error {
+            padding-top: 6px;
+        }
+
+        .hide {
+            display: none;
+        }
+
+        .input-bg-white > input {
+            background-color: #fff !important;
+            border: 1px solid #ddd !important;
+        }
+
+        @media screen and (max-width: 463px) {
+            .textTerm {
+                font-size: 10px;
+            }
+        }
+
+        #addressMap {
+            height: 350px;
+            z-index: 99;
+        }
+
+    </style>
+{% endblock %}
+
+{% block content %}
+    <main class="pdl dbu">
+        {% include '@__main__/public/base/partials/breadcrumb.html.twig' %}
+        <section>
+            <div class="container">
+                <div class="box">
+                    <div class="row">
+                        <div class="dc4 tc4 mc4">
+                            <div class="tab">
+                                <div>
+                                    <div>
+                                        <button class="tablinks" onclick="myTabs(event, 'tnc')" id="tabTnc">
+                                            Syarat & Ketentuan Merchant
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div>
+                                        <button class="tablinks" onclick="myTabs(event, 'dataUsaha')"
+                                                id="tabDataUsaha">
+                                            Verifikasi Data Usaha
+                                        </button>
+                                    </div>
+                                    <div class="sub-menu">
+                                        <button class="tablinks" onclick="myTabs(event, 'toko')"
+                                                id="tabDataToko">
+                                            Data Toko
+                                        </button>
+                                        <button class="tablinks" {{ status_merchant == 'DRAFT' ? 'disabled':''}} onclick="myTabs(event, 'pemilikUsaha')"
+                                                id="tabPemilikUsaha">
+                                            Data Pemilik Usaha
+                                        </button>
+                                        <button class="tablinks" {{ status_merchant == 'DRAFT' ? 'disabled':''}} onclick="myTabs(event, 'keuangan')"
+                                                id="tabKeuangan">
+                                            Data Keuangan
+                                        </button>
+                                        <button class="tablinks" {{ status_merchant == 'DRAFT' ? 'disabled':''}} onclick="myTabs(event, 'perpajakan')"
+                                                id="tabPerpajakan">
+                                            Data Perpajakan
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div>
+                                        <button class="tablinks" {{ status_merchant == 'DRAFT' ? 'disabled':''}} onclick="myTabs(event, 'kerjasama')"
+                                                id="tabKerjasama">
+                                            Kerjasama
+                                        </button>
+                                    </div>
+                                    <div class="sub-menu">
+                                        <button class="tablinks" {{ status_merchant == 'DRAFT' ? 'disabled':''}}
+                                             onclick="myTabs(event, 'suratPernyataan')" id="tabSuratPernyataan">
+                                            Surat Pernyataan
+                                        </button>
+                                        <button class="tablinks" {{ status_merchant == 'DRAFT' ? 'disabled':''}}
+                                             onclick="myTabs(event, 'perjanjianKerjasama')"
+                                                id="tabPerjanjianKerjasama">
+                                            Perjanjian Kerjasama
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div>
+                                        <button class="tablinks" {{ status_merchant == 'DRAFT' ? 'disabled':''}} onclick="myTabs(event, 'status')" id="tabStatus">
+                                            Status
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="dc8 tc8 mc8">
+                            <form id="registration-form" method="post" accept-charset="UTF-8"
+                                  enctype="multipart/form-data">
+
+                                <div id="tncMercant" class="tabcontent">
+                                    <div class="row">
+                                        <div class="dc12">
+                                            <h3 class="ct">Syarat dan Ketentuan Umum Merchant</h3>
+                                            <div class="preview-file" id="tnc-merchant-file">
+                                                {% include '@__main__/public/user/store/tnc-merchant.html.twig' %}
+                                            </div>
+                                        </div>
+                                        <div class="dc12">
+                                            {% set error = errors['user_tnc'] is defined ? 'error' : null %}
+                                            <div class="input form-group {{ error }}">
+
+                                                {% set checked = user_tnc == 'yes' ? 'checked' : '' %}
+
+                                                <div class="checklist2">
+                                                    <input class="input-tnc-merchant checkbox" type="checkbox"
+                                                           id="user_tnc" name="user_tnc"
+                                                           value="{{ user_tnc }}" {{ checked }} >
+                                                    <label for="user_tnc" class="checkL"></label>
+                                                    <div class="textTerm">
+                                                        <p>
+                                                            <b>Dengan ini saya menyatakan telah membaca, memahami dan
+                                                                menyetujui syarat dan ketentuan merchant diatas</b>
+                                                            {% if fileHash is not empty %}
+                                                                <a target="_blank" href="{{ path('agreement', {'type': 'tnc-merchant', 'filehash': fileHash}) }}"><i class="fa fa-download red"></i></a>
+                                                            {% endif %}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                {% if error %}<p
+                                                    class="{{ error }}">{{ errors['user_tnc'] }}</p>{% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="dc12 mc12">
+                                            <button style="float: right;{{status_merchant == "UPDATE" ? 'background-color:#4b85cc7d;':''}}" type="button" class="sBtn red"
+                                                    onclick="myTabs(event, 'toko', 'submit');" {{status_merchant == "UPDATE" ? 'disabled':''}}>Selanjutnya <i
+                                                    class="fas fa-angle-double-right fa-2x"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="toko" class="tabcontent">
+                                    <div class="row">
+                                        <div class="dc8 mc12">
+                                            {% set error = errors['name'] is defined ? 'error' : null %}
+                                            <div class="input form-group {{ error }}">
+                                                <label for="">Nama Usaha <span>*</span></label>
+                                                <input type="text" name="name" id="merchant_name"
+                                                       class="form-control input-toko" value="{{ store_name|raw }}">
+                                                {% if error %}<p class="{{ error }}">{{ errors['name'] }}</p>{% endif %}
+                                                <div class="text-small">(Sesuai dengan nama yang tercantum di Ijin
+                                                    Usaha)
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="dc4 mc12 btn-u">
+                                            <div class="file-input dz-logo-uploader">
+                                                <p>Logo Toko</p>
+
+                                                {% set isLogoNotEmpty = logo_toko is not empty %}
+                                                {% if page_method == 'edit' and isLogoNotEmpty %}
+                                                    <div class="imageUp">
+                                                        <a class="img" target="_blank" href="{{ path('sftp_show_file', {'path': logo_toko}) }}">
+                                                            <img class="preview-img-upload"
+                                                                 style="object-fit: cover;width: 100%"
+                                                                 id="previewImg-logo" src="{{ path('sftp_show_file', {'path': logo_toko}) }}"
+                                                                 alt="" style="width: 100%; height: auto;">
+                                                        </a>
+                                                    </div>
+                                                {% else %}
+                                                    <div class="imageUp">
+                                                        <img src="{{ imgThumbnail }}" id="previewImg-logo" class="pic"
+                                                             alt="">
+                                                    </div>
+                                                {% endif %}
+                                                <div class='file file--upload file-input-logo'>
+                                                    <label for='input-file'>
+                                                        Upload Logo
+                                                    </label>
+                                                </div>
+                                                <input data-initial="{{ isLogoNotEmpty }}" value="" type="hidden"
+                                                       id='input-file-logo' name="logo_img_temp"/>
+                                            </div>
+                                        </div>
+
+                                        <div class="dc8 mc12">
+                                            <input id="user-dir-slug" type="hidden" value="{{ user_dir_slug }}">
+                                            {% set error = errors['brand'] is defined ? 'error' : null %}
+
+                                            <div class="input form-group {{ error }}">
+                                                <label for="">Brand</label>
+                                                <input type="text" name="brand" id="brand" class="form-control"
+                                                       value="{{ brand }}">
+                                                {% if error %}<p
+                                                    class="{{ error }}">{{ errors['brand'] }}</p>{% endif %}
+                                            </div>
+                                        </div>
+
+                                        <div class="dc4 mc12 btn-u">
+                                            <div class="file-input dz-dash-uploader">
+                                                <p>Foto Dashboard Toko</p>
+
+                                                {% set isBannerNotEmpty = logo_banner is not empty %}
+                                                {% if page_method == 'edit' and isBannerNotEmpty %}
+                                                    <div class="imageUp">
+                                                        <a class="img" target="_blank" href="{{ path('sftp_show_file', {'path': logo_banner}) }}">
+                                                            <img class="preview-img-upload" id="previewImg-dash"
+                                                                 src="{{ path('sftp_show_file', {'path': logo_banner}) }}" alt=""
+                                                                 style="width: 100%; height: auto;">
+                                                        </a>
+                                                    </div>
+                                                {% else %}
+                                                    <div class="imageUp">
+                                                        <img src="{{ imgThumbnail }}" id="previewImg-dash" class="pic"
+                                                             alt="">
+                                                    </div>
+                                                {% endif %}
+                                                <div class='file file--upload file-input-dash'>
+                                                    <label for='input-file'>
+                                                        Upload Dashboard
+                                                    </label>
+                                                </div>
+                                                <input data-initial="{{ isBannerNotEmpty }}" value="" type="hidden"
+                                                       id='input-file-img-dash' name="dashboard_img_temp"/>
+                                            </div>
+                                        </div>
+
+                                        <div class="dc12 mc12">
+                                            {% if page_method == 'edit' %}
+                                                {% set error = errors['address'] is defined ? 'error' : null %}
+                                                <div class="input form-group">
+                                                    <label for="">Alamat<span>*</span></label>
+                                                    <textarea id="address" name="address" class="no-resize input-toko"
+                                                              title=""
+                                                              placeholder="{{ 'label.address'|trans }}">{{ store_address }}</textarea>
+                                                    {% if error %}<p
+                                                        class="{{ error }}">{{ errors['address'] }}</p>{% endif %}
+                                                </div>
+                                                {% set error = errors['province'] is defined ? 'error' : null %}
+                                                <div class="input form-group {{ error }}">
+                                                    <label for="">Provinsi <span>*</span></label>
+                                                    <select id="store-province" name="province_id" title=""
+                                                            class="input-toko">
+                                                        <option value="">{{ 'label.select_option'|trans }}</option>
+                                                        {% for province in province_data %}
+                                                            {% set selected = province_id == province['province_id'] ? 'selected' : '' %}
+                                                            <option
+                                                                value="{{ province['province_id'] }}" {{ selected }}>{{ province['province'] }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                    <input id="input-province-name" type="hidden" name="province"
+                                                           value="{{ province_name }}">
+                                                    {% if error %}<p
+                                                        class="{{ error }}">{{ errors['province'] }}</p>{% endif %}
+                                                </div>
+                                                {% set error = errors['city'] is defined ? 'error' : null %}
+                                                <div class="input form-group {{ error }}">
+                                                    <label for="">Kabupaten <span>*</span></label>
+                                                    <select id="input-city" name="city_id" title="" class="input-toko">
+                                                        <option value="">{{ 'label.select_option'|trans }}</option>
+                                                        {% for city in city_data_select %}
+                                                            {% set selected = city_id == city['city_id'] ? 'selected' : '' %}
+                                                            <option
+                                                                value="{{ city['city_id'] }}" {{ selected }}>{{ city['city_name'] }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                    <input id="input-city-name" type="hidden" name="city"
+                                                           value="{{ city_name }}">
+                                                    {% if error %}<p
+                                                        class="{{ error }}">{{ errors['city'] }}</p>{% endif %}
+                                                </div>
+                                                {% set error = errors['district'] is defined ? 'error' : null %}
+                                                <div class="input form-group {{ error }} ">
+                                                    <label for="">Kecamatan <span>*</span></label>
+                                                    <input class="input-toko" list="kecamatan_lists" id="input-district"
+                                                           type="text" name="district" value="{{ store_district }}"
+                                                           title="" placeholder="{{ 'label.district'|trans }}">
+                                                    <datalist id="kecamatan_lists"></datalist>
+                                                    {% if error %}<p
+                                                        class="{{ error }}">{{ errors['district'] }}</p>{% endif %}
+                                                </div>
+
+                                                {% set error = errors['postCode'] is defined ? 'error' : null %}
+                                                <div class="input form-group {{ error }}">
+                                                    <label for="">Kode Pos <span>*</span></label>
+                                                    <input maxlength="5" class="input-toko" id="user-post-code"
+                                                           type="text" name="post_code" value="{{ store_post_code }}"
+                                                           title="" placeholder="{{ 'label.post_code'|trans }}">
+                                                    {% if error %}<p
+                                                        class="{{ error }}">{{ errors['postCode'] }}</p>{% endif %}
+                                                </div>
+                                            {% else %}
+                                                {% include '@__main__/public/user/fragments/address_form.html.twig' %}
+                                            {% endif %}
+                                            <div>
+                                                <div id="addressMap"></div>
+                                                <input type="hidden" id="lat" name="lat" value="{{ addressLat }}"
+                                                       class="input-toko">
+                                                <input type="hidden" id="lng" name="lng" value="{{ addressLng }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="dc12 mc12">
+                                            <div class="input form-group">
+                                                <label for="">Jenis Usaha <span>*</span></label>
+                                                <select id="jenis_usaha" class="form-control input-toko"
+                                                        name="jenis_usaha" onchange="rekeningOnChange(this)">
+                                                    <option value="">{{ 'label.select_option'|trans }}</option>
+                                                    {% for key, choice in get_parameter('type_of_business') %}
+                                                        {% set label = 'label.' ~ choice['label'] %}
+                                                        {% set selected = type_of_business == key ? 'selected' : '' %}
+                                                        <option value="{{ key }}" {{ selected }}>
+                                                            {{ label|trans }}
+                                                        </option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="dc12 mc12">
+                                            <div class="input form-group">
+                                                <label for="">Kriteria Usaha <span>*</span></label>
+                                                <select id="kriteria_usaha" class="form-control input-toko"
+                                                        name="kriteria_usaha">
+                                                    <option value="">{{ 'label.select_option'|trans }}</option>
+                                                    {% for key, choice in get_parameter('business_criteria') %}
+                                                        {% set label = 'label.' ~ choice['label'] %}
+                                                        {% set selected = business_criteria == key ? 'selected' : '' %}
+                                                        <option value="{{ key }}" {{ selected }}>
+                                                            {{ label|trans }}
+                                                        </option>
+                                                    {% endfor %}
+                                                </select>
+                                                {% if page_method == 'edit' and business_criteria is not empty %}
+                                                    {% set descKriteria = get_parameter('business_criteria')[business_criteria]['description'] %}
+                                                    <div class="text-small" id="deskripsi_kriteria">( {{ descKriteria }}
+                                                        )
+                                                    </div>
+                                                {% endif %}
+                                                <div style="padding-top: 5px;" class="text-small"
+                                                     id="deskripsi_kriteria"></div>
+                                            </div>
+                                        </div>
+
+                                        <div class="dc12 mc12">
+                                            <div class="checklist2">
+                                                {% set checked_erzap = used_erzap == 1 ? 'checked' : '' %}
+                                                <input class="input-used-erzap-merchant checkbox" type="checkbox"
+                                                        id="used_erzap" name="used_erzap"
+                                                        value="{{ used_erzap }}" {{ checked_erzap }} >
+                                                <label for="used_erzap" class="checkL"></label>
+                                                <div class="textTerm">
+                                                    <p>
+                                                        Menggunakan Erzap
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+
+                                        <div class="dc12 mc12">
+                                            <div class="input form-group">
+                                                <label for="">Surat Ijin Usaha <span>*</span></label>
+                                                <div class="imagesUp dz-siu-uploader">
+                                                    {% set hide = page_method == 'edit' ? 'hide' : '' %}
+                                                    <div class="img {{ hide }}" id="img-siu">
+                                                        <a href="javascript:void(0);"
+                                                           class="fas fa-trash-alt remove-siu"></a>
+                                                        <a href="javascript:void(0);" class="fas fa-edit edit-siu"></a>
+                                                        <img class="preview-img-upload" id="previewImg-siu"
+                                                             src="{{ imgThumbnail }}" alt="">
+                                                    </div>
+                                                    {% set isSuratIjinNotEmpty = surat_ijin_file is not empty %}
+                                                    {% set suratIjinFileForEdit = [] %}
+                                                    {% if page_method == 'edit' and isSuratIjinNotEmpty %}
+                                                        {% for item in surat_ijin_file %}
+                                                            {% set fileExt = item|split('.')|last %}
+                                                            {% set dataIndex = get_random_string() %}
+
+                                                            {% set suratIjinFileForEdit = suratIjinFileForEdit|merge([{ 'uuid': dataIndex, 'path': item }]) %}
+                                                            <div class="img" href="{{ asset(item) }}">
+                                                                <a href="javascript:void(0);"
+                                                                   class="fas fa-trash-alt remove-siu-on-edit"
+                                                                   data-index="{{ dataIndex }}"></a>
+                                                                <a href="javascript:void(0);"
+                                                                   class="fas fa-edit edit-siu-on-edit"
+                                                                   data-index="{{ dataIndex }}"></a>
+                                                                <img class="preview-img-upload"
+                                                                     id="previewImg-siu-edit-{{ loop.index }}"
+                                                                     src="{{ fileExt == 'pdf' ? pdfThumbnail : asset(item) }}"
+                                                                     alt="">
+                                                            </div>
+                                                        {% endfor %}
+                                                    {% endif %}
+                                                    <label class="pic file-input-siu" for="file-input-siu ">
+                                                        <i class="fas fa-plus"></i>
+                                                    </label>
+
+                                                    {% if page_method == 'edit' and isSuratIjinNotEmpty %}
+                                                        <input id="file-input-siu-temp" type="hidden"
+                                                               name="surat-ijin-usaha-img-temp[]"
+                                                               value="{{ suratIjinFileForEdit|json_encode }}"/>
+                                                        <input data-initial="{{ isSuratIjinNotEmpty }}"
+                                                               class="input-toko-img" id="file-input-siu" type="hidden"
+                                                               name="surat-ijin-usaha-img[]"
+                                                               value="{{ surat_ijin_file|json_encode }}"/>
+                                                    {% else %}
+                                                        <input data-initial="{{ isSuratIjinNotEmpty }}"
+                                                               class="input-toko-img" id="file-input-siu" type="hidden"
+                                                               name="surat-ijin-usaha-img[]" value="[]"/>
+                                                        <input id="file-input-siu-temp" type="hidden"
+                                                               name="surat-ijin-usaha-img-temp[]"/>
+                                                    {% endif %}
+
+                                                </div>
+                                                <div id="file-upload-filename"></div>
+                                            </div>
+
+                                            <div class="input form-group">
+                                                <label for="">Dokumen Tambahan (PIRT/BPOM/HAKI/lainnya)</label>
+                                                <div class="imagesUp dz-dok-uploader">
+                                                    {% set hide = page_method == 'edit' ? 'hide' : '' %}
+                                                    <div class="img {{ hide }}">
+                                                        <a href="javascript:void(0);"
+                                                           class="fas fa-trash-alt remove-dok"></a>
+                                                        <a href="javascript:void(0);" class="fas fa-edit edit-dok "></a>
+                                                        <img class="preview-img-upload" id="previewImg-dok"
+                                                             src="{{ imgThumbnail }}" alt="">
+                                                    </div>
+                                                    {% set isDokumenNotEmpty = dokumen_tambahan_file is not empty %}
+                                                    {% set dokumenTambahanFileForEdit = [] %}
+                                                    {% if page_method == 'edit' and isDokumenNotEmpty %}
+                                                        {% for item in dokumen_tambahan_file %}
+                                                            {% set fileExt = item|split('.')|last %}
+                                                            {% set dataIndex = get_random_string() %}
+
+                                                            {% set dokumenTambahanFileForEdit = dokumenTambahanFileForEdit|merge([{ 'uuid': dataIndex, 'path': item }]) %}
+                                                            <div class="img" href="{{ asset(item) }}">
+                                                                <a href="javascript:void(0);"
+                                                                   class="fas fa-trash-alt remove-dok-on-edit"
+                                                                   data-index="{{ dataIndex }}"></a>
+                                                                <a href="javascript:void(0);"
+                                                                   class="fas fa-edit edit-dok-on-edit"
+                                                                   data-index="{{ dataIndex }}"></a>
+                                                                <img class="preview-img-upload"
+                                                                     id="previewImg-dok-edit-{{ loop.index }}"
+                                                                     src="{{ fileExt == 'pdf' ? pdfThumbnail : asset(item) }}"
+                                                                     alt="">
+                                                            </div>
+                                                        {% endfor %}
+                                                    {% endif %}
+                                                    <label class="pic file-input-dok" for="file-input-dok">
+                                                        <i class="fas fa-plus"></i>
+                                                    </label>
+
+                                                    {% if page_method == 'edit' and isDokumenNotEmpty %}
+                                                        <input id="file-input-dok-temp" type="hidden"
+                                                               name="dokumen-tambahan-img-temp[]"
+                                                               value="{{ dokumenTambahanFileForEdit|json_encode }}"/>
+                                                        <input data-initial="{{ isDokumenNotEmpty }}" class=""
+                                                               id="file-input-dok" type="hidden"
+                                                               name="dokumen-tambahan-img[]"
+                                                               value="{{ dokumen_tambahan_file|json_encode }}"/>
+                                                    {% else %}
+                                                        <input id="file-input-dok-temp" type="hidden"
+                                                               name="dokumen-tambahan-img-temp[]"/>
+                                                        <input data-initial="{{ isDokumenNotEmpty }}" class=""
+                                                               id="file-input-dok" type="hidden"
+                                                               name="dokumen-tambahan-img[]" value="[]"/>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+
+                                            <div class="input form-group">
+                                                <label for="">Deskripsi Usaha</label>
+                                                {% set error = errors['description'] is defined ? 'error' : null %}
+                                                <div class="input {{ error }}">
+                                                    <textarea id="description" class="no-resize" name="description"
+                                                              title=""
+                                                              placeholder="{{ 'label.description'|trans }}">{{ store_description }}</textarea>
+                                                    {% if error %}<p
+                                                        class="{{ error }}">{{ errors['description'] }}</p>{% endif %}
+                                                </div>
+                                            </div>
+
+                                        </div>
+
+
+                                        <div class="dc4 mc12">
+
+                                            <br>
+                                            <div class="file-input dz-ttd-uploader">
+                                                <p>Foto TTD <span>*</span></p>
+
+                                                {% set isTtdNotEmpty = ttd_file is not empty %}
+                                                {% if page_method == 'edit' and isTtdNotEmpty %}
+                                                    <div class="imageUp">
+                                                        {% set fileExt = ttd_file|split('.')|last %}
+                                                        <a class="img" target="_blank" href="{{ path('sftp_show_file', {'path': ttd_file}) }}">
+                                                            <img class="preview-img-upload" id="previewImg-ttd"
+                                                                 src="{{ fileExt == 'pdf' ? pdfThumbnail : path('sftp_show_file', {'path': ttd_file}) }}"
+                                                                 alt="">
+                                                        </a>
+                                                    </div>
+                                                {% else %}
+                                                    <div class="img">
+                                                        <img class="preview-img-upload" id="previewImg-ttd"
+                                                             src="{{ imgThumbnail }}" alt="">
+                                                    </div>
+                                                {% endif %}
+                                                <br>
+                                                <div class='file file--upload file-input-ttd'>
+                                                    <label for='file-input-ttd'>
+                                                        Upload TTD
+                                                    </label>
+                                                </div>
+                                                <div style="font-size: 14px; color : #999;">
+                                                    <i>Harap upload TTD dengan format png</i>
+                                                </div>
+                                                <input data-initial="{{ isTtdNotEmpty }}" class="input-toko-img"
+                                                       value="" type="hidden" id='input-file-ttd' name="ttd_img_temp"/>
+                                            </div>
+                                            <br>
+                                            <div class="file-input dz-cap-uploader">
+                                                <p>Foto Cap <span>*</span></p>
+
+                                                {% set isCapNotEmpty = cap_file is not empty %}
+                                                {% if page_method == 'edit' and isCapNotEmpty %}
+                                                    <div class="imageUp">
+                                                        {% set fileExt = cap_file|split('.')|last %}
+                                                        <a class="img" target="_blank" href="{{ path('sftp_show_file', {'path': cap_file}) }}">
+                                                            <img class="preview-img-upload" id="previewImg-cap"
+                                                                 src="{{ fileExt == 'pdf' ? pdfThumbnail : path('sftp_show_file', {'path': cap_file}) }}"
+                                                                 alt="">
+                                                        </a>
+                                                    </div>
+                                                {% else %}
+                                                    <div class="img">
+                                                        <img class="preview-img-upload" id="previewImg-cap"
+                                                             src="{{ imgThumbnail }}" alt="">
+                                                    </div>
+                                                {% endif %}
+                                                <br>
+                                                <div class='file file--upload file-input-cap'>
+                                                    <label for='file-input-cap'>
+                                                        Upload Cap
+                                                    </label>
+                                                </div>
+                                                <div style="font-size: 14px; color : #999;">
+                                                    <i>Harap upload Cap dengan format png</i>
+                                                </div>
+                                                <input data-initial="{{ isCapNotEmpty }}" class="input-toko-img"
+                                                       value="" type="hidden" id='input-file-cap' name="cap_img_temp"/>
+                                            </div>
+                                        </div>
+
+                                        <div class="dc12">
+
+                                            <div class="input form-group">
+                                                <label for="">Pilih Kurir Pengiriman <span>*</span></label>
+                                               {# <pre>{{ dump(get_parameter('raja_ongkir_couriers') | json_encode(constant('JSON_PRETTY_PRINT'))) }}</pre> #}
+                                                <div class="checklist" style="max-height: 400px; overflow-y: scroll">
+                                                    {% for key, courier in get_parameter('raja_ongkir_couriers')|filter((v, k) => k != 'free_shipping_2' and k != 'free_shipping_3' and k != 'free_shipping_4' and k != 'gosend') %}
+                                                        {% set checked = key in store_delivery_couriers ? 'checked' : '' %}
+                                                        <input type="checkbox" class="input-toko-kurir" id="{{ key }}"
+                                                               name="delivery_couriers[]"
+                                                               value="{{ key }}" {{ checked }}>
+                                                        <label for="{{ key }}" class="checkL">{{ courier }}</label><br>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+
+                                            <div class="input form-group">
+                                                <label for="">Pilih Kategori Produk<span>*</span></label>
+                                                <div class="checklist" style="max-height: 400px; overflow-y: scroll">
+                                                    {% for category in product_categories|filter((v,k) => v['level'] != 1) %}
+{#                                                      {% for category in product_categories %}#}
+                                                        {% if category['status'] == 1 %}
+                                                            {% set checked = category['id'] in selected_product_categories ? 'checked' : '' %}
+                                                            <input type="checkbox" class="input-toko-product-category"
+                                                                id="{{ category['id'] }}"
+                                                                name="product_categories[]"
+                                                                value="{{ category['id'] }}" {{ checked }}>
+                                                            <label for="{{ category['id'] }}"
+                                                                class="checkL">{{ category['text'] }}</label><br>
+                                                        {% endif %}
+                                                        
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+                                    <div class="row">
+                                        <div class="dc12">
+                                            <button style="float: left;{{status_merchant == "UPDATE" ? 'background-color:#4b85cc7d;':''}}" type="submit" class="sBtn red"
+                                                    onclick="myTabs(event, 'tnc');" {{status_merchant == "UPDATE" ? 'disabled':''}}><i
+                                                    class="fas fa-angle-double-left fa-2x"></i> Sebelumnya
+                                            </button>
+                                            </button>
+                                            <button style="float: right;{{status_merchant == "UPDATE" ? 'background-color:#4b85cc7d;':''}}" type="button" class="sBtn red"
+                                                    onclick="myTabs(event, 'pemilikUsaha', 'submit');" {{status_merchant == "UPDATE" ? 'disabled':''}}>Selanjutnya <i
+                                                    class="fas fa-angle-double-right fa-2x"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="pemilikUsaha" class="tabcontent">
+                                    <div class="row">
+                                        <div class="dc12 mc12">
+                                            {% set error = errors['firstName'] is defined ? 'error' : null %}
+                                            <div class="input form-group {{ error }}">
+                                                <label for="">Nama Lengkap Pemilik Usaha <span>*</span></label>
+                                                <input type="text" name="full_name" id="full_name"
+                                                       class="form-control input-pemilik" value="{{ user_name|raw }}">
+                                                {% if error %}<p
+                                                    class="{{ error }}">{{ errors['firstName'] }}</p>{% endif %}
+                                            </div>
+                                            {% set error = errors['nik'] is defined ? 'error' : null %}
+                                            <div class="input form-group {{ error }}">
+                                                <label for="">NIK <span>*</span></label>
+                                                <input type="text" name="nik" id="nik"
+                                                       class="form-control input-pemilik" value="{{ user_nik|raw }}">
+                                                {% if error %}<p class="{{ error }}">{{ errors['nik'] }}</p>{% endif %}
+                                            </div>
+
+                                            <div class="input form-group">
+                                                <label for="">Jabatan <span>*</span></label>
+                                                <select id="position" class="form-control input-pemilik"
+                                                        name="position">
+                                                    <option value="">{{ 'label.select_option'|trans }}</option>
+                                                    {% for key, choice in get_parameter('position') %}
+                                                        {% set label = 'label.' ~ choice['label'] %}
+                                                        {% set selected = position == key ? 'selected' : '' %}
+                                                        <option value="{{ key }}" {{ selected }}>
+                                                            {{ label|trans }}
+                                                        </option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+
+                                            {% set error = errors['user_phone_number'] is defined ? 'error' : null %}
+                                            <div class="input form-group {{ error }}">
+                                                <label for="">No Telepon <span>*</span></label>
+                                                <input type="text" maxlength="12" name="user_phone_number"
+                                                       id="user-phone-number" class="form-control"
+                                                       value="{{ user_phone_number|raw }}">
+                                                {% if error %}<p
+                                                    class="{{ error }}">{{ errors['user_phone_number'] }}</p>{% endif %}
+                                            </div>
+
+                                            {% set error = errors['user_email'] is defined ? 'error' : null %}
+                                            <div class="input form-group {{ error }}">
+                                                <label for="">Email <span>*</span></label>
+                                                <input type="email" name="user_email" id="user-email"
+                                                       class="form-control" value="{{ user_email|raw }}">
+                                                {% if error %}<p
+                                                    class="{{ error }}">{{ errors['user_email'] }}</p>{% endif %}
+                                            </div>
+
+                                            {% set error = errors['dob'] is defined ? 'error' : null %}
+                                            <div class="input form-group {{ error }}">
+                                                <label for="">Tanggal Lahir <span>*</span></label>
+                                                {% if user_dob is not empty %}
+                                                    <input type="date" name="dob" id="dob"
+                                                           class="form-control input-pemilik"
+                                                           value="{{ user_dob|date('Y-m-d', 'Asia/Makassar') }}">
+                                                {% else %}
+                                                    <input type="date" name="dob" id="dob"
+                                                           class="form-control input-pemilik">
+                                                {% endif %}
+                                                {% if error %}<p class="{{ error }}">{{ errors['dob'] }}</p>{% endif %}
+                                            </div>
+                                            {% set error = errors['gender'] is defined ? 'error' : null %}
+                                            <div class="input form-group {{ error }}">
+                                                <label for="">Jenis Kelamin <span>*</span></label>
+                                                <select class="form-control input-pemilik" id="input-gender"
+                                                        name="gender" title="">
+                                                    {% set label = 'label.gender'|trans %}
+                                                    <option
+                                                        value="">{{ 'label.select_label'|trans({'%label%': label}) }}</option>
+                                                    {% for key, gender in get_parameter('gender_choices') %}
+                                                        {% set selected = user_gender|default() == key ? 'selected' : '' %}
+                                                        <option
+                                                            value="{{ key }}" {{ selected }}>{{ gender|trans }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                                {# {% if error %}<p class="{{ error }}">{{ errors['gender'] }}</p>{% endif %} #}
+                                            </div>
+
+                                        </div>
+
+                                        <div class="dc4 mc12">
+                                            <div class="file-input dz-ktp-uploader">
+                                                <p>Foto KTP <span>*</span></p>
+
+                                                {% set isKtpNotEmpty = ktp_file is not empty %}
+                                                {% if page_method == 'edit' and isKtpNotEmpty %}
+                                                    <div class="imageUp">
+                                                        {% set fileExt = ktp_file|split('.')|last %}
+                                                        <a class="img" target="_blank" href="{{ path('sftp_show_file', {'path': ktp_file}) }}">
+                                                            <img class="preview-img-upload" id="previewImg-ktp"
+                                                                 src="{{ fileExt == 'pdf' ? pdfThumbnail : path('sftp_show_file', {'path': ktp_file}) }}"
+                                                                 alt="">
+                                                        </a>
+                                                    </div>
+                                                {% else %}
+                                                    <div class="img">
+                                                        <img class="preview-img-upload" id="previewImg-ktp"
+                                                             src="{{ imgThumbnail }}" alt="">
+                                                    </div>
+                                                {% endif %}
+                                                <br>
+                                                <div class='file file--upload file-input-ktp'>
+                                                    <label for='file-input-ktp'>
+                                                        Upload KTP
+                                                    </label>
+                                                </div>
+                                                <input data-initial="{{ isKtpNotEmpty }}" class="input-pemilik-img"
+                                                       value="" type="hidden" id='input-file-ktp' name="ktp_img_temp"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="dc12">
+                                            <button style="float: left;{{status_merchant == "UPDATE" ? 'background-color:#4b85cc7d;':''}}" type="submit" class="sBtn red"
+                                                    onclick="myTabs(event, 'toko');" {{status_merchant == "UPDATE" ? 'disabled':''}}><i
+                                                    class="fas fa-angle-double-left fa-2x"></i> Sebelumnya
+                                            </button>
+                                            </button>
+                                            <button style="float: right;{{status_merchant == "UPDATE" ? 'background-color:#4b85cc7d;':''}}" type="button" class="sBtn red"
+                                                    onclick="myTabs(event, 'keuangan', 'submit');" {{status_merchant == "UPDATE" ? 'disabled':''}}>Selanjutnya <i
+                                                    class="fas fa-angle-double-right fa-2x"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="keuangan" class="tabcontent">
+                                    <div class="row">
+                                        <div class="dc12 mc12">
+                                            {% set error = errors['modalUsaha'] is defined ? 'error' : null %}
+                                            <div class="input form-group {{ error }}">
+                                                <label for="">Modal Usaha<span>*</span></label>
+                                                <input type="text" id="modal_usaha_input"
+                                                       class="form-control input-keuangan"
+                                                       value="{{ store_modal_usaha }}" oninput="maskCurencyToInteger()">
+                                                <input type="hidden" name="modal_usaha" id="modal_usaha"
+                                                       class="form-control input-keuangan"
+                                                       value="{{ store_modal_usaha }}">
+                                                {% if error %}<p
+                                                    class="{{ error }}">{{ errors['modalUsaha'] }}</p>{% endif %}
+                                            </div>
+                                            {% set error = errors['totalManpower'] is defined ? 'error' : null %}
+                                            <div class="input form-group {{ error }}">
+                                                <label for="">Jumlah Tenaga Kerja<span>*</span></label>
+                                                <input type="text" name="total_manpower" id="total_manpower"
+                                                       class="form-control input-keuangan"
+                                                       value="{{ store_total_manpower|raw }}">
+                                                {% if error %}<p
+                                                    class="{{ error }}">{{ errors['totalManpower'] }}</p>{% endif %}
+                                            </div>
+                                            {% set error = errors['rekeningName'] is defined ? 'error' : null %}
+                                            <div class="input form-group {{ error }}">
+                                                <label for="rekening_name" id="perusahaan" style="display:none;">Nama
+                                                    Rekening Perusahaan<span>*</span></label>
+                                                <label for="rekening_name" id="pemilikusaha" style="display:none;">Nama
+                                                    Rekening Pemilik Usaha<span>*</span></label>
+                                                <input type="text" name="rekening_name" id="rekening_name"
+                                                       class="form-control input-keuangan"
+                                                       value="{{ store_rekening_name|raw }}">
+                                                {% if error %}<p
+                                                    class="{{ error }}">{{ errors['rekeningName'] }}</p>{% endif %}
+                                            </div>
+                                            {% set error = errors['bankName'] is defined ? 'error' : null %}
+                                            <div class="input form-group {{ error }}">
+                                                <label for="">Bank<span>*</span></label>
+                                                <input type="text" list="bank_lists" name="bank_name" id="bank_name"
+                                                       class="form-control input-keuangan"
+                                                       value="{{ store_bank_name|raw }}">
+                                                <datalist id="bank_lists">
+                                                    {% for key, bank in get_parameter('bank_lists') %}
+                                                        {% set selected = form_data['bank_name']|default() == key ? 'selected' : '' %}
+                                                        <option value="{{ bank }}"></option>
+                                                    {% endfor %}
+                                                </datalist>
+                                                {% if error %}<p
+                                                    class="{{ error }}">{{ errors['bankName'] }}</p>{% endif %}
+                                            </div>
+                                            {% set error = errors['nomorRekening'] is defined ? 'error' : null %}
+                                            <div class="input form-group {{ error }}">
+                                                <label for="">No Rekening<span>*</span></label>
+                                                <input type="text" name="nomor_rekening" id="nomor_rekening"
+                                                       class="form-control input-keuangan"
+                                                       value="{{ store_nomor_rekening|raw }}">
+                                                {% if error %}<p
+                                                    class="{{ error }}">{{ errors['nomorRekening'] }}</p>{% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="dc4 mc12">
+                                            <div class="file-input dz-rek-uploader">
+                                                <p>Foto/Scan Halaman Depan Buku Tabungan
+                                                    Yang Menunjukan Rekening <span>*</span></p>
+
+                                                {% set isRekeningNotEmpty = rekening_file is not empty %}
+                                                {% if page_method == 'edit' and isRekeningNotEmpty %}
+                                                    <div class="imageUp">
+                                                        {% set fileExt = rekening_file|split('.')|last %}
+                                                        <a class="img" target="_blank"
+                                                           href="{{ path('sftp_show_file', {'path': rekening_file}) }}">
+                                                            <img class="preview-img-upload" id="previewImg-rek"
+                                                                 src="{{ fileExt == 'pdf' ? pdfThumbnail : path('sftp_show_file', {'path': rekening_file}) }}"
+                                                                 alt="">
+                                                        </a>
+                                                    </div>
+                                                {% else %}
+                                                    <div class="img">
+                                                        <img class="preview-img-upload" id="previewImg-rek"
+                                                             src="{{ imgThumbnail }}" alt="">
+                                                    </div>
+                                                {% endif %}
+                                                <br>
+                                                <div class='file file--upload file-input-rekening'>
+                                                    <label for='file-input-rekening'>
+                                                        Upload File
+                                                    </label>
+                                                </div>
+                                                <input data-initial="{{ isRekeningNotEmpty }}"
+                                                       class="input-keuangan-img" id="file-input-rekening" type="hidden"
+                                                       name="rekening_img_temp" value=""/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="dc12">
+                                            <button style="float: left;{{status_merchant == "UPDATE" ? 'background-color:#4b85cc7d;':''}}" type="submit" class="sBtn red"
+                                                    onclick="myTabs(event, 'pemilikUsaha');" {{status_merchant == "UPDATE" ? 'disabled':''}}><i
+                                                    class="fas fa-angle-double-left fa-2x"></i> Sebelumnya
+                                            </button>
+                                            </button>
+                                            <button style="float: right;{{status_merchant == "UPDATE" ? 'background-color:#4b85cc7d;':''}}" type="button" class="sBtn red"
+                                                    onclick="myTabs(event, 'perpajakan', 'submit');" {{status_merchant == "UPDATE" ? 'disabled':''}}>Selanjutnya <i
+                                                    class="fas fa-angle-double-right fa-2x"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="perpajakan" class="tabcontent">
+                                    <div class="row">
+                                        <div class="dc12 mc12">
+                                            {% set error = errors['isPKP'] is defined ? 'error' : null %}
+                                            <div class="input form-group {{ error }}">
+                                                <label for="">Status Pajak <span>*</span></label>
+                                                <select class="form-control input-pajak" name="pkp" id="pkp"
+                                                        onchange="show(this)">
+                                                    {% if store_pkp is not null %}
+                                                        {% set isPkp = store_pkp == 1 ? 'selected' : '' %}
+                                                        {% set notPkp = store_pkp == 0 ? 'selected' : '' %}
+                                                        <option disabled selected>--Pilih--</option>
+                                                        <option value="0" {{ notPkp }}>NON PKP</option>
+                                                        <option value="1" {{ isPkp }}>PKP</option>
+                                                    {% else %}
+                                                        <option disabled selected>--Pilih--</option>
+                                                        <option value="0">NON PKP</option>
+                                                        <option value="1">PKP</option>
+                                                    {% endif %}
+                                                </select>
+                                                {% if error %}<p
+                                                    class="{{ error }}">{{ errors['isPKP'] }}</p>{% endif %}
+                                            </div>
+                                            <div id="sppkp_divv" class="input form-group">
+                                                <label for="">Surat Pengukuhan Pengusaha Kena Pajak
+                                                    (SPPKP)<span>*</span></label>
+                                                <div class="imagesUp dz-sppkp-uploader">
+                                                    {% set hide = page_method == 'edit'%}
+                                                    <div class="img {{ hide }}">
+                                                        <a href="javascript:void(0);"
+                                                           class="fas fa-trash-alt remove-sppkp "></a>
+                                                        <a href="javascript:void(0);"
+                                                           class="fas fa-edit edit-sppkp "></a>
+                                                        <img class="preview-img-upload" id="previewImg-sppkp"
+                                                             src="{{ imgThumbnail }}" alt="">
+                                                    </div>
+                                                    {% set isSppkpNotEmpty = sppkp_file is not empty %}
+                                                    {% set sppkpFileForEdit = [] %}
+                                                    {% if page_method == 'edit' and isSppkpNotEmpty %}
+                                                        {% for item in sppkp_file %}
+                                                            {% set fileExt = item|split('.')|last %}
+                                                            {% set dataIndex = get_random_string() %}
+
+                                                            {% set sppkpFileForEdit = sppkpFileForEdit|merge([{ 'uuid': dataIndex, 'path': item }]) %}
+                                                            <div class="img" target="_blank" href="{{ path('sftp_show_file', {'path': item}) }}">
+                                                                <a href="javascript:void(0);"
+                                                                   class="fas fa-trash-alt remove-sppkp-on-edit"
+                                                                   data-index="{{ dataIndex }}"></a>
+                                                                <a href="javascript:void(0);"
+                                                                   class="fas fa-edit edit-sppkp-on-edit"
+                                                                   data-index="{{ dataIndex }}"></a>
+                                                                <img class="preview-img-upload"
+                                                                     id="previewImg-sppkp-edit"
+                                                                     src="{{ fileExt == 'pdf' ? pdfThumbnail: path('sftp_show_file', {'path': item}) }}"
+                                                                     alt="">
+                                                            </div>
+                                                        {% endfor %}
+                                                    {% endif %}
+                                                    <label class="pic file-input-sppkp" for="file-input-sppkp">
+                                                        <i class="fas fa-plus"></i>
+                                                    </label>
+
+                                                    {% if page_method == 'edit' and isSppkpNotEmpty %}
+                                                        <input id="file-input-sppkp-temp" type="hidden"
+                                                               name="sppkp_img_temp[]"
+                                                               value="{{ sppkpFileForEdit|json_encode }}"/>
+                                                        <input data-initial="{{ isSppkpNotEmpty }}"
+                                                               class="input-pajak-img" id="file-input-sppkp"
+                                                               type="hidden" name="sppkp_img[]"
+                                                               value="{{ sppkp_file|json_encode }}"/>
+                                                    {% else %}
+                                                        <input id="file-input-sppkp-temp" type="hidden"
+                                                               name="sppkp_img_temp[]"/>
+                                                        <input data-initial="{{ isSppkpNotEmpty }}"
+                                                               class="input-pajak-img" id="file-input-sppkp"
+                                                               type="hidden" name="sppkp_img[]" value="[]"/>
+                                                    {% endif %}
+
+                                                </div>
+                                                <div class="text-small">Format jpeg/pdf.</div>
+                                                <br>
+                                                <br>
+                                                <div class="dc8 m12">
+                                                    {% set error = error['npwp_name'] is defined ? 'error' : null %}
+                                                    <div class"input form-group">
+                                                        <label id="" for="">Nama NPWP<span>*</span></label>
+                                                        <input type="text" name="nama_npwp" id="" class="form-control input-pajak" value="{{ user_npwp_name }}"  placeholder="{{ 'label.name'|trans }} NPWP"></input>
+                                                        {% if error %}<p class="{{ error }}">{{ errors['npwp_name'] }}</p>{% endif %}
+                                                    </div>
+                                                </div>
+                                                <div class="dc8 mc12">
+                                                    {% set error = errors['npwp'] is defined ? 'error' : null %}
+                                                    <div class="input form-group">
+                                                        <label id="label-npwp" for="">No NPWP Pemilik Usaha/Badan
+                                                            Usaha<span>*</span></label>
+                                                        <input type="text" name="no_npwp" id="no_npwp"
+                                                            class="form-control input-pajak" value="{{ user_npwp }}">
+                                                        {% if error %}<p class="{{ error }}">{{ errors['npwp'] }}</p>{% endif %}
+                                                    </div>
+                                                </div>
+
+                                                <div class="dc4 mc12 btn-u">
+                                                    <div class="file-input dz-npwp-uploader">
+                                                        <p>File NPWP <span>*</span></p>
+
+                                                        {% set isNpwpNotEmpty = npwp_file is not empty %}
+                                                        {% if page_method == 'edit' and isNpwpNotEmpty %}
+                                                            {% set fileExt = npwp_file|split('.')|last %}
+                                                            <div class="imageUp">
+                                                                <a class="img" target="_blank" href="{{ path('sftp_show_file', {'path': npwp_file}) }}">
+                                                                    <img class="preview-img-upload" id="previewImg-npwp"
+                                                                        src="{{ fileExt == 'pdf' ? pdfThumbnail : path('sftp_show_file', {'path': npwp_file}) }}"
+                                                                        alt="">
+                                                                </a>
+                                                            </div>
+                                                        {% else %}
+                                                            <div class="imageUp">
+                                                                <img src="{{ imgThumbnail }}" id="previewImg-npwp" class="pic"
+                                                                    alt="">
+                                                            </div>
+                                                        {% endif %}
+                                                        <div class='file file--upload file-input-npwp'>
+                                                            <label for='file-input-npwp'>
+                                                                Upload NPWP
+                                                            </label>
+                                                        </div>
+                                                        <input data-initial="{{ isNpwpNotEmpty }}" class="input-pajak-img"
+                                                            value="" type="hidden" id='input-file-npwp'
+                                                            name="npwp_img_temp"/>
+                                                    </div>
+                                                </div>
+                                                <div class="dc8 m12">
+                                                    {% set error = errors['npwp_address'] is defined ? 'error' : null %}
+                                                    <div class="input form-group">
+                                                        <label for="">Alamat NPWP<span>*</span></label>
+                                                        <textarea id="address_npwp" name="address_npwp" class="no-resize input-pajak"
+                                                                title=""
+                                                                placeholder="{{ 'label.address'|trans }} NPWP">{{ store_address_npwp }}</textarea>
+                                                        {% if error %}<p
+                                                            class="{{ error }}">{{ errors['address_npwp'] }}</p>{% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="dc12">
+                                            <button style="float: left;{{status_merchant == "UPDATE" ? 'background-color:#4b85cc7d;':''}}" type="submit" class="sBtn red"
+                                                    onclick="myTabs(event, 'keuangan');" {{status_merchant == "UPDATE" ? 'disabled':''}}><i
+                                                    class="fas fa-angle-double-left fa-2x"></i> Sebelumnya
+                                            </button>
+                                            </button>
+                                            <button style="float: right;{{status_merchant == "UPDATE" ? 'background-color:#4b85cc7d;':''}}" type="button" class="sBtn red"
+                                                    onclick="myTabs(event, 'suratPernyataan', 'submit');" {{status_merchant == "UPDATE" ? 'disabled':''}}>Selanjutnya <i
+                                                    class="fas fa-angle-double-right fa-2x"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="kerjasama" class="tabcontent"></div>
+                                <div id="suratPernyataan" class="tabcontent">
+                                    <div class="row">
+                                        <div class="dc12">
+                                            <h3 class="ct">Surat Pernyataan</h3>
+                                            <br>
+                                            <div class="preview-file" id="tnc-pernyataan-file">
+                                                {% include '@__main__/public/user/store/surat-pernyataan.html.twig' %}
+                                            </div>
+                                        </div>
+                                        <div class="dc12">
+                                            {% set error = errors['tnc_surat_pernyataan'] is defined ? 'error' : null %}
+                                            <div class="input form-group {{ error }}">
+                                                {% set checked = store_tnc > 0 ? 'checked' : '' %}
+                                                {% set value = store_tnc > 0 ? 'yes' : 'no' %}
+
+                                                <div class="checklist2">
+                                                    <input class="input-surat-pernyataan checkbox" type="checkbox"
+                                                           id="tnc_surat_pernyataan" name="tnc_surat_pernyataan"
+                                                           value="{{ value }}" {{ checked }}>
+                                                    <label for="tnc_surat_pernyataan" class="checkL"></label>
+                                                    <div class="textTerm">
+                                                        <p><b>Dengan ini saya menyatakan telah membaca, memahami dan
+                                                                menyetujui surat pernyataan diatas</b>
+                                                            {% if fileHash is not empty %}
+                                                                <a target="_blank" href="{{ path('agreement', {'type': 'pernyataan', 'filehash': fileHash}) }}"><i class="fa fa-download red"></i></a>
+                                                            {% endif %}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                {% if error %}<p
+                                                    class="{{ error }}">{{ errors['tnc_surat_pernyataan'] }}</p>{% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="dc12">
+                                            <button style="float: left;{{status_merchant == "UPDATE" ? 'background-color:#4b85cc7d;':''}}" type="submit" class="sBtn red"
+                                                    onclick="myTabs(event, 'perpajakan');" {{status_merchant == "UPDATE" ? 'disabled':''}}><i
+                                                    class="fas fa-angle-double-left fa-2x"></i> Sebelumnya
+                                            </button>
+                                            </button>
+                                            <button style="float: right;{{status_merchant == "UPDATE" ? 'background-color:#4b85cc7d;':''}}" type="button" class="sBtn red"
+                                                    onclick="myTabs(event, 'perjanjianKerjasama', 'submit');" {{status_merchant == "UPDATE" ? 'disabled':''}}>
+                                                Selanjutnya <i class="fas fa-angle-double-right fa-2x"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="perjanjianKerjasama" class="tabcontent">
+                                    <div class="row">
+                                        <div class="dc12">
+                                            <h3 class="ct">Perjanjian Kerjasama</h3>
+                                            <br>
+                                            <div class="preview-file" id="tnc-kesepakatan-file">
+                                                {% include '@__main__/public/user/store/surat-kesepakatan.html.twig' %}
+                                            </div>
+                                        </div>
+                                        <div class="dc12">
+                                            {% set error = errors['tnc_perjanjian_kerjasama'] is defined ? 'error' : null %}
+                                            <div class="input form-group {{ error }}">
+
+                                                {% set checked = store_tnc == 2 ? 'checked' : '' %}
+                                                {% set value = store_tnc == 2 ? 'yes' : 'no' %}
+
+                                                <div class="checklist2">
+                                                    <input class="input-perjanjian-kerjasama checkbox" type="checkbox"
+                                                           id="tnc_perjanjian_kerjasama" name="tnc_perjanjian_kerjasama"
+                                                           value="{{ value }}" {{ checked }}>
+                                                    <label for="tnc_perjanjian_kerjasama" class="checkL"></label>
+                                                    <div class="textTerm">
+                                                        <p><b>Dengan ini saya menyatakan telah membaca, memahami dan
+                                                                menyetujui perjanjian kerjasama diatas</b>
+                                                            {% if fileHash is not empty %}
+                                                                <a target="_blank" href="{{ path('agreement', {'type': 'kesepakatan', 'filehash': fileHash}) }}"><i class="fa fa-download red"></i></a>
+                                                            {% endif %}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                {% if error %}<p
+                                                    class="{{ error }}">{{ errors['tnc_perjanjian_kerjasama'] }}</p>{% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="input">
+                                            <input type="hidden" id="deleted-siu-files" name="deletedSiuFiles" value="">
+                                            <input type="hidden" id="deleted-doc-files" name="deletedDocFiles" value="">
+                                            <input type="hidden" id="deleted-sppkp-files" name="deletedSppkpFiles"
+                                                   value="">
+                                            <input type="hidden" name="_csrf_token" value="{{ csrf_token(token_id) }}">
+                                            <input type="hidden" name="_csrf_token_id" value="{{ token_id }}">
+                                            <input type="hidden" name="registered_number"
+                                                   value="{{ kesepakatan_number }}">
+                                            <input type="hidden" name="status" value="{{ status_merchant }}"
+                                                   id="status">
+                                            <input type="submit" class="sBtn red" value="{{ 'button.save'|trans }}"
+                                                   data-message="{{ 'message.confirm.user_reg_alt'|trans }}"
+                                                   onclick="myTabs(event, 'finish')" {{status_merchant == "UPDATE" ? 'disabled style="background-color:#4b85cc7d;"':''}}>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="statusMerchant" class="tabcontent">
+                                    <div class="row">
+                                        <div class="dc12">
+                                            <h3 class="ct">Status</h3>
+                                            <div style="border: 1px solid #ccc; height: 500px; overflow-y: scroll">
+                                                <br>
+                                                <table style="width: 100%; margin-left: 10px;">
+                                                    {% if status_log|length > 0 %}
+                                                        {% for item in status_log %}
+                                                            <tr>
+                                                                <td>{{ item['time'] }}</td>
+                                                                <td>{{ item['status'] }}</td>
+                                                            </tr>
+                                                        {% endfor %}
+                                                    {% endif %}
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="finish" class="tabcontent">
+                                    <div class="icon-f ct">
+                                        <i class="far fa-check-circle"></i>
+                                    </div>
+                                    <h5 class="ct finH">
+                                        TERIMAKASIH TELAH MENGISI DATA USAHA DENGAN LENGKAP MOHON MENUNGGU PROSES
+                                        VERIFIKASI DATA
+                                    </h5>
+                                    <p class="ct finP">
+                                        Pemberitahuan hasil verifikasi akan disampaikan melalui email atau melalui
+                                        dashboard Toko
+                                    </p>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        CITY_LIST = {{ city_data|json_encode|raw }};
+
+        const options = {{ get_parameter('business_criteria')|json_encode|raw }};
+        const statusMerchant = "{{ status_merchant }}";
+        const isDraft = statusMerchant === 'DRAFT';
+        const isPending = statusMerchant === 'PENDING'
+        const iconLoc = L.icon({iconUrl: "{{ asset('dist/img/marker-icon.png') }}"});
+        
+
+        let completeForm = {{ total_complete_form | to_int }};
+    </script>
+    <script type="text/javascript">
+        function show(select){
+            if(select.value == 0){
+                document.getElementById('sppkp_divv').style.display = "block";
+            } else {
+                document.getElementById('sppkp_divv').style.display = "block";
+            }
+        }
+
+    </script>
+
+    <script src="{{ asset('dist/compiled/user_store_register.js') }}"></script>
+
+{% endblock %}

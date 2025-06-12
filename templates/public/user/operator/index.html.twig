@@ -1,0 +1,77 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% block content %}
+    <main class="pdl">
+        {% include '@__main__/public/base/partials/breadcrumb.html.twig' %}
+        <section>
+            <div class="container">
+                <div class="box">
+                    <div class="row">
+                        {% include '@__main__/public/user/fragments/menu.html.twig' %}
+                        <div class="dc9 tc12">
+                            {% if store_owner == true %}
+                                <div class="sub-title">
+                                    <div class="text">
+                                        <h3>{{ 'label.admin_merchant'|trans }}</h3>
+                                    </div>
+                                    <div class="clear"></div>
+                                    <div class="btn-wrapper">
+                                        <a href="{{ path('user_operator_new') }}" class="sBtn small blue">
+                                            {{ 'label.add_admin_merchant'|trans }}
+                                        </a>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="sub-title">
+                                    <div class="text">
+                                        <h3>{{ 'label.work_unit'|trans }}</h3>
+                                    </div>
+                                    <div class="clear"></div>
+                                    <div class="btn-wrapper">
+                                        <a href="{{ path('user_operator_new') }}" class="sBtn small blue">
+                                            {{ 'label.add_work_unit'|trans }}
+                                        </a>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            <div id="user-address-list" class="pr-card" data-id="{{ app.user.id }}">
+                                <div class="row">
+                                    {% for user in operator %}
+                                        <div class="dc12">
+                                            <div class="box pr-card__1">
+                                                <div class="top">
+                                                    <div class="text">
+                                                        <h6>{{ user['o_fullname'] }}</h6>
+                                                    </div>
+                                                    {% if user['o_role'] != 'ROLE_ADMIN_MERCHANT_OWNER' %}
+                                                        <span class="badge blue temp-btn">
+                                                        <a href="{{ path('user_operator_edit', {'id': user['o_id']}) }}">
+                                                            {{ 'button.edit'|trans }}
+                                                        </a>
+                                                    </span>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="info">
+                                                    <div>
+                                                        <span>
+                                                            <strong>{{ user['o_role'] }}</strong>
+                                                        </span>
+                                                        {% if user['o_address'] is not empty %}
+                                                            <hr>
+                                                            <span>{{ user['o_address'] }}</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% if pagination is not empty and pagination.getNbResults > pagination.getMaxPerPage %}{{ html|raw }}{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}

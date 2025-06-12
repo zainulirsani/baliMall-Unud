@@ -1,0 +1,5 @@
+{% extends '@__main__/admin/base/layouts/default.html.twig' %}
+
+{% block content %}
+    {{ render(controller('App\\Plugins\\AdminPlugin::adminNotificationList')) }}
+{% endblock %}

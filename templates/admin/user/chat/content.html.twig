@@ -1,0 +1,24 @@
+{% if messages|length > 0 %}
+    <div class="direct-chat-messages">
+        {% for message in messages %}
+            {% set class_div = 'direct-chat-msg' %}
+            {% set class_name = 'direct-chat-name pull-left' %}
+            {% set class_ts = 'direct-chat-timestamp pull-right' %}
+            {% set user_name = message['s_firstName'] ~ ' ' ~ message['s_lastName'] %}
+
+            {% if initiator == message['cm_sender'] %}
+                {% set class_div = 'direct-chat-msg right' %}
+                {% set class_name = 'direct-chat-name pull-right' %}
+                {% set class_ts = 'direct-chat-timestamp pull-left' %}
+            {% endif %}
+            <div class="{{ class_div }}">
+                <div class="direct-chat-info clearfix">
+                    <span class="{{ class_name }}">{{ user_name|raw }}</span>
+                    <span class="{{ class_ts }}">{{ message['cm_createdAt']|date('d F Y H:i') }}</span>
+                </div>
+                <img class="direct-chat-img" src="{{ asset('dist/img/no-image.png') }}" alt="">
+                <div class="direct-chat-text">{{ message['cm_message'] }}</div>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}

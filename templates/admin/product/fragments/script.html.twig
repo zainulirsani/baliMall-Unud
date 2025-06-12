@@ -1,0 +1,133 @@
+<script>
+    var dataTable = function(destroy) {
+        var parameters = {
+            {% for key, filter in data_table.getFilters %}
+                '{{ key }}': $('#f-{{ key }}').val(),
+            {% endfor %}
+        };
+
+        var buttonCommon = {
+            exportOptions: {
+                format: {
+                    header: function(data, columnIdx) {
+                        return (parseInt(columnIdx) === 0) ? 'No' : data;
+                    },
+                    body: function (data, row, column, node) {
+                        if (parseInt(column) === 0) {
+                            return column === 0 ? row + 1 : data;
+                        } else if (parseInt(column) === 4) {
+                            return column === 4 && data.indexOf("<input id=") !== -1 ? data.substring(data.lastIndexOf("value=\"")+7, data.lastIndexOf("\">")) : data;
+                        } else if (parseInt(column) === 5) {
+                            return column === 5 && data.indexOf("<input id=") !== -1 ? data.substring(data.lastIndexOf("value=\"")+7, data.lastIndexOf("\">")) : data;
+                        } else if (parseInt(column) === 6) {
+                            return column === 6 && data.indexOf("<input id=") !== -1 ? data.substring(data.lastIndexOf("value=\"")+7, data.lastIndexOf("\">")) : data;
+                        } else if (parseInt(column) === 7) {
+                            return column === 7 && data.indexOf("<select id=") !== -1 ? (data.split('selected>')[1]).split('</option>')[0] : data;
+                        } else {
+                            return data;
+                        }
+                    }
+                }
+            }
+        };
+
+        $('#data-table').DataTable({
+            dom: 'Bfrtip',
+            buttons: [
+                $.extend(true, {}, buttonCommon, {
+                    extend: 'copyHtml5',
+                    exportOptions: { columns: ':visible' }
+                }),
+                $.extend(true, {}, buttonCommon, {
+                    extend: 'excelHtml5',
+                    exportOptions: { columns: ':visible' }
+                }),
+                $.extend(true, {}, buttonCommon, {
+                    extend: 'print',
+                    text: 'PDF',
+                    exportOptions: { columns: ':visible' }
+                }),
+                'colvis'
+            ],
+            responsive: true,
+            ordering: false,
+            searching: false,
+            processing: true,
+            serverSide: true,
+            scrollX: true,
+            destroy: !!destroy,
+            ajax: {
+                url: BASE_URL+'/'+ADMIN_PATH+'/{{ page_section }}/fetch_data',
+                type: 'POST',
+                 data: $.extend(true, parameters, TOKEN),
+            },
+            initComplete: function (settings) { 
+                var response = settings.json;
+                var table = this;
+                console.log(response.draw - 1);
+                table.fnPageChange((response.draw - 1));
+            },
+        });
+
+        $.fn.dataTable.ext.errMode = 'throw';
+    };
+
+    $(function() {
+        dataTable();
+        $(document).on('click', '#data-table-filter', function(e) {
+            e.preventDefault();
+
+            dataTable(true);
+        });
+        
+        $(document).on('keyup', '.input-price', function(e) {
+            e.preventDefault();
+            var value     = e.target.value;
+            var is_number = value.replace(/\D/gi, '');
+            
+            e.target.value = is_number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        });
+
+        $(document).on('click', '.confirm-delete', function(e) {
+            e.preventDefault();
+
+            var id = $(this).attr('data-id');
+
+            bootbox.confirm(CONFIRM_MSG, function(confirmed) {
+                if (confirmed) {
+                    var postUrl = BASE_URL+'/'+ADMIN_PATH+'/{{ page_section }}/delete';
+                    var postData = {
+                        '{{ page_section }}': id,
+                    };
+
+                    $.post(postUrl, $.extend(true, postData, TOKEN), function(response) {
+                        if (response.status) {
+                            {% for key, filter in data_table.getFilters %}
+                                $('#f-{{ key }}').val('');
+                            {% endfor %}
+
+                            dataTable(true);
+                        }
+
+                        if (typeof response.message !== 'undefined') {
+                            $('#modal-global .modal-body').html(response.message);
+                            $('#modal-global').modal();
+                        }
+                    });
+                }
+            });
+        });
+
+        
+
+        {% if allow_export == true %}
+            $('#btn-export-data').click(function(e) {
+                e.preventDefault();
+
+                {% for key, filter in data_table.getFilters %}$('#export-{{ key }}').val($('#f-{{ key }}').val());{% endfor %}
+
+                $('#form-export-table').submit();
+            });
+        {% endif %}
+    });
+</script>

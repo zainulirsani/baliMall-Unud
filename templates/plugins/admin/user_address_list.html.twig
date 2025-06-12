@@ -1,0 +1,8 @@
+{% for address in addresses %}
+    {% set data = {
+        address: address,
+        addresses_count: addresses|length,
+        type: type
+    } %}
+    {% include '@__main__/admin/user/address/content.html.twig' with data only %}
+{% endfor %}

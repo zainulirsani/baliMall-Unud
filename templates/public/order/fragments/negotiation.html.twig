@@ -1,0 +1,196 @@
+<script src="{{ asset('vendor/jquery-mask/jquery.mask.js') }}"></script>
+<tr>
+    <td colspan="3">
+        <b>{{ 'label.negotiation'|trans }}</b>
+        <input type="hidden" name="negotiated[{{ hash }}]" value="1" title="">
+    </td>
+</tr>
+<input type="hidden" name="negotiated[{{ hash }}]" class="check check-negotiated" value="1" title=""
+       data-hash="{{ hash }}"
+       data-ppnpercentage="{{ get_ppn_percentage(merchant['items'][0]['attributes']['vendor_umkm_category']) }}">
+
+{% for item in merchant['items'] %}
+    {% set attr_nego = item['attributes'] %}
+    {% set quantity = item['quantity'] %}
+    {% set item_hash = item['id'] %}
+    {% set free_tax = attr_nego['free_tax'] %}
+
+    {% if free_tax == 1 %}
+        {% set negotiated_price = attr_nego['price'] * quantity %}
+    {% else %}
+        {% set negotiated_price = ((attr_nego['price'] + generate_ppn(attr_nego['price'], attr_nego['vendor_umkm_category'])) * quantity) %}
+    {% endif %}
+
+    {% if attr_nego['with_tax'] < 1 %}
+        {% set negotiated_price = (attr_nego['price'] * quantity) %}
+    {% endif %}
+
+    <tr class="negotiated-column-{{ hash }}">
+        <td><b>{{ attr_nego['name'] }}</b></td>
+        <td colspan="2">
+            <div class="input">
+                {# Data yang di kirim adalah price dengan include PPN, sedangkan data yang tampil dan di input adalah price tanpa PPN #}
+                <input type="hidden" name="negotiated_price[{{ hash }}][{{ attr_nego['image'] }}]"
+                       class="negotiation-price-value negotiated-item-{{ hash }}" value="{{ negotiated_price|to_int }}"
+                       data-qty="{{ quantity }}" data-hash="{{ hash }}" data-product-hash="{{ item_hash }}"
+                       data-free-tax="{{ free_tax }}">
+                <input type="text" class="negotiation-price negotiated-item-{{ hash }}"
+                       value="{{ attr_nego['price']|to_int }}" min="1" title="" onInput="autoChangePrice()"
+                       data-qty="{{ quantity }}" data-hash="{{ hash }}" data-product-hash="{{ item_hash }}"
+                       data-free-tax="{{ free_tax }}">
+            </div>
+            <span style="color: red;">{{ 'label.nego_price_note'|trans }}</span>
+        </td>
+        <td></td>
+    </tr>
+{% endfor %}
+<tr class="negotiated-column-{{ hash }}">
+    <td>{{ 'label.execution_time'|trans }}</td>
+    <td colspan="2">
+        <div class="input">
+            <input type="text" name="negotiated_time[{{ hash }}]" class="negotiation-time negotiated-item-{{ hash }}"
+                   value="" title="" placeholder="{{ 'label.input_negotiation_time'|trans }}">
+        </div>
+        <span style="color: red;">(Dalam Hari Kalender)</span>
+    </td>
+    <td></td>
+</tr>
+<tr class="negotiated-column-{{ hash }}">
+    <td>{{ 'label.negotiation_shipping'|trans }}</td>
+    <td colspan="2">
+        <div class="input">
+            <input type="hidden" name="negotiated_shipping[{{ hash }}]"
+                   class="negotiation-shipping negotiated-shipping-price" value="" title="">
+            <input type="text" name="negotiated_shipping_show[{{ hash }}]"
+                   class="negotiation-shipping shipping-price-show" onInput="autoChangePrice()" value=""
+                   data-hash="{{ hash }}">
+        </div>
+    </td>
+    <td></td>
+</tr>
+<tr class="negotiated-column-{{ hash }}">
+    <td>{{ 'label.negotiation_note'|trans }}</td>
+    <td colspan="2">
+        <div class="input">
+            <input type="text" name="negotiated_note[{{ hash }}]" class="negotiation-note" value="" title="">
+        </div>
+    </td>
+    <td></td>
+</tr>
+
+<script>
+    $(function () {
+        $('input[name="negotiated_time[{{ hash }}]"]').on('input', function () {
+            $(this).val($(this).val().replace(/[^0-9]/g, ''));
+        });
+    });
+
+    {# auto add dot character negotiation-price #}
+{#     
+    $('.negotiation-price').on('input', function () {
+        var val = $(this).val();
+        $('#negotiation-price-label').text(new Intl.NumberFormat('id-ID', {style: 'currency', currency: 'IDR'}).format(val));
+    }); #}
+    
+    $('.negotiation-price').mask('#.##0', {reverse: true, min: 0, max: 99999999999999999});
+    $('.shipping-price-show').mask('#.##0', {reverse: true, min: 0, max: 99999999999999999});
+
+
+    function formatIdCurrency(x) {
+        return "Rp. " + x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+    }
+
+    function sumArray(total, num) {
+        return total + num;
+    }
+
+    function getBasePrice(total_price, ppn = TAX_VALUE) {
+        return Math.round(total_price / (ppn + 1));
+    }
+
+    function getPPN(total_price, ppn = TAX_VALUE) {
+        // return total_price - (total_price / (ppn + 1));
+        return parseFloat(total_price - (total_price / (ppn + 1))).toFixed(1);
+    }
+
+    function clean_value(masked_value, trig) {
+        var value_numeric = masked_value.replace(/[^0-9]/g, '');
+        return value_numeric.split(trig).join("");
+    }
+
+    function addTax(total_price, ppn = TAX_VALUE) {
+        return $('#is-pkp-trx').val() === '1' ? parseFloat(total_price * (ppn + 1)).toFixed(1) : total_price
+        
+    }
+
+    function autoChangePrice() {
+        var ppnPercentage = parseFloat($('.check-negotiated').data('ppnpercentage'))
+        var nego_price = document.getElementsByClassName('negotiation-price'); //yang di input (tanpa PPN)
+        var nego_price_value = document.getElementsByClassName('negotiation-price-value'); //yang akan dikirim (akan di include PPN)
+        var hascode_peritem = [];
+        var hascode_product = [];
+        var price_peritem = [];
+        var grandTotal = 0;
+        var product_item_price = 0;
+        var free_tax = 0;
+
+        // debugger
+
+        for (var i = 0; i < nego_price.length; i++) {
+            hascode_peritem[i] = nego_price[i].getAttribute('data-hash');
+            hascode_product[i] = nego_price[i].getAttribute('data-product-hash');
+            var exclude_tax = nego_price[i].getAttribute('data-free-tax') === "1";
+            product_item_price = parseInt(parseInt(clean_value(nego_price[i].value, '.'))) * parseInt(nego_price[i].getAttribute('data-qty'));
+            price_peritem[i] = product_item_price > 0 ? product_item_price : 0;
+            // console.log("Price peritem: ", price_peritem[i]);
+            // console.log('clean value:', clean_value(nego_price[i].value, '.'));
+            var formatPrice = formatIdCurrency(price_peritem[i]);
+            nego_price_value[i].value = exclude_tax ? price_peritem[i] : addTax(price_peritem[i], ppnPercentage);
+           //  document.getElementsByClassName('rt ' + hascode_product[i])[0].innerHTML = '<b>' + formatPrice + '</b>';
+
+          //  $('.negotiation-price-value .negotiated-item-' + hascode_peritem[i]).val(clean_value(nego_price[i].value, '.'));
+
+            if (nego_price[i].getAttribute('data-free-tax') === '1') {
+                free_tax += product_item_price * TAX_VALUE
+            }
+        }
+
+
+        var nego_shipping = document.getElementsByClassName('negotiation-shipping shipping-price-show');
+        var nego_shipping_value = document.getElementsByClassName('negotiation-shipping negotiated-shipping-price');
+
+        var shipping_price = 0;
+
+        for (var i = 0; i < nego_shipping.length; i++) {
+            var hash_shipping = nego_shipping[i].getAttribute('data-hash');
+            document.getElementById('shipping-cost-' + hash_shipping).innerHTML = '<b>' + formatIdCurrency(clean_value(nego_shipping[i].value, '.') > 0 ? clean_value(nego_shipping[i].value, '.') : 0) + '</b>';
+            if ($('#is-pkp-trx').val() === '1') {
+                nego_shipping_value[i].value = parseInt(clean_value(nego_shipping[i].value, '.')) > 0 ? addPPN(parseInt(clean_value(nego_shipping[i].value, '.'))) : 0;
+            } else {
+                nego_shipping_value[i].value = parseInt(clean_value(nego_shipping[i].value, '.')) > 0 ? parseInt(clean_value(nego_shipping[i].value, '.')) : 0;
+            }
+            shipping_price += parseInt(clean_value(nego_shipping[i].value, '.')) > 0 ? parseInt(clean_value(nego_shipping[i].value, '.')) : 0;
+        }
+
+        grandTotal = price_peritem.reduce(sumArray) + shipping_price; //tanpa PPN
+        
+        if ($('#is-pkp-trx').val() === '1') {
+            // var freeTaxNominal = parseFloat($('#ppn-grand-total').attr('data-free-tax-nominal'));
+
+            var taxTotal = grandTotal * ppnPercentage;
+
+            taxTotal -= free_tax;
+            // console.log('TAX TOTAL: ', taxTotal);
+            $('#input-grand-total').html(formatIdCurrency(parseFloat(grandTotal + taxTotal).toFixed(1).replace(/\.0+$/, '').replace('.', ',')));
+            $('#input-grand-total').attr('data-grand-total', parseFloat(grandTotal + taxTotal).toFixed(1).replace(/\.0+$/, ''));
+            document.getElementById('ppn-grand-total').innerHTML = formatIdCurrency(parseFloat(taxTotal < 0 ? 0 : taxTotal).toFixed(1).replace(/\.0+$/, '').replace('.', ','));
+            $('#ppn-grand-total').attr('data-ppn-grand-total', parseFloat(taxTotal).toFixed(1).replace(/\.0+$/, '').replace('.', ','));
+        } else {
+            // console.log('GRAND TOTAL: ', grandTotal);
+            document.getElementById('input-grand-total').innerHTML = formatIdCurrency(parseFloat(grandTotal).toFixed(1).replace(/\.0+$/, '').replace('.', ','));
+            $('#input-grand-total').attr('data-grand-total', parseFloat(grandTotal).toFixed(1).replace(/\.0+$/, '').replace('.', ','));
+            document.getElementById('ppn-grand-total').innerHTML = formatIdCurrency(0);
+            $('#ppn-grand-total').attr('data-ppn-grand-total', 0);
+        }
+    }
+</script>

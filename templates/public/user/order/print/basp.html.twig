@@ -1,0 +1,283 @@
+{% set nego_price = 0 %}
+{% set nego_batch = 0 %}
+{% set sub_total_nego_price = 0 %}
+{% set sub_total_ppn_price = 0 %}
+
+{% if order['o_negotiatedProducts']|length > 0 %}
+    {% for temp_nego_data in order['o_negotiatedProducts'] %}
+        {% set nego_batch = temp_nego_data['on_batch'] %}
+    {% endfor %}
+{% endif %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <title>Berita Acara Selesai Pesanan</title>
+    <style>
+        .table-nama tr td{
+            padding: 8px;
+            font-size: 11pt;
+            padding-left: 20px
+        }
+        .table-asli thead{
+            font-size: 10pt
+        }
+        .detail td:first-child{
+            border: none
+        }
+    </style>
+</head>
+<body style="margin: 20px;">
+<div class="row" style="text-align: center;">
+    <div class="col-md-12">
+        <img src="data:image/png;base64,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" style="width:100px;display:block" alt="">
+        <center>
+            <label style="color:gray">{{ seller['address']|default() }}</label>
+        </center>
+    </div>
+</div>
+<div class="row" style="text-align: center;">
+    <div class="col-md-12">
+        <h3 style="margin-top: 30px">BERITA ACARA SELESAI PESANAN</h3>
+        <p>No: {{ order['o_id'] }}</p>
+    </div>
+</div>
+<div class="row">
+    <p>Pada hari ini, {{ today_date }}.</p>
+</div>
+<div class="row">
+    <p>Yang bertandatangan dibawah ini.</p>
+</div>
+<div class="row">
+    <table class="table" style="width: 100%">
+        <colgroup>
+            <col span="1" style="width: 6%;">
+            <col span="1" style="width: 20%;">
+            <col span="1" style="width: 4%;">
+            <col span="1" style="width: 70%;">
+        </colgroup>
+        <tr>
+            <td>1.</td>
+            <td>Nama</td>
+            <td>:</td>
+            <td><b>{{ seller['user'].getFirstName|default() }}</b></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td>Jabatan</td>
+            <td>:</td>
+            <td><b>PENJUAL</b></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td>Nama Perusahaan</td>
+            <td>:</td>
+            <td><b>{{ seller['name']|default()|raw }}</b></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td>Alamat Perusahaan</td>
+            <td>:</td>
+            <td><b>{{ seller['address']|default() }}</b></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td>No. Hp</td>
+            <td>:</td>
+            <td><b>{{ seller['user'].getPhoneNumber|default() }}</b></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td colspan="3">
+                <p style="font-size: 11pt; margin-top: 15px">Sebagai pihak yang menyerahkan, selanjutnya disebut <b>PIHAK PERTAMA</b></p>
+            </td>
+        </tr>
+    </table>
+</div>
+<div class="row">
+    <table class="table" style="width: 100%">
+        <colgroup>
+            <col span="1" style="width: 6%;">
+            <col span="1" style="width: 20%;">
+            <col span="1" style="width: 4%;">
+            <col span="1" style="width: 70%;">
+        </colgroup>
+        <tr>
+            <td>2.</td>
+            <td>Nama</td>
+            <td>:</td>
+            <td><b>{{ order['u_ppkName'] }}</b></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td>Jabatan</td>
+            <td>:</td>
+            <td><b>PPK (Pejabat Pengambil Keputusan)</b></td>
+        </tr>
+        <tr>
+            {% set user_order_name = order['u_firstName'] ~ ' ' ~ order['u_lastName'] %}
+            <td></td>
+            <td>Nama Instansi</td>
+            <td>:</td>
+            <td><b>{{ user_order_name|raw }}</b></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td>Alamat</td>
+            <td>:</td>
+            <td><b>{{ order['o_address'] }}</b></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td>No. Hp</td>
+            <td>:</td>
+            <td><b>{{ order['o_phone'] }}</b></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td colspan="3">
+                <p style="font-size: 11pt; margin-top: 15px;">Sebagai pihak yang menerima, selanjutnya disebut <b>PIHAK KEDUA</b></p>
+            </td>
+        </tr>
+    </table>
+</div>
+<div class="row">
+    <p style="font-size: 11pt; margin-top: 20px;">
+        <b>PIHAK PERTAMA</b> menyerahkan hasil pekerjaan pengiriman barang atas kegiatan jual-beli melalui Mitra Balimall kepada <b>PIHAK KEDUA</b>, dan pihak kedua telah menerima hasil pekerjaan tersebut dalam jumlah yang lengkap dan kondisi yang baik sesuai dengan rincian berikut :
+    </p>
+</div>
+<div class="row">
+    <table class="table" style="width: 100%;">
+        <thead class="text-center">
+        <tr>
+            <th>No</th>
+            <th>Nama Barang / Jasa</th>
+            <th>Jumlah Dikirim</th>
+            <th>Harga <br> Satuan (Rp)</th>
+            <th>Jumlah <br> (Rp)</th>
+            <th>Jumlah <br> Diterima</th>
+            <th>Kondisi <br> <span style="font-size: 6pt">(coret yang salah)</span></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for index, product in order['o_products'] %}
+            {% for product_nego in order['o_negotiatedProducts'] %}
+                {% if (product_nego['p_id'] == product['p_id']) and (product_nego['on_batch'] == nego_batch) %}
+                    {% set nego_price = get_base_price(product_nego['on_negotiatedPrice'], (product_nego['on_taxValue']))|number_format %}
+                    {% set sub_total_nego_price = sub_total_nego_price + get_base_price(product_nego['on_negotiatedPrice'], product_nego['on_taxValue']) %}
+                    {% set sub_total_ppn_price = sub_total_ppn_price + get_ppn(product_nego['on_negotiatedPrice'], product_nego['on_taxValue']) %}
+                    {% set quantity = product['op_quantity'] %}
+                    {% set delivery_details = product['op_deliveryDetails']|default('')|json_decode %}
+
+                    {% for delivery_detail in delivery_details %}
+                        {% if delivery_batch == delivery_detail['batch'] %}
+                            {% set quantity = delivery_detail['current'] %}
+                        {% endif %}
+                    {% endfor %}
+                    <tr>
+                        <td>{{ index+1 }}</td>
+                        <td>{{ product['p_name'] }}</td>
+                        <td style="text-align: center;">{{ quantity }} dari {{ product['op_quantity'] }}</td>
+                        <td>{{ (get_base_price(product_nego['on_negotiatedPrice'], (product_nego['on_taxValue'])))|number_format }}</td>
+                        <td>{{ nego_price }}</td>
+                        <td></td>
+                        <td>Baik / Rusak</td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
+        <tr>
+            <td colspan="7"><br></td>
+        </tr>
+        </tbody>
+    </table>
+    <table style="float: right;">
+        <tr>
+            <td colspan="5"></td>
+            <td style="border-top: 1px solid #000;"><b>Jumlah (Rp)</b></td>
+            <td style="border-top: 1px solid #000;">{{ sub_total_nego_price|number_format }}</td>
+        </tr>
+        <tr>
+            <td colspan="5"></td>
+            <td><b>Biaya kirim (Rp)</b></td>
+            <td>{{ order['o_shippingPrice']|number_format }}</td>
+        </tr>
+        <tr>
+            <td colspan="5"></td>
+            <td><b>PPn (Rp)</b></td>
+            <td>{{ sub_total_ppn_price|number_format }}</td>
+        </tr>
+        <tr>
+            {% set order_grand_total = sub_total_nego_price + order['o_shippingPrice'] + sub_total_ppn_price %}
+            <td colspan="5"></td>
+            <td style="background-color:#dfe6e9"><b>TOTAL</b></td>
+            <td style="background-color:#dfe6e9">{{ (sub_total_nego_price + order['o_shippingPrice'] + sub_total_ppn_price)|round|number_format }}</td>
+        </tr>
+    </table>
+</div>
+<div class="row" style="padding-top: 80px;">
+    <p style="font-size: 11pt; margin-top: 20px">Berita Acara Selesai Pekerjaan ini berfungsi sebagai bukti serah terima hasil pekerjaan kepada <b>PIHAK KEDUA</b></p>
+    <p style="font-size: 11pt; margin-top: 15px">Demikian Berita Acara Selesai Pekerjaan ini dibuat dengan sebenarnya untuk dipergunakan sebagaimana seharusnya</p>
+</div>
+<div class="row" style="margin-top: 20px;">
+    <table style="width:100%">
+        <tr>
+            <th style="width: 40%; float: center;">Pihak Pertama</th>
+            <th style="width: 20%;"></th>
+            <th style="width: 40%; float: center;">Pihak Kedua</th>
+        </tr>
+        <tr>
+            {% set url_global = get_parameter('app_url') %}
+            <td>
+                {% if seller['user'].getUserSignature is not empty %}
+                    {% set user_seller_signature = asset(seller['user'].getUserSignature)  %}
+                    <img src="{{ url_global ~ user_seller_signature }}" style="max-width: 150px;" />
+                    {% if seller['user'].getUserStamp is not empty %}
+                    {% set user_seller_stamp = asset(seller['user'].getUserStamp)  %}
+                        <img src="{{ url_global ~ user_seller_stamp }}" style="max-width: 150px;z-index: 99;position:absolute;margin-left: -170px;" />
+                    {% endif %}
+                {% else %}
+                    <br><br><br>
+                {% endif %}
+            </td>
+            <td></td>
+            <td>
+                {% if order['u_user_signature'] is not empty %}
+                    {% set user_order_signature = asset(order['u_user_signature'] )  %}
+                    <img src="{{ url_global ~ user_order_signature }}" style="max-width: 150px;" />
+                    {% if order['u_user_stamp'] is not empty %}
+                    {% set user_order_stamp = asset(order['u_user_stamp'])  %}
+                        <img src="{{ url_global ~ user_order_stamp }}" style="max-width: 150px;z-index: 99;position:absolute;margin-left: -50px;" />
+                    {% endif %}
+                {% else %}
+                    <br>
+                    <br>
+                    <br>
+                {% endif %}
+            </td>
+        </tr>
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td style="text-align: center;">{{ seller['user'].getFirstName|default() ~ ' ' ~ seller['user'].getLastName|default() }}</td>
+            <td></td>
+            <td style="text-align: center;">{{ order['u_firstName'] ~ ' ' ~ order['u_lastName'] }}</td>
+        </tr>
+    </table>
+</div>
+<div class="row">
+    <div class="col-md-12" style="padding-top: 150px;">
+        <center>
+            Pemeriksa Barang
+            <br><br><br><br>
+            <hr style="width: 200px;border: 1px solid black;">
+        </center>
+    </div>
+</div>
+</body>
+</html>

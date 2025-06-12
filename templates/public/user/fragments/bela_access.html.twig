@@ -1,0 +1,8 @@
+{% if app.request.session.has('user_lkpp_access_category') %}
+    <div id="bela-access">
+        {% for parent, value in app.request.session.get('user_lkpp_access_category') %}
+            <input id="bela-bcp" type="hidden" value="{{ parent }}">
+            <input id="bela-bcv" type="hidden" value="{{ value }}">
+        {% endfor %}
+    </div>
+{% endif %}

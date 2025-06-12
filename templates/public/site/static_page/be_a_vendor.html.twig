@@ -1,0 +1,45 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% block content %}
+    <main class="global-page">
+        <section>
+            <div class="container">
+                <h2>Tingkatkan Penjualan Produk Anda dan Dapatkan Banyak Keuntungan Dengan Bergabung Dengan Balimall.id</h2>
+                <p class="sgd-text-center">
+                    <a href="{{ path('register', {'as': 'vendor'}) }}" target="_blank">Daftar Sekarang</a>
+                </p>
+                <p>
+                    Balimall.id hadir bagi para UMKM atau perajin produk unggulan Bali yang ingin mendapatkan banyak keuntungan melalui penjualan online.
+                </p>
+                <ul class="">
+                    <li>
+                        <strong>Pemasaran Online</strong>
+                        <p>
+                            Produk UMKM dipasarkan dan dipromosikan secara online dengan jaminan kualitas dan original
+                        </p>
+                    </li>
+                    <li>
+                        <strong>Jangkauan Pasar Lebih Luas</strong>
+                        <p>
+                            Produk UMKM dipasarkan pada pasar konsumen langsung, sekala bisnis atau korporasi, dan pemerintah
+                        </p>
+                    </li>
+                    <li>
+                        <strong>Jaminan Keamanan Transaksi</strong>
+                        <p>
+                            Jaminan keamanan transaksi dengan aplikasi yang aman dan terlindungi, bekerjasama dengan Bank Pemerintah Daerah dan BUMN, jaminan layanan purna jual dari balimall.id
+                        </p>
+                    </li>
+                </ul>
+                <hr>
+                <h2>Cara Berjualan di Balimall.id</h2>
+                <div class="sgd-text-center">
+                    <video controls="controls">
+                        <source src="{{ asset('assets/video/be-a-merchant.mp4') }}" type="video/mp4">
+                        Your browser does not support the HTML5 Video element.
+                    </video>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}

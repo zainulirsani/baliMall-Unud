@@ -1,0 +1,379 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% block content %}
+    
+    <style>
+        .temp-btn {
+            min-width: 120px;
+            text-align: center;
+            height: 24px;
+            line-height: 24px;
+            border-radius: 8px;
+        }
+        .styled-table {
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 0.9em;
+            font-family: sans-serif;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+        }
+        .styled-table thead tr {
+            background-color: #4b85cc;
+            color: #ffffff;
+            text-align: left;
+        }
+        .styled-table th,
+        .styled-table td {
+            padding: 12px 15px;
+            border: 0px;
+        }
+        .styled-table tbody tr {
+            border-bottom: 1px solid #dddddd;
+        }
+
+        .styled-table tbody tr:nth-of-type(even) {
+            background-color: #f3f3f3;
+        }
+
+        .styled-table tbody tr:last-of-type {
+            border-bottom: 2px solid #4b85cc;
+        }
+        .styled-table tbody tr.active-row {
+            font-weight: bold;
+            color: #4b85cc;
+        }
+        .badge-orange {
+            background-color: #FEF2E5;
+            font-size: 12px;
+            padding: 5px 10px;
+            text-align: center;
+            border-radius: 10px;
+            color: #CD6200;
+            border: 1px solid #CD6200;
+        }
+        .badge-green {
+            background-color: #EBF9F1;
+            font-size: 12px;
+            padding: 5px 10px;
+            text-align: center;
+            border-radius: 10px;
+            color: #1F9254;
+            border: 1px solid #1F9254;
+        }
+        .badge-red {
+            background-color: #ffa5a582;
+            font-size: 12px;
+            padding: 5px 10px;
+            text-align: center;
+            border-radius: 10px;
+            color: #4b85cc;
+            border: 1px solid #4b85cc;
+        }
+        .badge-blue {
+            background-color: #008ae838;
+            font-size: 12px;
+            padding: 5px 10px;
+            text-align: center;
+            border-radius: 10px;
+            color: #008ae8;
+            border: 1px solid #008ae8;
+        }
+        .btn-ppk-red,.btn-ppk-red:hover {
+            background-color: #4b85cc;
+            font-size: 14px;
+            padding: 5px 10px;
+            text-align: center;
+            border-radius: 5px;
+            color: #fff;
+            border: 1px solid #4b85cc;
+            margin: 2px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .btn-ppk-red-border,.btn-ppk-red-border:hover {
+            background-color: transparent;
+            font-size: 14px;
+            padding: 5px 10px;
+            text-align: center;
+            border-radius: 5px;
+            color: #4b85cc;
+            border: 1px solid #4b85cc;
+            margin: 2px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: 0.5s;
+        }
+
+        .btn-ppk-red-border:hover {
+            background-color: #4b85cc;
+            color: #fff;
+            transition: 0.5s;
+        }
+
+        .input input[type=text] {
+            background-color: #FFF;
+            border: 1.5px solid #ededed;
+        }
+
+        .btn-search-ppk,.btn-search-ppk:hover {
+            background-color: #4b85cc;
+            font-size: 14px;
+            padding: 14px 18px;
+            text-align: center;
+            border-radius: 5px;
+            color: #fff;
+            border: 1px solid #4b85cc;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-info-ppk,.btn-info-ppk:hover {
+            background-color: #0dcaf0;
+            font-size: 14px;
+            padding: 14px 18px;
+            text-align: center;
+            border-radius: 5px;
+            color: #fff;
+            border: 1px solid #0dcaf0;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .table_ppk_status tr,.table_ppk_status td {
+            padding: 10px;
+        }
+
+        .text-center {text-align:center;}
+        .text-right {text-align: right;}
+        ::-webkit-scrollbar {
+        -webkit-appearance: none;
+            width: 7px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            border-radius: 4px;
+            background-color: rgba(0, 0, 0, .5);
+            box-shadow: 0 0 1px rgba(255, 255, 255, .5);
+        }
+
+        .fake-scroll-div {
+            overflow-x: scroll !important;
+            height: 20px !important;
+            margin-bottom: 0px !important;
+        }
+
+        .text-bold-1 {
+            font-weight: 800 !important;
+            font-size: 20px !important;
+        }
+
+        .text-label-1 {
+            font-size: 14px !important;
+        }
+
+        .select2-selection--single{
+            padding: 10px 0px !important;
+            height: 48px !important;
+            border: 1px solid #dcdcdc !important;
+        }
+
+        .select2-selection__arrow{
+            margin-top: 8px !important;
+        }
+
+        .select2-container--default .select2-selection--multiple .select2-selection__rendered {
+            font-size: 16px !important;
+        }
+
+        .mt--1{
+            margin-top: -10px !important;
+        }
+
+        .mt-1{
+            margin-top: 10px !important;
+        }
+
+        .mt-3{
+            margin-top: 30px !important;
+        }
+
+        .mb-0{
+            margin-bottom: 0px !important;
+        }
+
+        .table_detail tr td,th {
+            border: 1px solid #000;
+        }
+
+        .table_detail tr td {
+            font-weight: 400;
+        }
+
+        .table_no_border {
+            border: 0px !important;
+        }
+
+        .table_detail td,th {
+            padding: 10px;
+        }
+
+        .btn-ppk-red[title]:hover::before {
+            content: attr(title);
+            position: absolute;
+            background-color: black;
+            color: white;
+            padding: 5px;
+            border-radius: 5px;
+        }
+        .alert-orange{
+            background-color: #FEF2E5;
+            color: #CD6200;
+            padding: 20px 15px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 15px;
+            text-align: justify;
+        }
+    </style>
+    <main class="pdl">
+        {% include '@__main__/public/base/partials/breadcrumb.html.twig' %}
+        <section>
+            <div class="container">
+                <div class="box">
+                    <div class="row">
+                        {% include '@__main__/public/user/fragments/menu.html.twig' %}
+                        <div class="dc9 tc12">
+                            <div id="user-ppk-treasurer-list" class="pr-card" data-id="{{ app.user.id }}" data-page="type">
+                                <div class="row">
+
+                                    {# List #}
+                                    <div class="dc12">
+                                        <div class="box pr-card__1">
+                                            <div class="row">
+
+                                                <div class="dc12" style="margin-bottom: 0;">
+                                                    <div class="row">
+
+                                                        <form id="filter-ppk-form" action="" method="GET">
+                                                            {# <div class="dc4" style="margin-bottom: 0;">
+                                                                <div class="input">
+                                                                    <input style="height: 48px;" id="treasurer-search-request" name="search_rid" type="text" title="" value="{{parameters['search_rid'] is defined and parameters['search_rid'] is not empty ? parameters['search_rid']:''}}" placeholder="Request ID">
+                                                                </div>
+                                                            </div> #}
+
+
+                                                            {# <div class="dc1" style="margin-bottom: 0;">
+                                                                <div class="input">
+                                                                    <button id="search-rid-btn" class="btn-search-ppk">
+                                                                        Cari
+                                                                    </button>
+                                                                </div>
+                                                            </div> #}
+                                                        </form>
+                                                        <div class="dc6" style="float:right">
+                                                            <div class="input" style="float: right; margin-top: 15px">
+                                                                <a href="{{ path('user_requestbinding_new') }}" class="btn-search-ppk">
+                                                                    Tambah Binding
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {# <div class="dc12 fake-scroll-div">
+                                                    <div class="fake-scroll-content"></div>
+                                                </div> #}
+                                                <div class="dc12 real-scroll-div" style="overflow-x: scroll;">
+                                                    <table class="styled-table" id="table-dashboard datatable" width="100%">
+                                                        <thead> 
+                                                            <tr>
+                                                                <th>No.</th>
+                                                                <th>Virtual Card No</th>
+                                                                {# <th>Token</th> #}
+                                                                {# <th>LinkId</th> #}
+                                                                <th>Nama Bank</th>
+                                                                {# <th>Status</th> #}
+                                                                <th style="min-width: 200px">Action</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                        {% if datas|length > 0 %}
+                                                            {% for key,item in datas %}
+                                                                <tr style="text-align: left">
+                                                                    <td>{{key+1}}</td>
+                                                                    <td>{{item["customerPan"]}}</td>
+                                                                    {# <td>{{item["ott"]}}</td> #}
+                                                                    {# <td>{{item["linkId"]}}</td> #}
+                                                                    <td>{{item["issuerName"]}}</td>
+                                                                    {# <td>
+                                                                        {% if item["status"] %}
+                                                                            <div class="badge-orange"> Aktif </div>
+                                                                        {% else %}
+                                                                            <div class="badge-red"> Tidak Aktif </div>
+                                                                        {% endif %}
+                                                                        
+                                                                    </td> #}
+                                                                    
+                                                                    <td>
+                                                                        <a type="button" class="btn-ppk-red-border btn-delete" data-key="{{item['id']}}">Hapus (Unbinding)</a>
+                                                                    </td>
+                                                                </tr>
+                                                            {% endfor %}
+                                                        {% else %}
+                                                            <tr>
+                                                                <td colspan="7" class="text-center">
+                                                                    No data available in table
+                                                                </td>
+                                                            </tr>
+                                                        {% endif %}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {# /List #}
+                                    
+
+                                </div>
+                            </div>
+                            {# {% if pagination is not empty and pagination.getNbResults > pagination.getMaxPerPage %}{{ html|raw }}{% endif %} #}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="popup-delete" class="popup general">
+        <div class="wh100">
+            <div class="popup-wrapper">
+                <div class="inner">
+                    <a href="javascript:void(0);" class="close-btn" onclick="$(this).parents('.popup').fadeOut();"></a>
+                    <h3>Hapus Request Binding</h3>
+                    <p>Apakah anda yakin ingin menghapus Binding (Unbinding)?</p>
+                    <div style="margin-top: 35px">
+                        <form action="{{ path('user_requestbinding_delete') }}" method="POST">
+                            <input name="id" value="" type="hidden">
+                            <input type="hidden" name="_csrf_token" value="{{ csrf_token(token_id) }}">
+                            <input type="hidden" name="_csrf_token_id" value="{{ token_id }}">
+                            <button class="btn-search-ppk">
+                                Lanjutkan
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+
+        $('.btn-delete').on('click', function() {
+            var key = $(this).data('key');
+            $('#popup-delete').find('[name="id"]').val(key)
+            $('#popup-delete').show();
+        });
+    </script>
+
+{% endblock %}

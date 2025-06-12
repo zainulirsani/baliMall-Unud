@@ -1,0 +1,176 @@
+
+                <table width="100%" style="text-align:center;">
+                    <tr>
+                        {% if (app.user.subRole == 'PPK' and app.user.role == 'ROLE_USER_GOVERNMENT') or app.user.role == 'ROLE_USER_SELLER' %}
+                            <td>
+                                <h6>
+                                    {{ 'label.receipt'|trans }}
+                                </h6><br>
+                                <figure>
+                                    <a href="{{ path('user_order_print', {'id': order['o_id'], 'type': 'receipt'}) }}">
+                                        <i class="fa fa-print" style="font-size: 100px;color: #72afd2;"></i>
+                                    </a>
+                                </figure>
+                                <a href="{{ path('user_order_print', {'id': order['o_id'], 'type': 'receipt'}) }}">
+                                    <button style="border: 0;font-size: 18px;padding: 6px 12px;margin-top: 10px;border-radius: 5px;color: #fff;background-color: #dc3545;cursor: pointer;"><i class="fa fa-eye" aria-hidden="true"></i></button>
+                                </a>
+                                <button type="button" style="border: 0;font-size: 18px;padding: 6px 12px;margin-top: 10px;border-radius: 5px;color: #fff;background-color: #72afd2;cursor: pointer;" class="btn-download-document" value="{{ path('user_order_print', {'id': order['o_id'], 'type': 'receipt'}) }}" data-filename="{{ 'label.receipt'|trans }}"><i class="fa fa-download" aria-hidden="true"></i></button>
+                            </td>
+                            <td>
+                                <h6>
+                                    Surat Tagihan
+                                </h6><br>
+                                <figure>
+                                    <a href="{{ path('user_order_print', {'id': order['o_id'], 'type': 'performa_invoice'}) }}">
+                                        <i class="fa fa-print" style="font-size: 100px;color: #72afd2;"></i>
+                                    </a>
+                                </figure>
+                                <a href="{{ path('user_order_print', {'id': order['o_id'], 'type': 'performa_invoice'}) }}">
+                                    <button style="border: 0;font-size: 18px;padding: 6px 12px;margin-top: 10px;border-radius: 5px;color: #fff;background-color: #dc3545;cursor: pointer;"><i class="fa fa-eye" aria-hidden="true"></i></button>
+                                </a>
+                                <button type="button" style="border: 0;font-size: 18px;padding: 6px 12px;margin-top: 10px;border-radius: 5px;color: #fff;background-color: #72afd2;cursor: pointer;" class="btn-download-document" value="{{ path('user_order_print', {'id': order['o_id'], 'type': 'performa_invoice'}) }}" data-filename="{{ 'label.invoice'|trans }}"><i class="fa fa-download" aria-hidden="true"></i></button>
+                            </td>
+                            <td>
+                                <h6>
+                                    {{ 'label.bast'|trans }}
+                                </h6><br>
+                                <figure>
+                                    <a href="{{ path('user_order_print', {'id': order['o_id'], 'type': 'bast'}) }}">
+                                        <i class="fa fa-print" style="font-size: 100px;color: #72afd2;"></i>
+                                    </a>
+                                </figure>
+                                <a href="{{ path('user_order_print', {'id': order['o_id'], 'type': 'bast'}) }}">
+                                    <button style="border: 0;font-size: 18px;padding: 6px 12px;margin-top: 10px;border-radius: 5px;color: #fff;background-color: #dc3545;cursor: pointer;"><i class="fa fa-eye" aria-hidden="true"></i></button>
+                                </a>
+                                <button type="button" style="border: 0;font-size: 18px;padding: 6px 12px;margin-top: 10px;border-radius: 5px;color: #fff;background-color: #72afd2;cursor: pointer;" class="btn-download-document" value="{{ path('user_order_print', {'id': order['o_id'], 'type': 'bast'}) }}" data-filename="{{ 'label.bast'|trans }}"><i class="fa fa-download" aria-hidden="true"></i></button>
+                            </td>
+                            <td>
+                                <h6>
+                                    {{ 'button.print.label_label'|trans }}
+                                </h6><br>
+                                <figure>
+                                    <a href="{{ path('user_order_print', {'id': order['o_id'], 'type': 'label'}) }}">
+                                        <i class="fa fa-print" style="font-size: 100px;color: #72afd2;"></i>
+                                    </a>
+                                </figure>
+                                <a href="{{ path('user_order_print', {'id': order['o_id'], 'type': 'label'}) }}">
+                                    <button style="border: 0;font-size: 18px;padding: 6px 12px;margin-top: 10px;border-radius: 5px;color: #fff;background-color: #dc3545;cursor: pointer;"><i class="fa fa-eye" aria-hidden="true"></i></button>
+                                </a>
+                                <button type="button" style="border: 0;font-size: 18px;padding: 6px 12px;margin-top: 10px;border-radius: 5px;color: #fff;background-color: #72afd2;cursor: pointer;" class="btn-download-document" value="{{ path('user_order_print', {'id': order['o_id'], 'type': 'label'}) }}" data-filename="{{ 'button.print.label'|trans }}"><i class="fa fa-download" aria-hidden="true"></i></button>
+                            </td>
+                            {% if order['o_status'] == 'paid' %}
+                                <td>
+                                    <h6>
+                                        Invoice
+                                    </h6><br>
+                                    <figure>
+                                        <a href="{{ path('user_order_print', {'id': order['o_id'], 'type': 'invoice'}) }}">
+                                            <i class="fa fa-print" style="font-size: 100px;color: #72afd2;"></i>
+                                        </a>
+                                    </figure>
+                                    <a href="{{ path('user_order_print', {'id': order['o_id'], 'type': 'invoice'}) }}">
+                                        <button style="border: 0;font-size: 18px;padding: 6px 12px;margin-top: 10px;border-radius: 5px;color: #fff;background-color: #dc3545;cursor: pointer;"><i class="fa fa-eye" aria-hidden="true"></i></button>
+                                    </a>
+                                    <button type="button" style="border: 0;font-size: 18px;padding: 6px 12px;margin-top: 10px;border-radius: 5px;color: #fff;background-color: #72afd2;cursor: pointer;" class="btn-download-document" value="{{ path('user_order_print', {'id': order['o_id'], 'type': 'invoice'}) }}" data-filename="{{ 'label.invoice'|trans }}"><i class="fa fa-download" aria-hidden="true"></i></button>
+                                </td>
+                            {% endif %}
+                        {% endif %}
+
+                        
+                        <td>
+                            <h6>
+                                {{ 'button.print.spk_label'|trans }}
+                            </h6><br>
+                            <figure>
+                                <a href="{{ path('user_order_print', {'id': order['o_id'], 'type': 'spk'}) }}">
+                                    <i class="fa fa-print" style="font-size: 100px;color: #72afd2;"></i>
+                                </a>
+                            </figure>
+                            <a href="{{ path('user_order_print', {'id': order['o_id'], 'type': 'spk'}) }}">
+                                <button style="border: 0;font-size: 18px;padding: 6px 12px;margin-top: 10px;border-radius: 5px;color: #fff;background-color: #dc3545;cursor: pointer;"><i class="fa fa-eye" aria-hidden="true"></i></button>
+                            </a>
+                            <button type="button" style="border: 0;font-size: 18px;padding: 6px 12px;margin-top: 10px;border-radius: 5px;color: #fff;background-color: #72afd2;cursor: pointer;" class="btn-download-document" value="{{ path('user_order_print', {'id': order['o_id'], 'type': 'spk'}) }}" data-filename="{{ 'button.print.spk'|trans }}"><i class="fa fa-download" aria-hidden="true"></i></button>
+                        </td>
+                        
+                        {% if (app.user.subRole == 'PPK' and app.user.role == 'ROLE_USER_GOVERNMENT') or app.user.role == 'ROLE_USER_SELLER' %}
+                            <td>
+                                <h6>
+                                    SPK
+                                </h6><br>
+                                <figure>
+                                    <a href="{{ path('user_order_print', {'id': order['o_id'], 'type': 'spk_new'}) }}">
+                                        <i class="fa fa-print" style="font-size: 100px;color: #72afd2;"></i>
+                                    </a>
+                                </figure>
+                                <a href="{{ path('user_order_print', {'id': order['o_id'], 'type': 'spk_new'}) }}">
+                                    <button style="border: 0;font-size: 18px;padding: 6px 12px;margin-top: 10px;border-radius: 5px;color: #fff;background-color: #dc3545;cursor: pointer;"><i class="fa fa-eye" aria-hidden="true"></i></button>
+                                </a>
+                                <button type="button" style="border: 0;font-size: 18px;padding: 6px 12px;margin-top: 10px;border-radius: 5px;color: #fff;background-color: #72afd2;cursor: pointer;" class="btn-download-document" value="{{ path('user_order_print', {'id': order['o_id'], 'type': 'spk_new'}) }}" data-filename="SPK"><i class="fa fa-download" aria-hidden="true"></i></button>
+                            </td>
+                        {% endif %}
+                    </tr>
+                    <tr>
+                        {% if (app.user.subRole == 'PPK' and app.user.role == 'ROLE_USER_GOVERNMENT') or app.user.role == 'ROLE_USER_SELLER' %}
+                            <td>
+                                <h6>
+                                    BAPD
+                                </h6><br>
+                                <figure>
+                                    <a href="{{ path('user_order_print', {'id': order['o_id'], 'type': 'bapd'}) }}">
+                                        <i class="fa fa-print" style="font-size: 100px;color: #72afd2;"></i>
+                                    </a>
+                                </figure>
+                                <a href="{{ path('user_order_print', {'id': order['o_id'], 'type': 'bapd'}) }}">
+                                    <button style="border: 0;font-size: 18px;padding: 6px 12px;margin-top: 10px;border-radius: 5px;color: #fff;background-color: #dc3545;cursor: pointer;"><i class="fa fa-eye" aria-hidden="true"></i></button>
+                                </a>
+                                <button type="button" style="border: 0;font-size: 18px;padding: 6px 12px;margin-top: 10px;border-radius: 5px;color: #fff;background-color: #72afd2;cursor: pointer;" class="btn-download-document" value="{{ path('user_order_print', {'id': order['o_id'], 'type': 'bapd'}) }}" data-filename="BAPD"><i class="fa fa-download" aria-hidden="true"></i></button>
+                            </td>
+                        {% endif %}
+                        
+                        {% if order['o_status'] == 'paid' %}
+                            <td>
+                                <h6>
+                                    Invoice
+                                </h6><br>
+                                <figure>
+                                    <a href="{{ path('user_order_print', {'id': order['o_id'], 'type': 'invoice'}) }}">
+                                        <i class="fa fa-print" style="font-size: 100px;color: #72afd2;"></i>
+                                    </a>
+                                </figure>
+                                <a href="{{ path('user_order_print', {'id': order['o_id'], 'type': 'invoice'}) }}">
+                                    <button style="border: 0;font-size: 18px;padding: 6px 12px;margin-top: 10px;border-radius: 5px;color: #fff;background-color: #dc3545;cursor: pointer;"><i class="fa fa-eye" aria-hidden="true"></i></button>
+                                </a>
+                                <button type="button" style="border: 0;font-size: 18px;padding: 6px 12px;margin-top: 10px;border-radius: 5px;color: #fff;background-color: #72afd2;cursor: pointer;" class="btn-download-document" value="{{ path('user_order_print', {'id': order['o_id'], 'type': 'invoice'}) }}" data-filename="{{ 'label.invoice'|trans }}"><i class="fa fa-download" aria-hidden="true"></i></button>
+                            </td>
+                        {% endif %}
+                    </tr>
+                </table>
+
+                <script>
+						$(function () {
+							// $("#downloadFilesB2g").click(function () {
+							// 	$("input:checkbox").each(function () {
+							// 		if ($(this).is(":checked")) {
+                            //             //window.open($(this).val(), '_blank');
+                            //             $(this).addClass('terdownload');
+							// 			download($(this).val(), $(this).attr('data-filename'));
+							// 		}
+							// 	})
+							// })
+                            $(document).on('click', '.btn-download-document', function(e) {
+                                $(this).addClass('terdownload');
+								download($(this).val(), $(this).attr('data-filename'));
+                            });
+						})
+
+						function download(url, filename) {
+							fetch(url).then(function (t) {
+								return t.blob().then((b) => {
+									var a = document.createElement("a");
+									a.href = URL.createObjectURL(b);
+									a.setAttribute("download", filename);
+									a.click();
+								});
+							});
+						}
+					</script>

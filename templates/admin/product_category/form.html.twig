@@ -1,0 +1,200 @@
+{% extends '@__main__/admin/base/layouts/default.html.twig' %}
+
+{% set controller = app.request.get('_controller') %}
+{% set page_method = controller[1] is defined ? controller[1] : 'n/a' %}
+{% set page_header = page_title|trans %}
+{% set index_route = 'admin_' ~ page_section ~ '_index' %}
+{% set save_route = 'admin_' ~ page_section ~ '_save' %}
+{% set page_action = path(save_route) %}
+{% set product_category_id = form_data['pc_id']|default(0) %}
+{% set product_category_dir_slug = form_data['pc_dirSlug']|default() %}
+{% set product_category_status = form_data['pc_status']|default() %}
+{% set product_category_featured = form_data['pc_featured']|default() %}
+{% set product_category_with_tax = form_data['pc_withTax']|default() %}
+{% set product_category_desktop_image = form_data['pc_desktopImage']|default('dist/img/no-image.png') %}
+{% set product_category_mobile_image = form_data['pc_mobileImage']|default('dist/img/no-image.png') %}
+
+{% if page_method == 'edit' %}
+    {% set trans_parameter = {'%name%': form_data['pc_name']} %}
+    {% set page_header = page_title|trans(trans_parameter) %}
+    {% set update_route = 'admin_' ~ page_section ~ '_update' %}
+    {% set page_action = path(update_route, {id: product_category_id}) %}
+    {% set product_category_status = product_category_status == true ? 1 : 0 %}
+    {% set product_category_featured = product_category_featured == true ? 'yes' : 'no' %}
+    {% set product_category_with_tax = product_category_with_tax == true ? 'yes' : 'no' %}
+{% endif %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="box box-primary">
+                <form id="product-category-form" accept-charset="UTF-8" enctype="multipart/form-data" method="post" action="{{ page_action }}">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">{{ page_header }}</h3>
+                    </div>
+                    <div class="box-body">
+                        {{ csrf_field(token_id) }}
+                        <div class="panel-body">
+                            <div class="nav-tabs-custom">
+                                <ul class="nav nav-tabs product-category-tabs">
+                                    <li class="active product-category-tab-data">
+                                        <a href="#tab-data" data-toggle="tab" data-tab="data">{{ 'label.data'|trans }}</a>
+                                    </li>
+                                </ul>
+                                <div class="tab-content tab-product-category-content">
+                                    <div id="tab-data" class="tab-pane fade in active">
+                                        <div class="m-top-15"></div>
+                                        <div class="form-group {% if errors['pc_parentId']|default() %}has-error{% endif %}">
+                                            <label for="input-parent-id">{{ 'label.parent_category'|trans }}</label>
+                                            {% if errors['pc_parentId']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['pc_parentId'] }}</span>
+                                            {% endif %}
+                                            <select id="input-parent-id" class="form-control" name="pc_parentId">
+                                                <option value="">{{ 'label.select_option'|trans }}</option>
+                                                {% for choice in product_category_data %}
+                                                    {% set selected = form_data['pc_parentId']|default(0) == choice['id'] ? 'selected' : '' %}
+                                                    <option value="{{ choice['id'] }}" {{ selected }}>{{ choice['text'] }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="form-group {% if errors['pc_name']|default() %}has-error{% endif %}">
+                                            <label for="input-name">{{ 'label.name'|trans }}</label>
+                                            {% if errors['pc_name']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['pc_name'] }}</span>
+                                            {% endif %}
+                                            <input id="input-name" class="form-control slug-input" name="pc_name" value="{{ form_data['pc_name']|default() }}">
+                                        </div>
+                                        <div class="form-group {% if errors['pc_slug']|default() %}has-error{% endif %}">
+                                            <label for="input-slug">{{ 'label.slug'|trans }}</label>
+                                            {% if errors['pc_slug']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['pc_slug'] }}</span>
+                                            {% endif %}
+                                            <input id="input-slug" class="form-control slug-output" name="pc_slug" value="{{ form_data['pc_slug']|default() }}">
+                                        </div>
+                                        <div class="form-group {% if errors['pc_heading']|default() %}has-error{% endif %}">
+                                            <label for="input-heading">{{ 'label.heading'|trans }}</label>
+                                            {% if errors['pc_heading']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['pc_heading'] }}</span>
+                                            {% endif %}
+                                            <input id="input-heading" class="form-control" name="pc_heading" value="{{ form_data['pc_heading']|default() }}">
+                                        </div>
+                                        <div class="form-group {% if errors['pc_description']|default() %}has-error{% endif %}">
+                                            <label for="input-description">{{ 'label.description'|trans }}</label>
+                                            {% if errors['pc_description']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['pc_description'] }}</span>
+                                            {% endif %}
+                                            <textarea id="input-description" class="form-control" rows="3" name="pc_description">{{ form_data['pc_description']|default() }}</textarea>
+                                        </div>
+                                        <div class="form-group {% if errors['pc_status']|default() %}has-error{% endif %}">
+                                            <label for="input-status">{{ 'label.status'|trans }}</label>
+                                            {% if errors['pc_status']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['pc_status'] }}</span>
+                                            {% endif %}
+                                            <select id="input-status" class="form-control" name="pc_status">
+                                                <option value="">{{ 'label.select_option'|trans }}</option>
+                                                {% for key, choice in get_parameter('active_inactive') %}
+                                                    {% set label = 'label.' ~ choice %}
+                                                    {% set selected = product_category_status == key ? 'selected' : '' %}
+                                                    <option value="{{ key }}" {{ selected }}>{{ label|trans }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="form-group {% if errors['pc_featured']|default() %}has-error{% endif %}">
+                                            <label for="input-featured">{{ 'label.featured'|trans }}</label>
+                                            {% if errors['pc_featured']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['pc_featured'] }}</span>
+                                            {% endif %}
+                                            <select id="input-featured" class="form-control" name="pc_featured">
+                                                <option value="">{{ 'label.select_option'|trans }}</option>
+                                                {% for choice in get_parameter('yes_no') %}
+                                                    {% set label = 'label.' ~ choice %}
+                                                    {% set selected = product_category_featured == choice ? 'selected' : '' %}
+                                                    <option value="{{ choice }}" {{ selected }}>{{ label|trans }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="form-group {% if errors['pc_withTax']|default() %}has-error{% endif %}">
+                                            <label for="input-with-tax">{{ 'label.with_tax'|trans }}</label>
+                                            {% if errors['pc_withTax']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['pc_withTax'] }}</span>
+                                            {% endif %}
+                                            <select id="input-with-tax" class="form-control" name="pc_withTax">
+                                                <option value="">{{ 'label.select_option'|trans }}</option>
+                                                {% for choice in get_parameter('yes_no') %}
+                                                    {% set label = 'label.' ~ choice %}
+                                                    {% set selected = product_category_with_tax == choice ? 'selected' : '' %}
+                                                    <option value="{{ choice }}" {{ selected }}>{{ label|trans }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="form-group {% if errors['pc_fee']|default() %}has-error{% endif %}">
+                                            <label for="input-heading">{{ 'label.fee'|trans }}</label>
+                                            {% if errors['pc_fee']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['pc_fee'] }}</span>
+                                            {% endif %}
+                                            <input id="input-fee" class="form-control" name="pc_fee" value="{{ form_data['pc_fee']|default() }}">
+                                        </div>
+                                        <div class="form-group {% if errors['pc_sort']|default() %}has-error{% endif %}">
+                                            <label for="input-sort">{{ 'label.sort'|trans }}</label>
+                                            {% if errors['pc_sort']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['pc_sort'] }}</span>
+                                            {% endif %}
+                                            <input id="input-sort" class="form-control" name="pc_sort" value="{{ form_data['pc_sort']|default() }}">
+                                        </div>
+                                        <div class="form-group {% if errors['pc_className']|default() %}has-error{% endif %}">
+                                            <label for="input-class-name">{{ 'label.icon_name'|trans }}</label>
+                                            {% if errors['pc_className']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['pc_className'] }}</span>
+                                            {% endif %}
+                                            <input id="input-class-name" class="form-control" name="pc_className" value="{{ form_data['pc_className']|default() }}">
+                                        </div>
+                                        <div class="col-md-6 form-group {% if errors['pc_desktopImage']|default() %}has-error{% endif %}" style="padding-left: 0;">
+                                            <label for="input-desktop-image">{{ 'label.desktop_image'|trans }}</label>
+                                            {% if errors['pc_desktopImage']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['pc_desktopImage'] }}</span>
+                                            {% endif %}
+                                            <img src="{{ path('sftp_show_file', {'path': product_category_desktop_image}) }}" class="desktop-img img-responsive" alt="" style="width: 250px;">
+                                            <div class="m-top-15"></div>
+                                            <input id="input-desktop-image" type="file" name="file_image">
+                                            <input id="desktop-image" type="hidden" name="pc_desktopImage" value="{{ product_category_desktop_image }}">
+                                            <input id="desktop-image-tmp" type="hidden" name="pc_desktopImageTmp" value="{{ product_category_desktop_image }}">
+                                        </div>
+                                        <div class="col-md-6 form-group {% if errors['pc_mobileImage']|default() %}has-error{% endif %}" style="padding-left: 0;">
+                                            <label for="input-desktop-image">{{ 'label.mobile_image'|trans }}</label>
+                                            {% if errors['pc_mobileImage']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['pc_mobileImage'] }}</span>
+                                            {% endif %}
+                                            <img src="{{ path('sftp_show_file', {'path': product_category_mobile_image}) }}" class="mobile-img img-responsive" alt="" style="width: 250px;">
+                                            <div class="m-top-15"></div>
+                                            <input id="input-mobile-image" type="file" name="file_image_mobile">
+                                            <input id="mobile-image" type="hidden" name="pc_mobileImage" value="{{ product_category_mobile_image }}">
+                                            <input id="mobile-image-tmp" type="hidden" name="pc_mobileImageTmp" value="{{ product_category_mobile_image }}">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <input id="input-id" type="hidden" name="pc_id" value="{{ product_category_id }}">
+                                    <input id="input-dir-slug" type="hidden" name="pc_dirSlug" value="{{ product_category_dir_slug }}">
+                                    <input id="input-dir" type="hidden" name="pc_dir" value="">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box-footer">
+                        <div id="button-tab-data" class="button-tabs-product-category" style="display: inline;">
+                            <button type="submit" class="btn btn-primary" name="btn_action" value="save">
+                                {{ 'button.save'|trans }}
+                            </button>
+                            <button type="submit" class="btn btn-primary" name="btn_action" value="save_exit">
+                                {{ 'button.save_exit'|trans }}
+                            </button>
+                        </div>
+                        <div style="display: inline;">
+                            <a href="{{ path(index_route) }}" class="btn btn-default">{{ 'button.cancel'|trans }}</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

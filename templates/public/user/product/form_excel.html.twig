@@ -1,0 +1,214 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% set controller = app.request.get('_controller') %}
+{% set page_method = controller[1] is defined ? controller[1] : 'n/a' %}
+{% set price = form_data['p_price']|default() %}
+{% set base_price = form_data['p_basePrice']|default() %}
+
+{% if page_method == 'edit' %}
+    {% set price = price|to_int|number_format %}
+    {% set base_price = base_price|to_int|number_format %}
+{% endif %}
+
+{% block stylesheets %}
+    <style>
+        .editor {
+            position: fixed;
+            width: 50%;
+            height: 50%;
+            margin: auto;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 9999;
+            background-color: #000;
+            visibility: hidden;
+        }
+
+        .wrapper-editor {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+            height: 100vmax !important;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 9998;
+        }
+
+        .upBtn {
+            position: absolute;
+            bottom: 5px;
+            z-index: 9999;
+            min-width: 20px;
+            min-height: 10px;
+        }
+
+        .left {
+            left: 10px;
+        }
+
+        .right {
+            right: 10px;
+        }
+
+        @media screen and (max-width: 450px) {
+            .tablinks {
+                font-size: 2vw !important;
+            }
+        }
+
+        @media screen and (max-width: 320px) {
+            .tablinks > i {
+                font-size: 2vw;
+            }
+
+            .tablinks {
+                display: block !important;
+                left: 0 !important;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .upBtn {
+                width: 15vw;
+                font-size: 2vw;
+                margin-bottom: 0;
+                text-align: center;
+            }
+
+            .left {
+                left: 1vw;
+            }
+
+            .right {
+                right: 1vw;
+
+            }
+        }
+
+        @media screen and (max-width: 400px) {
+            .right {
+                right: -5vw;
+            }
+        }
+
+        .sub-menu {
+            width: 100%;
+            left: -7vw;
+            padding-right: 1vw;
+        }
+
+        .sub-menu button {
+            left: 1vw;
+        }
+
+        .preview-file {
+            padding: 6px 12px;
+            border: 1px solid #ccc;
+            border-top: none;
+            height: 500px;
+            overflow-y: scroll;
+        }
+
+        td {
+            padding: 10px;
+        }
+
+        .error {
+            padding-top: 6px;
+        }
+
+        .hide {
+            display: none;
+        }
+
+        .input-bg-white > input {
+            background-color: #fff !important;
+            border: 1px solid #ddd !important;
+        }
+
+        @media screen and (max-width: 463px) {
+            .textTerm {
+                font-size: 10px;
+            }
+        }
+
+        #addressMap {
+            height: 350px;
+            z-index: 99;
+        }
+
+    </style>
+{% endblock %}
+
+{% block content %}
+    <main class="pdl">
+        {% include '@__main__/public/base/partials/breadcrumb.html.twig' %}
+        <section>
+            <div class="container">
+                <div class="box">
+                    <div class="row">
+                        {% include '@__main__/public/user/fragments/menu.html.twig' %}
+                        <div class="dc9 tc12">
+                            <div class="sub-title">
+                                <div class="text">
+                                    <h3>{{ 'label.product_add_excel'|trans }}</h3>
+                                </div>
+                                <div class="clear"></div>
+                                <div class="btn-wrapper">
+                                    <a href="{{ asset('assets/excel/template_product_excel.xlsx') }}" class="sBtn small blue" target="_blank">
+                                        <i class="fa fa-download"></i> {{ 'label.template_upload_excel'|trans }}
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="pr-card">
+                                <div class="row">
+                                    <div class="container fc">
+                                        
+                                        <form id="user-product-form" action="" method="post" accept-charset="UTF-8" enctype="multipart/form-data">
+                                            
+                                            <div class="input">
+                                                <label for="input-file">{{ 'label.file'|trans }}</label>
+                                                <input class="file-name" id='input-file-excel' type='file' name="product_excel"/>
+                                            </div>
+
+                                            {% set error = errors['p_category'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                                <label for="input-category">{{ 'label.category'|trans }}</label>
+                                                <select id="input-category" name="p_category" class="" title="">
+                                                    {% set label = 'label.category'|trans %}
+                                                    <option value="">{{ 'label.select_label'|trans({'%label%': label}) }}</option>
+                                                    {% for category in product_category_data %}
+                                                        {#{% set selected = category['id'] in form_data['p_category']|default({}) ? 'selected' : '' %}#}
+                                                        {% set selected = category['id'] == form_data['p_category']|default() ? 'selected' : '' %}
+                                                        {% set disabled = category['level'] == 1 ? 'disabled' : '' %}
+                                                        <option value="{{ category['id'] }}" {{ selected }} {{ disabled }}>{{ category['text'] }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                                {% if error %}<p class="{{ error }}">{{ errors['p_category'] }}</p>{% endif %}
+                                            </div>
+
+                                            <div class="input">
+                                                <input type="hidden" name="_csrf_token" value="{{ csrf_token(token_id) }}">
+                                                <input type="hidden" name="_csrf_token_id" value="{{ token_id }}">
+                                                <input id="input-id" type="hidden" name="p_id" value="{{ form_data['p_id']|default() }}">
+                                                <input id="input-store-id" type="hidden" name="s_id" value="{{ form_data['s_id']|default(store_id) }}">
+                                                <input id="input-dir-slug" type="hidden" name="p_dirSlug" value="{{ form_data['p_dirSlug']|default() }}">
+                                            </div>
+                                            <div class="input">
+                                                <input type="submit" value="{{ 'button.save'|trans }}" class="sBtn red">
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}
+

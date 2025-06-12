@@ -1,0 +1,302 @@
+<div class="row">
+    <div class="dc12">
+        <h4>Data Produk & Negosiasi</h4>
+    </div>
+    <div class="dc12">
+        <div class="ccp__section ccp__box">
+            <div class="row">
+                {% if app.user.getRole != 'ROLE_USER_SELLER' %}
+                <div class="dc12 tc12">
+                    <h5>{{ 'label.store'|trans }}</h5>
+                    <p>{{ data_order['s_name'] }}</p>
+                </div>
+                {% endif %}
+                <div class="dc6 tc12">
+                    <h5>{{ 'label.delivery_address'|trans }}</h5>
+                    <p>{{ data_order['o_address'] }}</p>
+                    <p>{{ data_order['o_city'] ~ ', ' ~ data_order['o_province'] ~ ' - ' ~ data_order['o_postCode'] }}</p>
+                    {% if data_order['o_note'] is not empty %}
+                        <h5>{{ 'label.note'|trans }}</h5><p>{{ data_order['o_note'] }}</p>
+                    {% endif %}
+                </div>
+                <div class="dc6 tc12">
+                    {# <div>
+                        <h5>{{ 'label.ppk_payment_method'|trans }}</h5>
+                        {% set ppk_payment_method = data_order['o_ppk_payment_method']|default('uang_persediaan') %}
+                        <p>{{ 'label.ppk_payment_method'|trans }} : {{get_parameter('ppk_method_options')[ppk_payment_method]}}</p>
+                    </div> #}
+                    <h5>{{ 'label.order_status'|trans }}</h5>
+                    <div id="order-content-status">
+                        {% if data_order['o_status'] == 'pending' %}
+                            <p><span>{{ 'label.pending'|trans }}</span>
+                                ({{ data_order['o_createdAt']|date('d/m/Y - H:i') }})</p>
+                        {% elseif data_order['o_status'] == 'pending_approve' %}
+                            <p><span>{{ 'label.pending_approve'|trans }}</span>
+                                ({{ data_order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                        {% elseif data_order['o_status'] == 'pending_payment' %}
+                            <p><span>{{ 'label.pending_payment'|trans }}</span>
+                                ({{ data_order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                        {% elseif data_order['o_status'] == 'confirm_order_ppk' %}
+                            <p><span>{{ 'label.confirm_order_ppk'|trans }}</span>
+                                ({{ data_order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                        {% elseif data_order['o_status'] == 'approved_order' %}
+                            <p><span>{{ 'label.approved_order'|trans }}</span>
+                                ({{ data_order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                        {% elseif data_order['o_status'] == 'paid' %}
+                            <p><span>{{ 'label.paid'|trans }}</span>
+                                ({{ data_order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                        {% elseif data_order['o_status'] == 'payment_process' %}
+                            <p><span>{{ 'label.payment_process'|trans }}</span>
+                                ({{ data_order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                        {% elseif data_order['o_status'] == 'confirmed' %}
+                            <p><span>{{ 'label.confirmed'|trans }}</span>
+                                ({{ data_order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                        {% elseif data_order['o_status'] == 'processed' %}
+                            <p><span>{{ 'label.processed'|trans }}</span>
+                                ({{ data_order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                        {% elseif data_order['o_status'] == 'partial_delivery' %}
+                            <p>
+                                <span>{{ 'label.partial_delivery'|trans }}</span>
+                                <span>({{ data_order['o_updatedAt']|date('d/m/Y - H:i') }})</span>
+                            </p>
+
+                            {% if delivery_detail is not empty %}
+                                {% for item in delivery_detail %}
+                                    <p>-
+                                        <span>{{ ('label.batch'|trans) }} {{ item['batch'] }},</span>
+                                        <span>{{ 'label.tracking_code'|trans }}: </span>
+                                        <span>{{ item['tracking_code'] }}</span>
+                                        <span>({{ data_order['o_updatedAt']|date('d/m/Y - H:i') }})</span>
+                                    </p>
+                                {% endfor %}
+                            {% endif %}
+                        {% elseif data_order['o_status'] == 'shipped' %}
+                            <p>
+                                <span>{{ 'label.shipped'|trans }}</span>
+
+                                {% if delivery_detail is defined and delivery_detail is empty %}
+                                    ({{ data_order['o_updatedAt']|date('d/m/Y - H:i') }})
+                                {% endif %}
+                            </p>
+
+                            {% if delivery_detail is defined and delivery_detail is not empty %}
+                                {% for item in delivery_detail %}
+                                    <p>-
+                                        <span>{{ ('label.batch'|trans) }} {{ item['batch'] }},</span>
+                                        <span>{{ 'label.tracking_code'|trans }}: </span>
+                                        <span>{{ item['tracking_code'] }}</span>
+                                        <span>({{ data_order['o_updatedAt']|date('d/m/Y - H:i') }})</span>
+                                    </p>
+                                {% endfor %}
+                            {% elseif data_order['o_shippingCourier'] != 'gosend' %}
+                                <h6>{{ 'label.tracking_code'|trans ~ ': ' ~ data_order['o_trackingCode'] }}</h6>
+                            {% endif %}
+                        {% elseif data_order['o_status'] == 'received' %}
+                            <p><span>{{ 'label.received'|trans }}</span>
+                                ({{ data_order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                        {% elseif data_order['o_status'] == 'cancel' %}
+                            <p><span>{{ 'label.cancelled'|trans }}</span>
+                                ({{ data_order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                        {% elseif data_order['o_status'] == 'document' %}
+                            <p><span>{{ 'label.document'|trans }}</span>
+                                ({{ data_order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                        {% elseif data_order['o_status'] == 'tax_invoice' %}
+                            <p><span>{{ 'label.tax_invoice'|trans }}</span>
+                                ({{ data_order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                        {% elseif data_order['o_status'] == 'cancel_request' %}
+                            <p><span>{{ 'label.cancel_request'|trans }}</span></p>
+                        {% elseif data_order['o_status'] == 'new_order' %}
+                            <p><span>{{ 'label.new_order'|trans }}</span>
+                                ({{ data_order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                        {% endif %}
+                    </div>
+
+                    {% set data_nego_detail_2 = null %}
+                    {% set nego_batch_2 = 0 %}
+                    {% set can_approve_negotiation_2 = false %}
+                    {% set allow_negotiation_2 = false %}
+                    {% set is_nego_seller = false %}
+                    {% set is_nego_buyer = false %}
+                    {% if data_order['o_negotiatedProducts']|length > 0 %}
+                        {% for temp_nego_data in data_order['o_negotiatedProducts'] %}
+                            {% set data_nego_detail_2 = temp_nego_data %}
+                            {% set nego_batch_2 = temp_nego_data['on_batch'] %}
+
+                            {% if user_type == 'buyer' and data_nego_detail_2['on_customerApproval'] == false %}
+                                {% set allow_negotiation_2 = true %}
+                            {% endif %}
+
+                            {% if user_type == 'seller' and data_nego_detail_2['on_merchantApproval'] == false %}
+                                {% set allow_negotiation_2 = true %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+
+                    {% if user_type == 'seller' %}
+                        {% set seller_attempt = 0 %}
+                        {% set seller_batch = [] %}
+                        {% for product in data_order['o_negotiatedProducts'] %}
+                            {% if product['on_submittedAs'] == 'seller' and product['on_batch'] not in seller_batch %}
+                                {% set seller_attempt = seller_attempt + 1 %}
+                                {% set seller_batch = seller_batch|merge([product['on_batch']]) %}
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if data_nego_detail_2['on_merchantApproval'] == false %}
+                            {% set can_approve_negotiation_2 = true %}
+                            {% if (nego_batch_2 % 2) != 0 and allow_negotiation_2 == true %}
+                                {% set is_nego_seller = true %}
+                            {% endif %}
+                        {% endif %}
+                    {% elseif user_type == 'buyer' %}
+                        {% set buyer_attempt = 0 %}
+                        {% set buyer_batch = [] %}
+                        {% for product in data_order['o_negotiatedProducts'] %}
+                            {% if product['on_submittedAs'] == 'buyer' and product['on_batch'] not in buyer_batch %}
+                                {% set buyer_attempt = buyer_attempt + 1 %}
+                                {% set buyer_batch = buyer_batch|merge([product['on_batch']]) %}
+                            {% endif %}
+                        {% endfor %}
+                        {% if data_nego_detail_2['on_customerApproval'] == false %}
+
+                            {% if nego_batch_2 == 1 and data_nego_detail_2['on_merchantApproval'] == false %}
+                                {% set can_approve_negotiation_2 = false %}
+                                {# No action needed #}
+                            {% else %}
+                                {% set can_approve_negotiation_2 = true %}
+                                {% if (nego_batch_2 % 2) != 0 and data_nego_detail_2['on_merchantApproval'] == false %}
+                                {% elseif nego_batch_2 >= 5 and data_nego_detail_2['on_merchantApproval'] == true %}
+                                    {% set is_nego_buyer = true %}
+                                {% else %}
+                                    {% set is_nego_buyer = true %}
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+                    <div>
+                        <h5>Keterangan</h5>
+
+                        {% if user_type == 'seller' %}
+                            {% if is_nego_buyer != true and is_nego_seller == true %}
+                                {% set nego_type = 'nego_on_seller' %}
+                            {% else %}
+                                {% set nego_type = 'nego_on_buyer' %}
+                            {% endif %}
+                        {% else %}
+                            {% if is_nego_buyer == true and is_nego_seller != true %}
+                                {% if data_nego_detail_2['on_merchantApproval'] == true %}
+                                    {% set nego_type = 'nego_on_buyer_approve_seller' %}
+                                {% else %}
+                                    {% set nego_type = 'nego_on_buyer' %}
+                                {% endif %}
+                            {% else %}
+                                {% set nego_type = 'nego_on_seller' %}
+                            {% endif %}
+                        {% endif %}
+                        
+                        
+                        {% if data_order['o_status'] == 'confirmed' or data_order['o_status'] == 'new_order' %}
+                            <p>{{ get_parameter('ket_order_statuses')[nego_type][user_type] }}</p>
+                        {% elseif data_order['o_status'] == 'paid' %}
+                            {% if disbursement_data is not empty and disbursement_data.getStatus() != 'pending' %}
+                                {% set status_disbursement = 'disbursement_' ~ disbursement_data.getStatus() %}
+                            {% else %}
+                                {% set status_disbursement = data_order['o_status'] %}
+                            {% endif %}
+                            <p>{{ get_parameter('ket_order_statuses')[status_disbursement][user_type] }} </p>
+                        {% else %}
+                            <p>
+                                {{ get_parameter('ket_order_statuses')[data_order['o_status']][user_type] }} 
+                                {% if data_order['o_status'] == 'cancel' or data_order['o_status'] == 'cancel_request' %}
+                                    {{ data_order['o_cancel_reason']|default()}}
+                                {% endif %}
+                            </p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="dc12">
+        <div class="ccp ccp__box" style="padding-bottom: 60px;">
+            <div class="ccp__section">
+                <p class="ccp__price">
+                    {% if data_order['o_shippingCourier'] == 'free_delivery' %}
+                        {{ 'label.self_pick_up_alt'|trans }}
+                        {% if data_order['o_shippingService'] == 'self_pick_up_2' %}
+                            <b>[{{ 'message.info.self_pick_up_address_2'|trans }}]</b>
+                        {% elseif data_order['o_shippingService'] == 'self_pick_up_3' %}
+                            <b>[{{ 'message.info.self_pick_up_address_3'|trans }}]</b>
+                        {% else %}
+                            <b>[{{ 'message.info.self_pick_up_address'|trans }}]</b>
+                        {% endif %}
+                        Rp. 0
+                    {% else %}
+                        {% if data_order['u_role'] == 'ROLE_USER_GOVERNMENT' %}
+                            {% set nego_batch = 0 %}
+                            {% set nego_shipping_price = 0 %}
+                            {% if data_order['o_negotiatedProducts']|length > 0 %}
+                                {% for temp_nego_data in data_order['o_negotiatedProducts'] %}
+                                    {% set nego_batch = temp_nego_data['on_batch'] %}
+                                {% endfor %}
+
+                                {% for product in data_order['o_products'] %}
+                                    {% for product_nego in data_order['o_negotiatedProducts'] %}
+                                        {% if (product_nego['p_id'] == product['p_id']) and (product_nego['on_batch'] == nego_batch) %}
+                                            {% set nego_shipping_price = product_nego['on_negotiatedShippingPrice'] %}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endfor %}
+                            {% endif %}
+
+                            {% if data_order['o_negotiationStatus'] == 'none' %}
+                                {% set initial_shipping_cost = data_order['o_shippingPrice'] %}
+                            {% else %}
+                                {% set initial_shipping_cost = get_base_price(data_order['o_shippingPriceBackup'], tax_value) %}
+                            {% endif %}
+
+                            {% if data_order['o_shipped_method'] == 'self_courier' %}
+                                <b>{{ get_parameter('shipped_method_options')['self_courier'] }}</b>
+                            {% else %}
+                            {{ 'label.courier'|trans }}
+                                <b>{{ data_order['o_shippingCourier'] }} [{{ data_order['o_shippingService'] }}]</b>
+                            {% endif %}
+
+                            <div style="float: right;">
+                                <table>
+                                    <tr>
+                                        <td>{{ 'label.initial_shipping_costs'|trans }}</td>
+                                        <td>:&nbsp;</td>
+                                        <td> Rp. {{ initial_shipping_cost|number_format }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>{{ 'label.negotiation_shipping'|trans }}</td>
+                                        <td>:&nbsp;</td>
+                                        <td> Rp. {{ nego_shipping_price|number_format }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <br>
+
+                        {% else %}
+                            {% if data_order['o_shipped_method'] == 'self_courier' %}
+                                <b>{{ get_parameter('shipped_method_options')['self_courier'] }}</b>
+                            {% else %}
+                                {{ 'label.courier'|trans }}
+                                <b>{{ data_order['o_shippingCourier'] }} [{{ data_order['o_shippingService'] }}]</b>
+                            {% endif %}
+                            Rp. {{ data_order['o_shippingPrice']|number_format }}
+                        {% endif %}
+
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="dc12">
+        {% include '@__main__/public/user/order/fragments/order_negotiation.html.twig' %}
+        {% if order['o_status'] == 'confirmed' %}
+            {% include '@__main__/public/user/order/fragments/order_action.html.twig' %}
+        {% endif %}
+    </div>
+</div>

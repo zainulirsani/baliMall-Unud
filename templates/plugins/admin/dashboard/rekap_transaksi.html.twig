@@ -1,0 +1,26 @@
+<div class="card" style="margin: 0;padding: 0;">
+    <div class="box-header with-border">
+        <h3 class="box-title">{{ 'title.transaction_recap'|trans }}</h3>
+    </div>
+    <div class="box-body" style="margin: 0;padding: 0;">
+        {% set no = 0 %}
+        {% for key,jumlah in data %}
+            <div class="col-md-{{no < 3 ? '4':(no < 7 ? '3':'2')}}
+            ">
+                <div class="box box-primary">
+                    <div class="box-body with-border" style="height: 94px">
+                        <div class="col-md-4">
+                            <h1>{{ jumlah }}</h1>
+                        </div>
+                        <div class="col-md-8" style="text-align:center;">
+                            {% set text_status = status[key]|trans %}
+                            <p>{{text_status}}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% set no = no + 1 %}
+        {% endfor %}
+        
+    </div>
+</div>

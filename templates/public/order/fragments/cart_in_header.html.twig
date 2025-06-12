@@ -1,0 +1,47 @@
+{% set cart_items = user_cart is not empty ? user_cart.getItems : [] %}
+
+{% if cart_items|length > 0 %}
+    {% set showing = 5 %}
+    {% set remaining = cart_items|length - showing %}
+    <ul>
+        {% for item in cart_items|slice(0, showing) %}
+            {% set hash = item[0]['id'] %}
+            {% set attr = item[0]['attributes'] %}
+            <li id="cart-item-{{ hash }}">
+                <h6>{{ item[0]['attributes']['name'] }}</h6>
+                <div class="info">
+                    <span>
+                        {{ 'label.qty'|trans }}
+                        <b>{{ item[0]['quantity'] }} {{ item[0]['attributes']['unit'] }}</b>
+                    </span>
+                    <b>
+                        <i class="fas fa-wallet"></i>
+                        {#{% if item[0]['attributes']['tax_nominal'] > 0 %}
+                            Rp. {{ (item[0]['attributes']['price'] + item[0]['attributes']['tax_nominal'])|number_format }}
+                        {% else %}
+                            Rp. {{ item[0]['attributes']['price']|number_format }}
+                        {% endif %}#}
+                        Rp. {{ (item[0]['attributes']['price'] * item[0]['quantity'])|number_format }}
+                    </b>
+                    {% if app.request.pathInfo != '/cart/checkout' %}
+                        <a href="javascript:void(0);" class="default-btn grey right-side btn-gtm-bm-rfc btn-remove-from-cart" data-hash="{{ hash }}">
+                            {{ 'button.delete'|trans }} <i class="fas fa-times"></i>
+                        </a>
+                        <div>
+                            <input id="gtm-bm-name-{{ hash }}" type="hidden" value="{{ attr['name'] }}">
+                            <input id="gtm-bm-id-{{ hash }}" type="hidden" value="{{ attr['image']|default(0) }}">
+                            <input id="gtm-bm-price-{{ hash }}" type="hidden" value="{{ attr['price']|number_format(2, '.', '') }}">
+                            <input id="gtm-bm-brand-{{ hash }}" type="hidden" value="{{ attr['vendor']|default('N/A') }}">
+                            <input id="gtm-bm-category-{{ hash }}" type="hidden" value="{{ attr['category']|default() }}">
+                            <input id="gtm-bm-quantity-{{ hash }}" type="hidden" value="{{ item[0]['quantity'] }}">
+                        </div>
+                    {% endif %}
+                    <div class="clear"></div>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+    {% if remaining > 0 %}
+        <p><b>{{ remaining ~ ' ' ~ 'message.info.other_product'|trans }}</b></p>
+    {% endif %}
+{% endif %}

@@ -1,0 +1,36 @@
+{% set sub_index = 0 %}
+{% set sub_child_index = 0 %}
+
+<div class="dc12">
+    <div class="item-list">
+        <div class="box box-kat">
+            <h6 class="title">{{ 'label.category'|trans }}</h6>
+            <div id="swiper1" class="swiper-container">
+                <div class="swiper-wrapper">
+                    {% for category in categories %}
+                        {% set category_id = category['id'] %}
+                        <div class="swiper-slide">
+                            <a id="parent-category-{{ category['id'] }}" href="javascript:void(0);" class="btn-gtm-bm-pcc find-category" data-index="{{ loop.index0 }}" data-id="{{ category['id'] }}" data-parent="0" data-level="0" data-cat="l{{ loop.index }}">
+                                <div class="icon">
+                                    <img src="{{ path('sftp_show_file', {'path': category['desktopImage']}) }}" width="60px" height="60px" alt="">
+                                    {# <i class="fas {{ category['class']|default('fa-concierge-bell') }}"></i> #}
+                                </div>
+                                {{ category['text'] }}
+                            </a>
+                            <div>
+                                <input id="gtm-pcc-name-{{ category_id }}" type="hidden" value="{{ category['text'] }}">
+                                <input id="gtm-pcc-id-{{ category_id }}" type="hidden" value="{{ category_id }}">
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="swiper-button-next" id="category-next">
+                <i class="fa fa-angle-right"></i>
+            </div>
+            <div class="swiper-button-prev" id="category-prev">
+                <i class="fa fa-angle-left"></i>
+            </div>
+        </div>
+    </div>
+</div>

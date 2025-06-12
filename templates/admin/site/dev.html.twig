@@ -1,0 +1,7 @@
+{% extends '@__main__/admin/base/layouts/default.html.twig' %}
+
+{% block content %}
+    {% if query['t'] == '6da1868b302c8d81b9984f977225fc21' %}
+        {{ render(controller('App\\Plugins\\AdminDevPlugin::feeCalculation', {'query': query})) }}
+    {% endif %}
+{% endblock %}

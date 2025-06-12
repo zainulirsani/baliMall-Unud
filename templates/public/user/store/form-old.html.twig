@@ -1,0 +1,142 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% set controller = app.request.get('_controller') %}
+{% set page_method = controller[1] is defined ? controller[1] : 'n/a' %}
+{% set province_id = form_data['province_id']|default(0) %}
+{% set province_name = form_data['province']|default() %}
+{% set city_id = form_data['city_id']|default(0) %}
+{% set city_name = form_data['city']|default() %}
+{% set city_data_select = province_id > 0 ? city_data[province_id] : [] %}
+{% set store_delivery_couriers = form_data['delivery_couriers']|default([]) %}
+{% set store_name = form_data['name']|default() %}
+{% set store_description = form_data['description']|default() %}
+{% set store_address = form_data['address']|default() %}
+{% set store_district = form_data['district']|default() %}
+{% set store_post_code = form_data['post_code']|default() %}
+{% set store_pkp = form_data['pkp']|default(0) %}
+
+{% if page_method == 'edit' %}
+    {% set province_id = form_data.getProvinceId %}
+    {% set province_name = form_data.getProvince %}
+    {% set city_id = form_data.getCityId %}
+    {% set city_name = form_data.getCity %}
+    {% set city_data_select = province_id > 0 ? city_data[province_id] : [] %}
+    {% set store_delivery_couriers = form_data.getDeliveryCouriers %}
+    {% set store_name = form_data.getName %}
+    {% set store_description = form_data.getDescription %}
+    {% set store_address = form_data.getAddress %}
+    {% set store_district = form_data.getDistrict %}
+    {% set store_post_code = form_data.getPostCode %}
+    {% set store_pkp = form_data.getIsPKP|to_int %}
+{% endif %}
+
+{% block content %}
+    <main class="pdl">
+        {% include '@__main__/public/base/partials/breadcrumb.html.twig' %}
+        <section>
+            <div class="container">
+                <div class="box">
+                    <div class="row">
+                        {% include '@__main__/public/user/fragments/menu.html.twig' %}
+                        <div class="dc9 tc12">
+                            <div class="sub-title">
+                                <div class="text">
+                                    <h3>{{ store_name|raw }}</h3>
+                                </div>
+                                <div class="clear"></div>
+                            </div>
+                            <div class="pr-card">
+                                <div class="row">
+                                    <div class="container fc">
+                                        <form id="user-store-form" action="" method="post" accept-charset="UTF-8">
+                                            {% set error = errors['name'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                                <input id="input-name" type="text" name="name" value="{{ store_name|raw }}" title="" placeholder="{{ 'label.name'|trans }}">
+                                                {% if error %}<p class="{{ error }}">{{ errors['name'] }}</p>{% endif %}
+                                            </div>
+                                            {% set error = errors['description'] is defined ? 'error' : null %}
+                                            <div class="input">
+                                                <textarea id="input-description" name="description" class="no-resize" title="" placeholder="{{ 'label.description'|trans }}">{{ store_description }}</textarea>
+                                                {% if error %}<p class="{{ error }}">{{ errors['description'] }}</p>{% endif %}
+                                            </div>
+                                            {% set error = errors['address'] is defined ? 'error' : null %}
+                                            <div class="input">
+                                                <textarea id="input-address" name="address" class="no-resize" title="" placeholder="{{ 'label.address'|trans }}">{{ store_address }}</textarea>
+                                                {% if error %}<p class="{{ error }}">{{ errors['address'] }}</p>{% endif %}
+                                            </div>
+                                            {% set error = errors['province'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                                <select id="store-province" name="province_id" title="">
+                                                    <option value="">{{ 'label.select_option'|trans }}</option>
+                                                    {% for province in province_data %}
+                                                        {% set selected = province_id == province['province_id'] ? 'selected' : '' %}
+                                                        <option value="{{ province['province_id'] }}" {{ selected }}>{{ province['province'] }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                                <input id="input-province-name" type="hidden" name="province" value="{{ province_name }}">
+                                                {% if error %}<p class="{{ error }}">{{ errors['province'] }}</p>{% endif %}
+                                            </div>
+                                            {% set error = errors['city'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                                <select id="store-city" name="city_id" title="">
+                                                    <option value="">{{ 'label.select_option'|trans }}</option>
+                                                    {% for city in city_data_select %}
+                                                        {% set selected = city_id == city['city_id'] ? 'selected' : '' %}
+                                                        <option value="{{ city['city_id'] }}" {{ selected }}>{{ city['city_name'] }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                                <input id="input-city-name" type="hidden" name="city" value="{{ city_name }}">
+                                                {% if error %}<p class="{{ error }}">{{ errors['city'] }}</p>{% endif %}
+                                            </div>
+                                            {% set error = errors['district'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                                <input id="input-district" type="text" name="district" value="{{ store_district }}" title="" placeholder="{{ 'label.district'|trans }}">
+                                                {% if error %}<p class="{{ error }}">{{ errors['district'] }}</p>{% endif %}
+                                            </div>
+                                            {% set error = errors['postCode'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                                <input id="user-post-code" type="text" name="post_code" value="{{ store_post_code }}" title="" placeholder="{{ 'label.post_code'|trans }}">
+                                                {% if error %}<p class="{{ error }}">{{ errors['postCode'] }}</p>{% endif %}
+                                            </div>
+                                            <hr>
+                                            <div class="input">
+                                                {% set checked = store_pkp == 1 ? 'checked' : '' %}
+                                                <input type="checkbox" name="pkp" value="1" title="" {{ checked }}>
+                                                <label style="display: inline;">{{ 'label.pkp'|trans }}</label>
+                                            </div>
+                                            {% set error = errors['deliveryCouriers'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                                <label><b>{{ 'label.delivery_couriers'|trans }}</b></label>
+                                                {% if error %}<p class="{{ error }}">{{ errors['deliveryCouriers'] }}</p>{% endif %}
+                                            </div>
+                                            <div class="input">
+                                                {% for key, courier in get_parameter('raja_ongkir_couriers') %}
+                                                    {% set checked = key in store_delivery_couriers ? 'checked' : '' %}
+                                                    <input type="checkbox" name="delivery_couriers[]" value="{{ key }}" title="" {{ checked }}>
+                                                    <label style="display: inline;">{{ courier }}</label><br>
+                                                {% endfor %}
+                                            </div>
+                                            <div class="input">
+                                                <input type="hidden" name="_csrf_token" value="{{ csrf_token(token_id) }}">
+                                                <input type="hidden" name="_csrf_token_id" value="{{ token_id }}">
+                                            </div>
+                                            <div class="input">
+                                                <input type="submit" value="{{ 'button.save'|trans }}" class="sBtn red">
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        CITY_LIST = {{ city_data|json_encode|raw }};
+    </script>
+{% endblock %}

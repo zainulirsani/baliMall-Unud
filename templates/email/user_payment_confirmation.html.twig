@@ -1,0 +1,11 @@
+{% extends '@__main__/public/base/layouts/email.html.twig' %}
+
+{% block body %}
+    <div class="text">
+        <h1>Hi, {{ name }}!</h1>
+        <h3>Transaksi Anda untuk Invoice <strong>{{ invoice }}</strong> menerima konfirmasi pembayaran.</h3>
+        <p>
+            Gunakan tautan berikut untuk melihat detail transaksi: <a href="{{ link }}" target="_blank">Transaksi</a>
+        </p>
+    </div>
+{% endblock %}

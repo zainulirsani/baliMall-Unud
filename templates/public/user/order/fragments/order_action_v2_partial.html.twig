@@ -1,0 +1,143 @@
+{% set span_btn_style = 'cursor: default; margin-right: 16px;' %}
+
+<div class="top" style="margin-top: 20px;">
+	{% if order['u_role'] == 'ROLE_USER_GOVERNMENT' %}
+		{% if order['o_status'] == 'pending' %}
+			{% elseif order['o_status'] == 'paid' %}
+				{% include '@__main__/public/user/order/fragments/government_files.html.twig' %}
+				<span class="sBtn small red" style="{{ span_btn_style }}">{{ 'label.finished'|trans }}</span>
+				{#<a href="javascript:void(0);" class="sBtn small red b2g-act-order" data-state="paid">
+												                {{ 'label.finish_order'|trans }}
+												            </a>#}
+			{% elseif order['o_status'] == 'confirmed' %}
+                <div class="badges blue">
+					<span>
+						<i class="fas fa-check-circle"></i>
+						{{ 'label.order_confirmed'|trans }}
+					</span>
+				</div>
+				{# <span class="sBtn small red" style="{{ span_btn_style }}">{{ 'label.order_confirmed'|trans }}</span> #}
+			{% elseif order['o_status'] == 'processed' %}
+                <div class="badges green">
+					<span>
+						<i class="fas fa-check-circle"></i>
+						{{ 'label.order_processed'|trans }}
+					</span>
+				</div>
+				{# <span class="sBtn small red" style="{{ span_btn_style }}">{{ 'label.order_processed'|trans }}</span> #}
+			{% elseif order['o_status'] == 'shipped' %}
+				<h5>
+					{{ 'message.info.shipped'|trans }}
+					<br>
+					<a href="javascript:void(0);" class="sBtn small red b2g-act-order" data-state="received" data-id="{{ order['o_id'] }}">
+						{{ 'label.order_received'|trans }}
+					</a>
+				</h5>
+			{% elseif order['o_status'] == 'received' %}
+				{% if order['oc_id'] is defined %}
+					{% include '@__main__/public/user/order/fragments/government_files.html.twig' %}
+					{% if order['oc_id'] is empty or order['oc_isResolved'] == true %}
+						{% if order['o_bastFile'] is empty %}
+							{# <form id="bast-delivery" action="{{ path('user_order_document', {'id': order['o_id']}) }}" method="POST" enctype="multipart/form-data" accept-charset="UTF-8">
+								{% set error = errors['[bast][required]'] is defined or errors['[bast][file]'] is defined ? 'error' : null %}
+								<div class="input {{ error }}">
+									<label>{{ 'label.bast'|trans }}</label>
+									<input type="file" name="bast">
+									{% if errors['[bast][required]'] is defined %}
+										<p class="error">{{ errors['[bast][required]'] }}</p>
+									{% endif %}
+									{% if errors['[bast][file]'] is defined %}
+										<p class="error">{{ errors['[bast][file]'] }}</p>
+									{% endif %}
+								</div>
+								<div class="input">
+									{{ csrf_field('b2g_bast_delivery') }}
+									<input type="hidden" name="origin" value="4b5771">
+									<input type="submit" class="sBtn small red" value="{{ 'label.upload_bast'|trans }}">
+								</div>
+							</form> #}
+							<hr>
+						{% endif %}
+						{% set b2g_order_state = 'pending_payment' %}
+						{% if order['o_bastFile'] is empty %}
+							{% set b2g_order_state = 'missing_bast' %}
+						{% elseif order['o_taxInvoiceFile'] is empty %}
+							{% set b2g_order_state = 'missing_tax_invoice' %}
+						{% endif %}
+						<a href="javascript:void(0);" class="sBtn small red b2g-act-order" data-state="{{ b2g_order_state }}" data-id="{{ order['o_id'] }}">
+							{{ 'label.continue_transaction'|trans }}
+						</a>
+					{% endif %}
+					{% if order['oc_id'] is empty and order['o_bastFile'] is empty %}
+						<a href="javascript:void(0);" class="gBtn grey b2g-act-complain">
+							{{ 'label.order_complain'|trans }}
+						</a>
+					{% endif %}
+				{% endif %}
+			{% elseif order['o_status'] == 'cancel' %}
+				<span class="gBtn red" style="{{ span_btn_style }}">{{ 'message.info.cancelled'|trans }}</span>
+			{% elseif order['o_status'] == 'pending_payment' %}
+				{% include '@__main__/public/user/order/fragments/government_files.html.twig' %}
+				{% if order['op_id'] is empty %}
+					<p>
+						{{ 'message.info.payment_info'|trans }}<br>
+						<code>
+							{% if show_pay_account_1 == 'yes' %}
+								{{ order_payment_accounts['all_1']|join('<br>')|raw }}
+							{% endif %}
+							{% if show_pay_account_2 == 'yes' %}<br><br>{{ order_payment_accounts['all_2']|join('<br>')|raw }}
+							{% endif %}
+						</code>
+					</p>
+					<a href="{{ path('user_payment_confirmation', {'invoice': order['o_sharedId']}) }}" class="sBtn small red">
+						{{ 'title.page.payment_confirmation'|trans }}
+					</a>
+				{% endif %}
+		{% endif %}
+	{% else %}
+		{% if order['o_status'] == 'pending' %}
+			{% elseif order['o_status'] == 'paid' %}
+				<div class="badges green">
+					<span>
+						<i class="fas fa-check-circle"></i>
+						{{ 'label.waiting_confirmation'|trans }}
+					</span>
+				</div>
+				{# <span class="sBtn small red" style="{{ span_btn_style }}">{{ 'label.waiting_confirmation'|trans }}</span> #}
+			{% elseif order['o_status'] == 'confirmed' %}
+				<div class="badges blue">
+					<span>
+						<i class="fas fa-check-circle"></i>
+						{{ 'label.order_confirmed'|trans }}
+					</span>
+				</div>
+				{# <span class="sBtn small red" style="{{ span_btn_style }}">{{ 'label.order_confirmed'|trans }}</span> #}
+			{% elseif order['o_status'] == 'processed' %}
+				<div class="badges green">
+					<span>
+						<i class="fas fa-check-circle"></i>
+						{{ 'label.order_processed'|trans }}
+					</span>
+				</div>
+				{# <span class="sBtn small red" style="{{ span_btn_style }}">{{ 'label.order_processed'|trans }}</span> #}
+			{% elseif order['o_status'] == 'shipped' %}
+				<h5>
+					{{ 'message.info.shipped'|trans }}
+					<br>
+					<a href="javascript:void(0);" class="sBtn small red buyer-act-order" data-state="received" data-id="{{ order['o_id'] }}">
+						{{ 'label.finish_order'|trans }}
+					</a>
+				</h5>
+			{% elseif order['o_status'] == 'received' %}
+			{% elseif order['o_status'] == 'cancel' %}
+				<div class="badges red">
+					<span>
+						<i class="fas fa-times-circle"></i>
+						{{ 'message.info.cancelled'|trans }}
+					</span>
+				</div>
+				{# <span class="gBtn small red" style="{{ span_btn_style }}">{{ 'message.info.cancelled'|trans }}</span> #}
+			{% elseif order['o_status'] == 'pending_payment' %}
+		{% endif %}
+	{% endif %}
+</div>

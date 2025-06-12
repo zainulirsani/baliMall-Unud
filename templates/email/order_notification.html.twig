@@ -1,0 +1,17 @@
+{% extends '@__main__/public/base/layouts/email.html.twig' %}
+
+{% block body %}
+    <div class="text">
+        <h1>Hi, {{ name }}!</h1>
+        {% if recipient_type == 'seller' %}
+            <h3>Anda memiliki pesanan baru.</h3>
+        {% elseif recipient_type == 'buyer' %}
+            <h3>Pesanan Anda untuk Invoice <strong>{{ invoice }}</strong> telah dikonfirmasi.</h3>
+        {% elseif recipient_type == 'admin' %}
+            <h3>Pesanan Bali Mall untuk Invoice <strong>{{ invoice }}</strong> telah dikonfirmasi.</h3>
+        {% endif %}
+        <p>
+            Gunakan tautan berikut untuk melihat riwayat pesanan: <a href="{{ link }}" target="_blank">Riwayat Transaksi</a>
+        </p>
+    </div>
+{% endblock %}

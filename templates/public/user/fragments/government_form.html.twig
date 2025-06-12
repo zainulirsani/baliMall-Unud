@@ -1,0 +1,15 @@
+{% set error = errors['nip'] is defined ? 'error' : null %}
+<div class="input {{ error }}">
+    <input id="input-nip" type="text" name="nip" value="{{ form_data['u_nip']|default('') }}" title="" placeholder="{{ 'label.nip'|trans }}">
+    {% if error %}<p class="{{ error }}">{{ errors['nip'] }}</p>{% endif %}
+</div>
+{% set error = errors['ppName'] is defined ? 'error' : null %}
+<div class="input {{ error }}">
+    <input id="input-pp-name" type="text" name="pp_name" value="{{ form_data['u_ppName']|default('') }}" title="" placeholder="{{ 'label.pp_name'|trans }}">
+    {% if error %}<p class="{{ error }}">{{ errors['ppName'] }}</p>{% endif %}
+</div>
+{% set error = errors['ppkName'] is defined ? 'error' : null %}
+<div class="input {{ error }}">
+    <input id="input-ppk-name" type="text" name="ppk_name" value="{{ form_data['u_ppkName']|default('') }}" title="" placeholder="{{ 'label.ppk_name'|trans }}">
+    {% if error %}<p class="{{ error }}">{{ errors['ppkName'] }}</p>{% endif %}
+</div>

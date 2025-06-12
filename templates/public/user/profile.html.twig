@@ -1,0 +1,164 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% set gender = 'label.gender'|trans %}
+{% set full_name = form_data['u_firstName'] ~ ' ' ~ form_data['u_lastName'] %}
+{% set photo_profile = form_data['u_photoProfile'] %}
+{% set user_signature = form_data['u_user_signature']|default('dist/img/no-image.png') %}
+{% set user_stamp = form_data['u_user_stamp']|default('dist/img/no-image.png') %}
+{% set banner_profile = form_data['u_bannerProfile'] %}
+
+{% if form_data['photo_profile_src'] is defined and form_data['photo_profile_src'] != '' %}
+    {% set photo_profile = form_data['photo_profile_src'] %}
+{% endif %}
+
+{% if form_data['banner_profile_src'] is defined and form_data['banner_profile_src'] != '' %}
+    {% set banner_profile = form_data['banner_profile_src'] %}
+{% endif %}
+
+{% if form_data['user_signature_src'] is defined and form_data['user_signature_src'] != '' %}
+    {% set user_signature = form_data['user_signature_src'] %}
+{% endif %}
+
+{% if form_data['user_stamp_src'] is defined and form_data['user_stamp_src'] != '' %}
+    {% set user_stamp = form_data['user_stamp_src'] %}
+{% endif %}
+
+{% block content %}
+    <main class="pdl">
+        {% include '@__main__/public/base/partials/breadcrumb.html.twig' %}
+        <section>
+            <div class="container">
+                <div class="box">
+                    <div class="row">
+                        {% include '@__main__/public/user/fragments/menu.html.twig' %}
+                        <div class="dc9 tc12">
+                            <div class="sub-title">
+                                <div class="text">
+                                    <h3>{{ 'label.edit_profile'|trans }}</h3>
+                                </div>
+                                <div class="clear"></div>
+                            </div>
+                            <div class="pr-card">
+                                <div class="row">
+                                    <div class="container fc">
+                                        <form id="user-profile-form" action="" method="post" accept-charset="UTF-8">
+                                            <div class="input pbg">
+                                                <div class="pfl-pic">
+                                                    <a href="javascript:void(0);" class="fas fa-trash-alt remove-pp"></a>
+                                                    <a href="javascript:void(0);" class="fas fa-edit user-photo-profile"></a>
+                                                    <a id="dz-pp-uploader" href="javascript:void(0);" class="mask">
+                                                        <img id="user-photo-profile-src" src="{{ photo_profile is not empty ? path('sftp_show_file', {'path': photo_profile}) :  asset('dist/img/no-image.png') }}" class="user-photo-profile" alt="">
+                                                    </a>
+                                                    <input id="photo-profile" type="hidden" name="photo_profile_src" value="{{ form_data['photo_profile']|default() }}">
+                                                    <input id="photo-profile-temp" type="hidden" name="photo_profile_temp" value="{{ photo_profile }}">
+                                                    <input id="photo-profile-old" type="hidden" name="photo_profile" value="{{ form_data['u_photoProfile']|default() }}">
+                                                </div>
+                                                <div class="bg-inp">
+                                                    <a href="javascript:void(0);" class="fas fa-trash-alt remove-bp"></a>
+                                                    <a href="javascript:void(0);" class="fas fa-edit user-banner-profile"></a>
+                                                    <a id="dz-bp-uploader" href="javascript:void(0);" class="mask">
+                                                        <img id="user-banner-profile-src" src="{{ banner_profile is not empty ? path('sftp_show_file', {'path': banner_profile}) :  asset('dist/img/bg.jpg') }}" class="user-banner-profile" alt="">
+                                                    </a>
+                                                    <input id="banner-profile" type="hidden" name="banner_profile_src" value="{{ form_data['banner_profile']|default() }}">
+                                                    <input id="banner-profile-temp" type="hidden" name="banner_profile_temp" value="{{ banner_profile }}">
+                                                    <input id="banner-profile-old" type="hidden" name="banner_profile" value="{{ form_data['u_bannerProfile']|default() }}">
+                                                </div>
+                                            </div>
+                                            {% set error = errors['firstName'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                                <input type="text" name="full_name" value="{{ full_name|raw }}" title="" placeholder="{{ 'label.full_name'|trans }}">
+                                                {% if error %}<p class="{{ error }}">{{ errors['firstName'] }}</p>{% endif %}
+                                            </div>
+                                            <div class="input">
+                                                <input type="email" value="{{ form_data['u_email'] }}" title="" placeholder="{{ 'label.email'|trans }}" readonly>
+                                            </div>
+                                            {% set error = errors['confirm_password'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                                <input id="input-password" type="password" name="password" title="" placeholder="{{ 'label.password'|trans }}">
+                                                <p class="error">{{ 'message.info.profile_password'|trans }}</p>
+                                                <p id="input-password-error" class="error" style="display: none;">{{ 'message.info.password_not_match'|trans }}</p>
+                                                <p id="input-password-weak" class="error" style="display: none;">{{ 'message.info.password_weak'|trans }}</p>
+                                                {% if error %}<p class="{{ error }}">{{ errors['confirm_password'] }}</p>{% endif %}
+                                            </div>
+                                            <div class="input">
+                                                <input id="input-confirm-password" type="password" name="confirm_password" title="" placeholder="{{ 'label.confirm_password'|trans }}">
+                                            </div>
+                                            {% set error = errors['description'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                                <textarea class="no-resize" name="description" title="" placeholder="{{ 'label.description'|trans }}">{{ form_data['u_description'] }}</textarea>
+                                                {% if error %}<p class="{{ error }}">{{ errors['description'] }}</p>{% endif %}
+                                            </div>
+                                            {% set error = errors['gender'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                                <select name="gender" title="">
+                                                    <option value="">{{ 'label.select_label'|trans({'%label%': gender}) }}</option>
+                                                    {% for key, gender in get_parameter('gender_choices') %}
+                                                        {% set selected = form_data['u_gender']|default() == key ? 'selected' : '' %}
+                                                        <option value="{{ key }}" {{ selected }}>{{ gender|trans }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                                {% if error %}<p class="{{ error }}">{{ errors['gender'] }}</p>{% endif %}
+                                            </div>
+                                            {% set error = errors['phoneNumber'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                                <input type="text" name="phone" value="{{ form_data['u_phoneNumber'] }}" title="" placeholder="{{ 'label.phone'|trans }}">
+                                                {% if error %}<p class="{{ error }}">{{ errors['phoneNumber'] }}</p>{% endif %}
+                                            </div>
+                                            {% set error = errors['dob'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                                <input name="dob" type="date" value="{{ form_data['u_dob']|date('Y-m-d') }}" title="" placeholder="{{ 'label.dob'|trans }}">
+                                                {% if error %}<p class="{{ error }}">{{ errors['dob'] }}</p>{% endif %}
+                                            </div>
+                                            {% if form_data['u_role'] == 'ROLE_USER_GOVERNMENT' %}
+                                                {% include '@__main__/public/user/fragments/government_form.html.twig' %}
+                                            {% elseif form_data['u_role'] == 'ROLE_USER_BUSINESS' %}
+                                                {% include '@__main__/public/user/fragments/business_form.html.twig' %}
+                                            {% endif %}
+                                            <div class="input">
+                                                <input type="hidden" name="_csrf_token" value="{{ csrf_token(token_id) }}">
+                                                <input type="hidden" name="_csrf_token_id" value="{{ token_id }}">
+                                                <input id="user-slug" type="hidden" value="{{ form_data['u_dirSlug'] }}">
+                                                <input id="overwrite" type="hidden" value="no">
+                                            </div>
+                                            {# {% if form_data['u_role'] != 'ROLE_USER_SELLER' %}
+                                                <div class="input pbg">
+                                                    <label style="">{{ 'label.user_signature'|trans }}</label>
+                                                    <div class="pfl-pic">
+                                                        <a href="javascript:void(0);" class="fas fa-trash-alt remove-signature"></a>
+                                                        <a href="javascript:void(0);" class="fas fa-edit user-signature"></a>
+                                                        <a id="dz-signature-uploader" href="javascript:void(0);" class="mask">
+                                                            <img id="user-signature-src" src="{{ asset(user_signature) }}" class="user-signature" alt="">
+                                                        </a>
+                                                        <input id="user-signature" type="hidden" name="user_signature_src" value="{{ form_data['user_signature']|default() }}">
+                                                        <input id="user-signature-temp" type="hidden" name="user_signature_temp" value="{{ user_signature }}">
+                                                        <input id="user-signature-old" type="hidden" name="user_signature" value="{{ form_data['u_user_signature']|default() }}">
+                                                    </div>
+                                                </div>
+                                                <div class="input pbg" style="margin-top:100px">
+                                                    <label style="">{{ 'label.user_stamp'|trans }}</label>
+                                                    <div class="pfl-pic">
+                                                        <a href="javascript:void(0);" class="fas fa-trash-alt remove-stamp"></a>
+                                                        <a href="javascript:void(0);" class="fas fa-edit user-stamp"></a>
+                                                        <a id="dz-stamp-uploader" href="javascript:void(0);" class="mask">
+                                                            <img id="user-stamp-src" src="{{ asset(user_stamp) }}" class="user-stamp" alt="">
+                                                        </a>
+                                                        <input id="user-stamp" type="hidden" name="user_stamp_src" value="{{ form_data['user_stamp']|default() }}">
+                                                        <input id="user-stamp-temp" type="hidden" name="user_stamp_temp" value="{{ user_stamp }}">
+                                                        <input id="user-stamp-old" type="hidden" name="user_stamp" value="{{ form_data['u_user_stamp']|default() }}">
+                                                    </div>
+                                                </div>
+                                            {% endif %} #}
+                                            <div class="input" style="margin-top:100px;">
+                                                <input type="submit" value="{{ 'button.save'|trans }}" class="sBtn red">
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}

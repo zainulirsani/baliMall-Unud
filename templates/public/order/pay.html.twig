@@ -1,0 +1,13 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% block content %}
+    {% if channel == 'qris' and qris_pay['enable'] == 'yes' and qris_payment_data is not empty %}
+        {% include '@__main__/public/order/fragments/payment_qris.html.twig' %}
+    {% endif %}
+    {% if channel == 'virtual-account' and va_pay['enable'] == 'yes' and va_payment_data is not empty %}
+        {% include '@__main__/public/order/fragments/payment_virtual_account.html.twig' %}
+    {% endif %}
+    {% if channel == 'midtrans' and midtrans_payment_data is defined %}
+        {% include '@__main__/public/order/fragments/payment_midtrans.html.twig' %}
+    {% endif %}
+{% endblock %}

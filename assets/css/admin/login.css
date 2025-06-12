@@ -1,0 +1,88 @@
+html, body {
+  height: 100% !important;
+  background-color: #eaeaea !important;
+}
+
+p {
+  text-align: center;
+}
+
+.skin-blue .wrapper {
+  height: auto !important;
+  min-height: auto !important;
+  background-color: #eaeaea !important;
+}
+
+.login .logo {
+  background-image: url('../img/balimall.png');
+  background-size: auto 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  width: 426px;
+  height: 106px;
+  margin: 50px auto 20px auto;
+}
+.login .error {
+  display: block;
+  text-align: center;
+  color: #d40000;
+}
+.login .form {
+  max-width: 350px;
+  margin: 0 auto;
+  padding: 15px;
+}
+.login .form .form-control {
+  position: relative;
+  height: auto;
+  padding: 10px;
+  font-size: 16px;
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+}
+.login .form input[type="text"] {
+  margin: 10px 0 -1px 0;
+  border-top-right-radius: 6px;
+  border-top-left-radius: 6px;
+}
+.login .form input[type="email"] {
+  margin: 10px 0 -1px 0;
+  border-top-right-radius: 6px;
+  border-top-left-radius: 6px;
+}
+.login .form input[type="password"] {
+  margin-bottom: 20px;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+.login .btn-login {
+  border-radius: 6px;
+}
+.login .info {
+  width: 320px;
+  margin: 30px auto;
+  border-radius: 6px;
+}
+
+@media only screen and (max-width: 345px) {
+  .login .info {
+    width: auto;
+    margin: 30px 15px 30px 15px;
+    border-radius: 6px;
+  }
+}
+
+@media only screen and (max-width: 430px) {
+  .login .logo {
+    width: 320px;
+    height: 79px;
+  }
+}
+
+@media only screen and (max-width: 320px) {
+  .login .logo {
+    width: 280px;
+    height: 69px;
+  }
+}

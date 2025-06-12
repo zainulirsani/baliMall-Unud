@@ -1,0 +1,88 @@
+<script>
+    var dataTable = function(destroy) {
+        var parameters = {
+            {% for key, filter in data_table.getFilters %}
+                '{{ key }}': $('#f-{{ key }}').val(),
+            {% endfor %}
+        };
+        
+        $('#data-table').DataTable({
+            responsive: true,
+            ordering: false,
+            searching: false,
+            processing: true,
+            serverSide: true,
+            scrollX: true,
+            destroy: !!destroy,
+            ajax: {
+                url: BASE_URL+'/'+ADMIN_PATH+'/{{ page_section }}/fetch_data',
+                type: 'POST',
+                data: $.extend(true, parameters, TOKEN),
+            },
+            initComplete: function (settings) { 
+                var response = settings.json;
+                var table = this;
+                console.log(response.draw - 1);
+                table.fnPageChange((response.draw - 1));
+            },
+        });
+
+        $.fn.dataTable.ext.errMode = 'throw';
+    };
+
+    $(function() {
+        dataTable();
+
+        $(document).on('click', '#data-table-filter', function(e) {
+            e.preventDefault();
+
+            dataTable(true);
+        });
+
+        $(document).on('click', '.confirm-delete', function(e) {
+            e.preventDefault();
+
+            var id = $(this).attr('data-id');
+
+            bootbox.confirm(CONFIRM_MSG, function(confirmed) {
+                if (confirmed) {
+                    var postUrl = BASE_URL+'/'+ADMIN_PATH+'/{{ page_section }}/delete';
+                    var postData = {
+                        '{{ page_section }}': id,
+                    };
+
+                    $.post(postUrl, $.extend(true, postData, TOKEN), function(response) {
+                        if (response.status) {
+                            {% for key, filter in data_table.getFilters %}
+                            $('#f-{{ key }}').val('');
+                            {% endfor %}
+
+                            dataTable(true);
+                        }
+
+                        if (typeof response.message !== 'undefined') {
+                            $('#modal-global .modal-body').html(response.message);
+                            $('#modal-global').modal();
+                        }
+                    });
+                }
+            });
+        });
+
+        $(document).on('click', '.btn-upload-proof', function() {
+            $("#id-modal-done").val($(this).data('id'));
+            $("#role-modal-done").val($(this).data('role'));
+            $("#from-click-done").val($(this).data('from'));
+        });
+
+        {% if allow_export == true %}
+            $('#btn-export-data').click(function(e) {
+                e.preventDefault();
+
+                {% for key, filter in data_table.getFilters %}$('#export-{{ key }}').val($('#f-{{ key }}').val());{% endfor %}
+
+                $('#form-export-table').submit();
+            });
+        {% endif %}
+    });
+</script>

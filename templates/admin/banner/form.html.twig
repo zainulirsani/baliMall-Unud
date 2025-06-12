@@ -1,0 +1,328 @@
+{% extends '@__main__/admin/base/layouts/default.html.twig' %}
+
+{% set controller = app.request.get('_controller') %}
+{% set page_method = controller[1] is defined ? controller[1] : 'n/a' %}
+{% set page_header = page_title|trans %}
+{% set index_route = 'admin_' ~ page_section ~ '_index' %}
+{% set save_route = 'admin_' ~ page_section ~ '_save' %}
+{% set page_action = path(save_route) %}
+
+{% set banner_image = form_data['image']|default('dist/img/no-image.png') %}
+{% set external_url_checked = form_data['external_url_check']|default() %}
+{% set is_active = form_data['is_active']|default() %}
+{% set banner_name = form_data['banner_name']|default() %}
+{% set banner_position = form_data['position']|default()  %}
+{% set external_url = form_data['external_url']|default() %}
+{% set banner_category = form_data['category_id']|default() %}
+{% set banner_keyword = form_data['keyword']|default() %}
+
+
+{% if page_method == 'edit' %}
+    {% set trans_parameter = {'%name%': form_data.getName} %}
+    {% set page_header = page_title|trans(trans_parameter) %}
+    {% set update_route = 'admin_' ~ page_section ~ '_update' %}
+    {% set page_action = path(update_route, {id: form_data.getId}) %}
+
+    {% set banner_name = form_data.getName %}
+    {% set banner_position = form_data.getPosition  %}
+    {% set external_url = form_data.getExternalUrl %}
+    {% set external_url_checked = external_url is not empty %}
+    {% set banner_category = form_data.getCategoryId %}
+    {% set banner_keyword = form_data.getKeyword %}
+    {% set is_active = form_data.getStatus == 'active' %}
+    {% set banner_image = form_data.getImage %}
+{% endif %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="box box-primary">
+                <form id="product-category-form" enctype="multipart/form-data" accept-charset="UTF-8" method="post" action="{{ page_action }}">
+                    <input type="hidden" id="banner-id" value="{{ form_data['banner_id']|default(0) }}">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">{{ page_header }}</h3>
+                    </div>
+                    <div class="box-body">
+                        {{ csrf_field(token_id) }}
+                        <div class="panel-body">
+                            <div class="nav-tabs-custom">
+                                <ul class="nav nav-tabs product-category-tabs">
+                                    <li class="active product-category-tab-data">
+                                        <a href="#tab-data" data-toggle="tab" data-tab="data">{{ 'label.data'|trans }}</a>
+                                    </li>
+                                </ul>
+                                <div class="tab-content tab-product-category-content">
+                                    <div id="tab-data" class="tab-pane fade in active">
+                                        <div class="m-top-15"></div>
+                                        <div class="form-group {% if errors['name']|default() %}has-error{% endif %}">
+                                            <label for="input-banner-name">{{ 'label.name'|trans }}</label>
+                                            {% if errors['name']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['name'] }}</span>
+                                            {% endif %}
+                                            <input id="input-banner-name" class="form-control" name="banner_name" value="{{ banner_name }}">
+                                        </div>
+
+                                        <div class="form-group {% if errors['position']|default() %}has-error{% endif %}">
+                                            <label for="position">{{ 'label.position'|trans }}</label>
+                                            {% if errors['position']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['position'] }}</span>
+                                            {% endif %}
+                                            <select id="position" class="form-control" name="position">
+                                                <option value="">{{ 'label.select_option'|trans }}</option>
+                                                {% for choice in position %}
+                                                    {% set selected = banner_position|default(0) == choice ? 'selected' : '' %}
+                                                    <option value="{{ choice }}" {{ selected }}>{{ choice|capitalize }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group {% if errors['external_url_check']|default() %}has-error{% endif %}">
+                                            <label for="external-url-check">External Url</label>
+                                            {% if errors['external_url_check']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['external_url_check'] }}</span>
+                                            {% endif %}
+                                            <input id="external-url-check" type="checkbox" name="external_url_check" {{ external_url_checked ? 'checked' : '' }}>
+                                        </div>
+
+                                        <div class="form-group {% if errors['externalUrl']|default() %}has-error{% endif %} external-url-content"
+                                        {% if not external_url_checked %} style="display: none"{% endif %}>
+                                            <label for="external-url">Url</label>
+                                            {% if errors['externalUrl']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['externalUrl'] }}</span>
+                                            {% endif %}
+                                            <input id="external-url" class="form-control" name="external_url" value="{{ external_url }}">
+                                        </div>
+
+                                        <div class="form-group {% if errors['category_id']|default() %}has-error{% endif %} internal-url-content"
+                                            {% if external_url_checked %} style="display: none" {% endif %}>
+                                            <label for="input-parent-id">{{ 'label.category'|trans }}</label>
+                                            {% if errors['category_id']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['category_id'] }}</span>
+                                            {% endif %}
+                                            <select id="input-category-id" class="form-control" name="category_id">
+                                                <option value="">{{ 'label.select_option'|trans }}</option>
+                                                {% for choice in product_category_data %}
+                                                    {% set selected = banner_category|default(0) == choice['id'] ? 'selected' : '' %}
+                                                    <option value="{{ choice['id'] }}" {{ selected }}>{{ choice['text'] }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group {% if errors['keyword']|default() %}has-error{% endif %} internal-url-content"
+                                            {% if external_url_checked %} style="display: none" {% endif %}>
+                                            <label for="input-name">Keyword</label>
+                                            {% if errors['keyword']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['keyword'] }}</span>
+                                            {% endif %}
+                                            <input id="keyword" class="form-control" name="keyword" value="{{ banner_keyword }}">
+                                        </div>
+
+{#                                        <div class="form-group">#}
+{#                                            <label for="with-button">With Button</label>#}
+{#                                            <input id="with-button" type="checkbox" name="with_button">#}
+{#                                        </div>#}
+
+{#                                        <div id="button-content" style="display: none">#}
+{#                                            <hr>#}
+{#                                            {% for i in 0..0 %}#}
+{#                                                <div id="button-content-part">#}
+{#                                                    <div class="form-group">#}
+{#                                                        <label>Label</label>#}
+{#                                                        <input class="form-control" type="text" name="button[0][label]">#}
+{#                                                    </div>#}
+
+{#                                                    <div class="form-group">#}
+{#                                                        <label for="external-url-check">External Url</label>#}
+{#                                                        <input class="external-url-btn-content-check" type="checkbox" data-index="{{ i }}">#}
+{#                                                    </div>#}
+
+{#                                                    <div class="form-group button-content-external-{{ i }}" style="display: none">#}
+{#                                                        <label>Url</label>#}
+{#                                                        <input class="form-control" type="text" name="button[0][external_url]">#}
+{#                                                    </div>#}
+
+{#                                                    <div class="form-group button-content-internal-{{ i }}">#}
+{#                                                        <label>Keyword</label>#}
+{#                                                        <input class="form-control" type="text" name="button[0][keyword]">#}
+{#                                                    </div>#}
+
+{#                                                    <div class="form-group button-content-internal-{{ i }}">#}
+{#                                                        <label for="">{{ 'label.category'|trans }}</label>#}
+{#                                                        <select class="form-control" name="button[0][category]">#}
+{#                                                            <option value="">{{ 'label.select_option'|trans }}</option>#}
+{#                                                            {% for choice in product_category_data %}#}
+{#                                                                {% set selected = category|default(0) == choice['id'] ? 'selected' : '' %}#}
+{#                                                                <option value="{{ choice['id'] }}" {{ selected }}>{{ choice['text'] }}</option>#}
+{#                                                            {% endfor %}#}
+{#                                                        </select>#}
+{#                                                    </div>#}
+{#                                                </div>#}
+{#                                            {% endfor %}#}
+{#                                            <button id="add-child-button">Add More Button</button>#}
+{#                                            <hr>#}
+{#                                        </div>#}
+
+                                        <div class="form-group {% if errors['is_active']|default() %}has-error{% endif %}">
+                                            {% if errors['is_active']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['is_active'] }}</span>
+                                            {% endif %}
+                                            <label for="is-active">Is Active</label>
+                                            <input id="is-active" type="checkbox" name="is_active" {{ is_active ? 'checked' : '' }}>
+                                        </div>
+                                        <hr>
+                                        {# <div class="col-md-6 form-group {% if errors['banner_file']|default() %}has-error{% endif %}" style="padding-left: 0;">
+                                            <p id="img-res"></p>
+                                            <label for="input-desktop-image">Banner Image</label>
+                                            {% if errors['banner_file']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['banner_file'] }}</span>
+                                            {% endif %}
+                                            <img src="{{ asset(banner_image) }}" class="banner-img img-responsive" alt="" style="width: 250px;">
+                                            <div class="m-top-15"></div>
+                                            <input id="input-banner-image" type="file" name="banner_file">
+                                            <input id="banner-image" type="hidden" name="banner_image" value="{{ banner_image }}">
+                                            <input id="banner-image-tmp" type="hidden" name="banner_imageTmp" value="{{ banner_image }}">
+                                        </div> #}
+                                        <div class="col-md-6 form-group" style="padding-left: 0;">
+                                            <label for="input-desktop-image">Banner Image</label>
+                                            <img src="{{ path('sftp_show_file', {'path': banner_image}) }}" class="banner-img img-responsive" alt="" style="width: 250px;">
+                                            <input type="file" name="file">
+                                        </div>    
+                                        {# upload documents #}
+                                        {# <div class="col-md-6 form-group" style="padding-left: 0;">
+                                            <label for="input-desktop-image">Document</label>
+                                            <input type="file" name="document">
+                                        </div> #}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box-footer">
+                        <div id="button-tab-data" class="button-tabs-product-category" style="display: inline;">
+                            <button type="submit" class="btn btn-primary" name="btn_action" value="save">
+                                {{ 'button.save'|trans }}
+                            </button>
+                            <button type="submit" class="btn btn-primary" name="btn_action" value="save_exit">
+                                {{ 'button.save_exit'|trans }}
+                            </button>
+                        </div>
+                        <div style="display: inline;">
+                            <a href="{{ path(index_route) }}" class="btn btn-default">{{ 'button.cancel'|trans }}</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        $(document).ready(function () {
+            var maxButtons = 3;
+
+            $('#with-button').on('change', function () {
+                if ($(this).prop('checked')) {
+                    $('#button-content').show()
+                }else {
+                    $('#button-content').hide()
+                }
+            })
+
+            $('#external-url-check').on('change', function () {
+                if ($(this).prop('checked')) {
+                    $('#input-category-id').val('')
+                    $('#keyword').val('')
+
+                    $('.internal-url-content').hide();
+                    $('.external-url-content').show();
+                }else {
+                    $('#external-url').val('')
+
+                    $('.internal-url-content').show();
+                    $('.external-url-content').hide();
+                }
+            })
+
+            $('.external-url-btn-content-check').on('change', function () {
+                var data_index = $(this).data('index');
+                console.log(data_index)
+                if ($(this).prop('checked')) {
+                    $('.button-content-internal-'+data_index).hide()
+                    $('.button-content-external-'+data_index).show()
+                }else {
+                    $('.button-content-external-'+data_index).hide()
+                    $('.button-content-internal-'+data_index).show()
+                }
+            })
+
+            $('#add-child-button').on('click', function (e) {
+                e.preventDefault();
+
+                var buttonContentPart = $('#button-content-part').clone(true, true);
+
+                $('#button-content-part').append(buttonContentPart);
+            })
+
+            var bannerId = parseInt($('#banner-id').val());
+            var dir = bannerId > 0 ? 'banner' : 'temp/banner';
+
+            $('#input-banner-image').dropzone({
+                url: BASE_URL+'/'+ADMIN_PATH+'/file/upload',
+                paramName: 'file_image',
+                maxFilesize: dzMaxSize,
+                resizeWidth: 1440,
+                acceptedFiles: '.jpeg, .jpg, .png',
+                renameFile: function (file) {
+                    var tmpFile = file.name.split('.');
+                    var randomStr = (Math.random() + 1).toString(36).substring(8);
+                    return  tmpFile[0] + '_' + randomStr + '.' + tmpFile.pop();
+                },
+                dictDefaultMessage: '',
+                dictFallbackMessage: '',
+                params: $.extend(true, {dir: dir}, TOKEN),
+                previewTemplate: dzEmptyTemplate.html(),
+                init: function() {
+                    this.on('error', function(file, response) {
+                        bootbox.alert(response);
+                    });
+
+                    this.on('addedfile', function(file) {
+                        Pace.restart();
+                    });
+
+                    this.on('thumbnail', function(file, dataUrl) {
+                        $('.dz-image img').hide();
+                    });
+                },
+                success: function(file, response) {
+                    response = JSON.parse(response);
+                    var image = response.file_image[0];
+
+                    if (typeof image.error !== 'undefined') {
+                        bootbox.alert(image.error);
+                    } else {
+                        var url = decodeURIComponent(image.url);
+                        var parse = new URL(url);
+                        var random = Math.floor(Math.random() * 20);
+
+                        console.log(parse)
+
+                        $('.banner-img').attr('src', url+'?v'+random).show();
+                        $('#banner-image-tmp').val(parse.pathname);
+                    }
+                }
+            });
+
+            $('#position').on('change', function (){
+                var selected = $(this).val();
+                var text = '*Pastikan resolusi gambar setidaknya: '
+
+                text += selected === 'top' ? '1168 × 360 px' : '570 × 428 px';
+
+                $('#img-res').text(text)
+            })
+        })
+    </script>
+{% endblock %}
+

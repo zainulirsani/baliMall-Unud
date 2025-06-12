@@ -1,0 +1,564 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% block content %}
+    <style>
+        .temp-btn {
+            min-width: 120px;
+            text-align: center;
+            height: 24px;
+            line-height: 24px;
+            border-radius: 8px;
+        }
+        .styled-table {
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 0.9em;
+            font-family: sans-serif;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+        }
+        .styled-table thead tr {
+            background-color: #4b85cc;
+            color: #ffffff;
+            text-align: left;
+        }
+        .styled-table th,
+        .styled-table td {
+            padding: 12px 15px;
+            border: 0px;
+        }
+        .styled-table tbody tr {
+            border-bottom: 1px solid #dddddd;
+        }
+
+        .styled-table tbody tr:nth-of-type(even) {
+            background-color: #f3f3f3;
+        }
+
+        .styled-table tbody tr:last-of-type {
+            border-bottom: 2px solid #4b85cc;
+        }
+        .styled-table tbody tr.active-row {
+            font-weight: bold;
+            color: #4b85cc;
+        }
+        .badge-orange {
+            background-color: #FEF2E5;
+            font-size: 12px;
+            padding: 5px 10px;
+            text-align: center;
+            border-radius: 10px;
+            color: #CD6200;
+            border: 1px solid #CD6200;
+        }
+        .badge-green {
+            background-color: #EBF9F1;
+            font-size: 12px;
+            padding: 5px 10px;
+            text-align: center;
+            border-radius: 10px;
+            color: #1F9254;
+            border: 1px solid #1F9254;
+        }
+        .badge-red {
+            background-color: #ffa5a582;
+            font-size: 12px;
+            padding: 5px 10px;
+            text-align: center;
+            border-radius: 10px;
+            color: #4b85cc;
+            border: 1px solid #4b85cc;
+        }
+        .badge-blue {
+            background-color: #008ae838;
+            font-size: 12px;
+            padding: 5px 10px;
+            text-align: center;
+            border-radius: 10px;
+            color: #008ae8;
+            border: 1px solid #008ae8;
+        }
+        .btn-ppk-red,.btn-ppk-red:hover {
+            background-color: #4b85cc;
+            font-size: 14px;
+            padding: 5px 10px;
+            text-align: center;
+            border-radius: 5px;
+            color: #fff;
+            border: 1px solid #4b85cc;
+            margin: 2px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .btn-ppk-red-border,.btn-ppk-red-border:hover {
+            background-color: transparent;
+            font-size: 14px;
+            padding: 5px 10px;
+            text-align: center;
+            border-radius: 5px;
+            color: #4b85cc;
+            border: 1px solid #4b85cc;
+            margin: 2px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: 0.5s;
+        }
+
+        .btn-ppk-red-border:hover {
+            background-color: #4b85cc;
+            color: #fff;
+            transition: 0.5s;
+        }
+
+        .input input[type=text] {
+            background-color: #FFF;
+            border: 1.5px solid #ededed;
+        }
+
+        .btn-search-ppk,.btn-search-ppk:hover {
+            background-color: #4b85cc;
+            font-size: 14px;
+            padding: 14px 18px;
+            text-align: center;
+            border-radius: 5px;
+            color: #fff;
+            border: 1px solid #4b85cc;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-info-ppk,.btn-info-ppk:hover {
+            background-color: #0dcaf0;
+            font-size: 14px;
+            padding: 14px 18px;
+            text-align: center;
+            border-radius: 5px;
+            color: #fff;
+            border: 1px solid #0dcaf0;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .table_ppk_status tr,.table_ppk_status td {
+            padding: 10px;
+        }
+
+        .text-center {text-align:center;}
+        .text-right {text-align: right;}
+        ::-webkit-scrollbar {
+        -webkit-appearance: none;
+            width: 7px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            border-radius: 4px;
+            background-color: rgba(0, 0, 0, .5);
+            box-shadow: 0 0 1px rgba(255, 255, 255, .5);
+        }
+
+        .fake-scroll-div {
+            overflow-x: scroll !important;
+            height: 20px !important;
+            margin-bottom: 0px !important;
+        }
+
+        .text-bold-1 {
+            font-weight: 800 !important;
+            font-size: 20px !important;
+        }
+
+        .text-label-1 {
+            font-size: 14px !important;
+        }
+
+        .select2-selection--single{
+            padding: 10px 0px !important;
+            height: 48px !important;
+            border: 1px solid #dcdcdc !important;
+        }
+
+        .select2-selection__arrow{
+            margin-top: 8px !important;
+        }
+
+        .select2-container--default .select2-selection--multiple .select2-selection__rendered {
+            font-size: 16px !important;
+        }
+
+        .mt--1{
+            margin-top: -10px !important;
+        }
+
+        .mt-1{
+            margin-top: 10px !important;
+        }
+
+        .mt-3{
+            margin-top: 30px !important;
+        }
+
+        .mb-0{
+            margin-bottom: 0px !important;
+        }
+
+        .table_detail tr td,th {
+            border: 1px solid #000;
+        }
+
+        .table_detail tr td {
+            font-weight: 400;
+        }
+
+        .table_no_border {
+            border: 0px !important;
+        }
+
+        .table_detail td,th {
+            padding: 10px;
+        }
+
+        .btn-ppk-red[title]:hover::before {
+            content: attr(title);
+            position: absolute;
+            background-color: black;
+            color: white;
+            padding: 5px;
+            border-radius: 5px;
+        }
+        .alert-orange{
+            background-color: #FEF2E5;
+            color: #CD6200;
+            padding: 20px 15px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 15px;
+            text-align: justify;
+        }
+    </style>
+    <main class="pdl">
+        {% include '@__main__/public/base/partials/breadcrumb.html.twig' %}
+        <section>
+            <div class="container">
+                <div class="box">
+                    <div class="row">
+                        {% include '@__main__/public/user/fragments/menu.html.twig' %}
+                        <div class="dc9 tc12">
+                            <div id="user-ppk-treasurer-list" class="pr-card" data-id="{{ app.user.id }}" data-page="type">
+                                <div class="row">
+
+                                    {# Detail #}
+                                    <div class="dc12">
+                                        <div class="box pr-card__1">
+                                            <div class="row" style="padding-top: 20px;">
+
+                                                <div class="dc6 mb-0">
+                                                    <div class="row">
+                                                        <div class="dc6" style="display: grid; justify-items: center; align-items: center;">
+                                                            <img src="{{asset('assets/img/bni_logo.png')}}" style="max-width: 150px">
+                                                        </div>
+                                                        <div class="dc6">
+                                                            <p style="margin-bottom: 5px;">
+                                                                <span class="text-label-1">Virtual Account</span><br>
+                                                                <span class="text-bold-1">{{haveTrx != false ? haveTrx.getVa : '-'}}</span><br>
+                                                            </p>
+                                                            {% if haveTrx != false  %}
+                                                                <a type="button" class="btn-ppk-red" id="btn-salin-clip" data-clip="{{haveTrx != false ? haveTrx.getVa : '-'}}">Salin</a>
+                                                            {% endif %}
+                                                            <p class="mt-3">
+                                                                <span class="text-label-1">Request Pending</span><br>
+                                                                <span class="text-bold-1">{{haveTrx != false ? haveTrx.getRequestId : '-'}}</span>
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="dc6 mb-0">
+                                                    {# {% if haveTrx == false %} #}
+                                                        <p class="text-center">
+                                                            <span class="text-label-1">Pilih Invoice</span><br>
+                                                        </p>
+                                                        <form action="{{path('user_bnipayment_bni_payment_multiple')}}" method="POST" id="form_bni_payment_multiple">
+                                                            <input type="hidden" name="_csrf_token" value="{{ csrf_token('user_bnipayment_bni_payment_multiple') }}">
+                                                            <input type="hidden" name="_csrf_token_id" value="user_bnipayment_bni_payment_multiple">
+                                                            <div class="input">
+                                                                <select id="select_invoices" name="select_invoices[]" class="not-use-selectric use-select2" style="width: 100%;" multiple="multiple" required>
+                                                                    <option value="">Pilih Invoice</option>
+                                                                    {% for item in orders %}
+                                                                        {% if item['order'].getTaxType is not empty %}
+                                                                            <option value="{{item['order'].getInvoice}}" data-redirect="{{ path('user_ppktreasurer_detail', {'id': item['order'].getId}) }}" data-total="{{item['order'].getTotal + item['order'].getShippingPrice}}" data-tax_type="{{item['order'].getTaxType}}" data-pph_nominal="{{item['order'].getTreasurerPphNominal}}" data-ppn_nominal="{{item['order'].getTreasurerPpnNominal}}" data-satkerid="{{item['order'].getSatkerId }}">{{item['order'].getInvoice}} ({{item['satker'].getSatkerName}})</option>
+                                                                        {% endif %}
+                                                                    {% endfor %}
+                                                                </select>
+                                                            </div>
+                                                        </form>
+                                                    {# {% endif %} #}
+                                                </div>
+
+                                                <div class="dc12 mt--1">
+                                                    {% if haveTrx != false %}
+                                                        <div class="alert-orange">
+                                                            <p><i class="fas fa-exclamation-circle"></i>&nbsp;&nbsp;Mohon untuk menyelesaikan pembayaran dengan kode {{haveTrx.getRequestId}} untuk bisa melakukan pembayaran lainnya menggunakan No VA {{haveTrx.getVa}}</p>
+                                                        </div>
+                                                    {% endif %}
+                                                    
+                                                    <hr style="border: 2px solid black;">
+                                                </div>
+                                                
+                                                <div class="dc12 mb-0 detail-invoice" {% if haveTrx != false %}style="display : none"{% endif %}
+                                                >
+                                                    <h5 class="text-center">Detail<h5>
+                                                    <table width="100%" class="text-label-1 table_detail">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>No Invoice</th>
+                                                                <th width="30%">Nominal</th>
+                                                                <th width="10%" class="table_no_border"></th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="tbodyCreateVA">
+                                                            <tr>
+                                                                <td colspan="2" class="text-center">No selected invoice</td>
+                                                            </tr>
+                                                        </tbody>
+                                                        <tr>
+                                                            <th class="text-right">Total</th>
+                                                            <td id="totalCreateVA">0</td>
+                                                            <td class="table_no_border"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="table_no_border"></td>
+                                                            <td class="table_no_border text-right" style="padding: 20px 0px;">
+                                                                <a type="button" class="btn-ppk-red" id="btn-create-va" style="display: none;">Create Virtual Account</a>
+                                                            </td>
+                                                            <td class="table_no_border"></td>
+                                                        </tr>
+                                                    </table>
+                                                </div>
+                                                
+
+                                                
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {# /Detail #}
+
+                                    {# List #}
+                                    <div class="dc12">
+                                        <div class="box pr-card__1">
+                                            <div class="row">
+
+                                                <div class="dc12" style="margin-bottom: 0;">
+                                                    <h5 style="text-align: center;margin: 50px 0px;">History Payment</h5>
+                                                    <div class="row">
+
+                                                        <form id="filter-ppk-form" action="" method="GET">
+                                                            <div class="dc4" style="margin-bottom: 0;">
+                                                                <div class="input">
+                                                                    <input style="height: 48px;" id="treasurer-search-request" name="search_rid" type="text" title="" value="{{parameters['search_rid'] is defined and parameters['search_rid'] is not empty ? parameters['search_rid']:''}}" placeholder="Request ID">
+                                                                </div>
+                                                            </div>
+
+
+                                                            <div class="dc1" style="margin-bottom: 0;">
+                                                                <div class="input">
+                                                                    <button id="search-rid-btn" class="btn-search-ppk">
+                                                                        Cari
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+
+                                                {# <div class="dc12 fake-scroll-div">
+                                                    <div class="fake-scroll-content"></div>
+                                                </div> #}
+                                                <div class="dc12 real-scroll-div" style="overflow-x: scroll;">
+                                                    <table class="styled-table" id="table-dashboard" width="100%">
+                                                        <thead> 
+                                                            <tr>
+                                                                <th>Request Id</th>
+                                                                <th>Virtual Account</th>
+                                                                <th>Status</th>
+                                                                <th>Total</th>
+                                                                <th>Action</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                        {% if documents|length > 0 %}
+                                                            {% for key,item in documents %}
+                                                                <tr style="text-align: left">
+                                                                    <th>{{item['requestId']}}</th>
+                                                                    <th>{{item['va']}}</th>
+                                                                    <th>
+                                                                        {% if item['status'] == 'pending' %}
+                                                                            <div class="badge-orange"> Pending </div>
+                                                                        {% elseif item['status'] == 'done' %}
+                                                                            <div class="badge-green"> Done </div>
+                                                                        {% else %}
+                                                                            <div class="badge-red"> Expired </div>
+                                                                        {% endif %}
+                                                                        
+                                                                    </th>
+                                                                    <th>Rp. {{item['amount']|number_format}}</th>
+                                                                    <th>
+                                                                        <a type="button" class="btn-ppk-red-border btn-detail-va" data-key="{{key}}">Detail</a>
+                                                                    </th>
+                                                                </tr>
+                                                            {% endfor %}
+                                                        {% else %}
+                                                            <tr>
+                                                                <td colspan="4" class="text-center">
+                                                                    No data available in table
+                                                                </td>
+                                                            </tr>
+                                                        {% endif %}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {# /List #}
+                                    
+
+                                </div>
+                            </div>
+                            {% if pagination is not empty and pagination.getNbResults > pagination.getMaxPerPage %}{{ html|raw }}{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    {% if documents|length > 0 %}
+        {% for key,item in documents %}
+            <div id="popup-detail-va-{{key}}" class="popup general" title="detail-va">
+                    <div class="wh100">
+                        <div class="popup-wrapper">
+                            <div class="inner">
+                                <a href="javascript:void(0);" class="close-btn" onclick="$(this).parents('.popup').fadeOut();"></a>
+                                <p><h6>Detail Request</h6></p>
+
+                                <div class="table-wrapper">
+                                    <table style="width: 100%">
+                                        <tbody>
+                                            <tr style="text-align: left; font-size: 14px;" class="border">
+                                                <td style="text-align: left; width: 50%;">No Invoice</td>
+                                                <td style="text-align: left; width: 50%;">Action</td>
+                                            </tr>
+                                            {% for detail in item['details'] %}
+                                                <tr class="border">
+                                                    <td style="text-align: left;">{{detail.getInvoice}}</td>
+                                                    <td style="text-align: left;">
+                                                        <a href="{{ path('user_ppktreasurer_detail', {'id': detail.getId}) }}" type="button" class="btn-ppk-red" target="_blank">Detail</a>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        {% endfor %}
+    {% endif %}
+
+    <script>
+        function setToRp(number) {
+            return number.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g,  "$1,");// "$1."
+        }
+
+        $('#btn-salin-clip').on('click', function() {
+            var clip = $(this).data('clip');
+            navigator.clipboard.writeText(clip)
+            .then(function() {
+                $('#btn-salin-clip').html('Tersalin').fadeOut();
+                setTimeout(function () {
+                    $('#btn-salin-clip').html('Salin').fadeIn();
+                }, 5000);
+            });
+        });
+
+        $('#btn-create-va').on('click', function() {
+            $('#form_bni_payment_multiple')[0].submit();
+        });
+
+        $('.btn-detail-va').on('click', function() {
+            var key = $(this).data('key');
+            $('#popup-detail-va-'+key).show();
+        });
+
+        $('#select_invoices').on('change', function (e) {
+            var text = '';
+            if ($('#select_invoices').val().length > 0) {
+                var totalAll = 0;
+                var satkerIdSelected = '';
+                var oneSatker = true;
+                var haveSatker = true;
+                $('#btn-create-va').show();
+                $('.detail-invoice').show();
+                $.each($('#select_invoices').val(), function (key, val) {
+                    var option = $(`#select_invoices option[value="${val}"]`);
+                    var taxType = option.data('tax_type');
+                    var total = option.data('total');
+                    var redirect = option.data('redirect');
+                    var pphNominal = option.data('pph_nominal');
+                    var ppnNominal = option.data('ppn_nominal');
+                    var satkerId = option.data('satkerid');
+                    console.log(option,satkerId);
+                    if (satkerId != 0) {
+                        if (satkerIdSelected == '' || satkerIdSelected == satkerId) {
+                            satkerIdSelected = satkerId;
+                        } else {
+                            oneSatker = false;
+                        }
+                    } else {
+                        haveSatker = false
+                    }
+
+                    if (taxType == 59 && total > 2220000) {
+                        if (pphNominal != '') {
+                            total = total - parseFloat(pphNominal)
+                        }
+                        if (ppnNominal != '') {
+                            total = total - parseFloat(ppnNominal)
+                        }
+                    }
+                    totalAll += total;
+                    text += `
+                        <tr class="selected-invoice" data-satkerId="${satkerId}">
+                            <td>${val}</td>
+                            <td>${setToRp(total.toFixed(2))}</td>
+                            <td class="table_no_border">
+                                <a href="${redirect}" type="button" class="btn-ppk-red" target="_blank">Detail</a>
+                            </td>
+                        </tr>
+                    `;
+                });
+                $('#tbodyCreateVA').html(text);
+                $('#totalCreateVA').html(setToRp(totalAll.toFixed(2)));
+                if (haveSatker == false) {
+                    showGeneralPopup('Hanya dapat menggabungkan transaksi yang memiliki Satker!');
+                    $('#btn-create-va').hide();
+                }
+                
+                if (oneSatker == false) {
+                    showGeneralPopup('Hanya dapat menggabungkan transaksi dengan Satker yang sama!');
+                    $('#btn-create-va').hide();
+                }
+            } else {
+                text = `
+                    <tr>
+                        <td colspan="2" class="text-center">No selected invoice</td>
+                    </tr>
+                `;
+                $('#tbodyCreateVA').html(text);
+                $('#totalCreateVA').html(0);
+                $('#btn-create-va').hide();
+                $('.detail-invoice').hide();
+            }
+        });
+    </script>
+
+{% endblock %}

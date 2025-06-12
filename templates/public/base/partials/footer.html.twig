@@ -1,0 +1,104 @@
+{% set class = search_result is defined and search_result == true ? 'src-f' : '' %}
+
+<style>
+    footer .logo img.google-badge { width: 40%; }
+    @media screen and (max-width: 768px) {
+        footer .logo img.google-badge { width: 25%; display: block; margin: auto; }
+    }
+</style>
+
+<footer class="{{ class }}">
+    <div class="container">
+        <div class="logo">
+            <img src="{{ asset('dist/img/balimall.png') }}" alt="" style="display: none;">
+            <a href="https://play.google.com/store/apps/details?id=com.baliyoni.balimall">
+                <span>{{ 'title.page.download_app'|trans }}</span>
+                <br><br>
+                <img src="{{ asset('dist/img/google-play.webp') }}" alt="Google Play Badge" class="google-badge" title="Balimall">
+            </a>
+        </div>
+        <div class="links">
+            <ul>
+                <li>
+                    <a href="{{ path('privacy_policy') }}">{{ 'title.page.privacy_policy'|trans }}</a>
+                </li>
+                <li>
+                    <a href="{{ path('terms_and_conditions') }}">{{ 'title.page.terms_and_conditions'|trans }}</a>
+                </li>
+                <li>
+                    <a href="{{ path('be_a_vendor') }}">{{ 'title.page.be_a_vendor'|trans }}</a>
+                </li>
+                <li>
+                    <a href="{{ path('faq') }}">{{ 'title.page.faq'|trans }}</a>
+                </li>
+                <li>
+                    <a href="{{ path('tips') }}">{{ 'title.page.tips'|trans }}</a>
+                </li>
+            </ul>
+        </div>
+        <div class="links">
+            <ul>
+				<li class="hub">
+					<a href="{{ path('contact') }}">{{ 'title.page.contact_us'|trans }}</a>
+				</li>
+			</ul>
+			<ul class="contact-info">
+				<p><span>{{ get_parameter('app_name') }}</span></p>
+
+				<li>
+					Hp:<a href="https://wa.me/6281131164999"> 0811 3116 4999</a>
+				</li>
+				<li>
+					Email:<a href="mailto:info@balimall.id"> info@balimall.id</a>
+				</li>
+				<li>
+					Alamat Kantor:<a> Jl. M. Yamin IX No. 19 Denpasar, Bali</a>
+				</li>
+				<br>
+			</ul>
+			{# <ul class="contact-info">
+				<p><span>Layanan Ditjen</span></p>
+				<li>
+					<a href="http://ditjenpktn.kemendag.go.id/layanan-pengaduan-konsumen-kementerian-perdagangan-melalui-daring">{{ 'title.page.consumer_complaint'|trans }}</a>
+				</li>
+				<li>
+					Whatsapp: <a href="https://wa.me/6285311111010">0853 1111 1010</a>
+				</li>
+			</ul> #}
+        </div>
+        <div class="social">
+            <div class="inner">
+                <p>{{ 'message.info.follow_us'|trans }}</p>
+                <div class="btn-wrapper">
+                    <a href="{{ social_buttons['facebook'] }}" class="fab fa-facebook-square" target="_blank"></a>
+                    {#<a href="{{ social_buttons['twitter'] }}" class="fab fa-twitter-square" target="_blank"></a>#}
+                    <a href="{{ social_buttons['instagram'] }}" class="fab fa-instagram" target="_blank"></a>
+                </div>
+            </div>
+        </div>
+        <div class="clear"></div>
+    </div>
+    <div class="bot">
+        <div class="container">
+            {{ 'label.copyrights'|trans }} &copy; 2020 <b>{{ get_parameter('app_name') }}</b> {{ get_parameter('app_version') }}
+        </div>
+    </div>
+</footer>
+
+<div class="loading" style="display: none;">
+    <div class="inner">
+        <div>
+            <img src="{{ asset('dist/img/balimall.png') }}" alt="Logo">
+            <span>{{ 'label.loading'|trans }}</span>
+        </div>
+    </div>
+</div>
+
+{% if enable_chat and app.user and is_buyer and is_government %}
+    <form id="init-chat" action="{{ path('user_chat_init') }}" method="post" accept-charset="UTF-8">
+        {{ csrf_field('init_chat') }}
+        <input id="chat-slug" type="hidden" name="slug">
+        <input id="chat-order" type="hidden" name="order">
+        <input id="chat-product" type="hidden" name="product">
+    </form>
+{% endif %}

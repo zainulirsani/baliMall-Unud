@@ -1,0 +1,14 @@
+{% for key, button in data_table.getButtons %}
+    {% set btn_label = 'button.' ~ key %}
+    {% set btn_class = button['class']|default('btn-default') %}
+    <button type="submit" class="btn {{ btn_class }}" name="btn_action" value="{{ key }}">{{ btn_label|trans }}</button>
+{% endfor %}
+{% if allow_import == true %}
+    <a href="{{ import_action }}" class="btn btn-primary"><i class="fa fa-file-import"></i> {{ 'button.import'|trans }}</a>
+{% endif %}
+{% if allow_export == true %}
+    <a id="btn-export-data" class="btn btn-primary"><i class="fa fa-file-export"></i> {{ 'button.export.to_excel'|trans }}</a>
+{% endif %}
+{% if qrcode_product == true %}
+    <a id="product-qrcode-batch" href="javascript:void(0);" class="btn btn-primary">{{ 'button.qrcode'|trans }}</a>
+{% endif %}

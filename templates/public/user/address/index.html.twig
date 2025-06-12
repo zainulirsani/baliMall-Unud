@@ -1,0 +1,86 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% block content %}
+    <style>
+        .temp-btn {
+            min-width: 120px;
+            text-align: center;
+            height: 24px;
+            line-height: 24px;
+            border-radius: 8px;
+        }
+    </style>
+    <main class="pdl">
+        {% include '@__main__/public/base/partials/breadcrumb.html.twig' %}
+        <section>
+            <div class="container">
+                <div class="box">
+                    <div class="row">
+                        {% include '@__main__/public/user/fragments/menu.html.twig' %}
+                        <div class="dc9 tc12">
+                            <div class="sub-title">
+                                <div class="text">
+                                    <h3>{{ 'label.address'|trans }}</h3>
+                                </div>
+                                <div class="clear"></div>
+                                <div class="btn-wrapper">
+                                    <a href="{{ path('user_address_new') }}" class="sBtn small blue">
+                                        {{ 'label.address_add'|trans }}
+                                    </a>
+                                </div>
+                            </div>
+                            <div id="user-address-list" class="pr-card" data-id="{{ app.user.id }}">
+                                <div class="row">
+                                    {% for address in addresses %}
+                                        {% set user_address = address['address'] %}
+
+                                        {% if user_address|length > 50 %}
+                                            {% set user_address = user_address|slice(0, 50) ~ '...' %}
+                                        {% endif %}
+                                        <div class="dc12">
+                                            <div class="box pr-card__1">
+                                                <div class="top">
+                                                    <div class="text">
+                                                        <h6>{{ address['title'] }}</h6>
+                                                    </div>
+                                                    <span class="badge blue temp-btn">
+                                                        <a href="{{ path('user_address_edit', {'id': address['id']}) }}">
+                                                            {{ 'button.edit'|trans }}
+                                                        </a>
+                                                    </span>
+                                                </div>
+                                                <div class="info">
+                                                    <div>
+                                                        <span>
+                                                            {{ user_address }}
+                                                            {% if address['postCode'] is not empty %}
+                                                                - {{ address['postCode'] }}
+                                                            {% endif %}
+                                                        </span>
+                                                        {% if address['province'] is not empty %}
+                                                            <br>
+                                                            <span>
+                                                                {{ address['province'] }}
+                                                                {% if address['country'] is not empty %}
+                                                                    - {{ get_country_name(address['country']) }}
+                                                                {% endif %}
+                                                            </span>
+                                                        {% endif %}
+                                                    </div>
+                                                    {% if addresses|length > 1 %}
+                                                        <a href="{{ path('user_address_delete') }}" class="sBtn red act-delete" data-id="{{ address['id'] }}">{{ 'button.delete'|trans }}</a>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% if pagination is not empty and pagination.getNbResults > pagination.getMaxPerPage %}{{ html|raw }}{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}

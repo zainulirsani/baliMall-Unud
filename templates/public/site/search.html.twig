@@ -1,0 +1,181 @@
+{% extends '@__main__/base/public/layouts/default.html.twig' %}
+
+{% block content %}
+    <main class="src-page">
+        <section>
+            <div class="container cf">
+                <div class="row">
+                    <div class="dc7 tc12">
+                        <div class="filter">
+                            <div class="row">
+                                <div class="dc9 tc12">
+                                    <div class="row">
+                                        <div class="dc6 tc12 input">
+                                            <input type="text" title="" placeholder="Cari lokasi">
+                                        </div>
+                                        <div class="dc6 tc12 input">
+                                            <input type="text" title="" placeholder="Cari Barang">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="dc3 tc12 input">
+                                    <button class="sBtn blue">Search</button>
+                                </div>
+                            </div>
+                            <h2 class="blue-title">Search result</h2>
+                            <div class="sort-wrp input desktop-only">
+                                <select title="">
+                                    <option>-- Pilih Filter</option>
+                                    <option>Paling Murah</option>
+                                    <option>Paling Mahal</option>
+                                    <option>Paling Baru</option>
+                                    <option>Paling Lama</option>
+                                    <option>Alfabet (A-Z)</option>
+                                    <option>Alfabet (Z-A)</option>
+                                </select>
+                            </div>
+                            <div class="clear"></div>
+                            <p>Menampilkan hasil pencarian : "<b>Kamera DSLR</b>"</p>
+                            <p class="small">(1-20 dari 1209)</p>
+                            <div class="maps mobile-only">
+                                <div class="maps-wrp"></div>
+                            </div>
+                            <div class="cat-list">
+                                <a href="javascript:void(0);" class="sBtn">Kamera</a>
+                                <a href="javascript:void(0);" class="sBtn">Kendaraan</a>
+                                <a href="javascript:void(0);" class="sBtn">Alat Rumah Tangga</a>
+                            </div>
+                        </div>
+                        <div class="sort-wrp input mobile-only">
+                            <select title="">
+                                <option>-- Pilih Filter</option>
+                                <option>Paling Murah</option>
+                                <option>Paling Mahal</option>
+                                <option>Paling Baru</option>
+                                <option>Paling Lama</option>
+                                <option>Alfabet (A-Z)</option>
+                                <option>Alfabet (Z-A)</option>
+                            </select>
+                        </div>
+                        <div class="row">
+                            <div class="dc4 tc6 fl-it">
+                                <div class="inner">
+                                    <a href="javascript:void(0);" class="fas fa-star wl"></a>
+                                    <figure>
+                                        <a href="javascript:void(0);">
+                                            <img src="{{ asset('dist/img/item.jpg') }}" alt="">
+                                            <span class="badge red">Rp. 200.000/hari</span>
+                                        </a>
+                                    </figure>
+                                    <h4><a href="javascript:void(0);">Mobil Avanza</a></h4>
+                                    <h5><a href="javascript:void(0);">Kota</a></h5>
+                                    <div class="host-title">
+                                        <a href="javascript:void(0);">Ini Nama Host</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="dc4 tc6 fl-it">
+                                <div class="inner">
+                                    <a href="javascript:void(0);" class="far fa-star wl"></a>
+                                    <figure>
+                                        <a href="javascript:void(0);">
+                                            <img src="{{ asset('dist/img/item.jpg') }}" alt="">
+                                            <span class="badge red">Rp. 200.000/hari</span>
+                                        </a>
+                                    </figure>
+                                    <h4><a href="javascript:void(0);">Mobil Avanza</a></h4>
+                                    <h5><a href="javascript:void(0);">Kota</a></h5>
+                                    <div class="host-title">
+                                        <a href="javascript:void(0);">Ini Nama Host</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="dc4 tc6 fl-it">
+                                <div class="inner">
+                                    <a href="javascript:void(0);" class="far fa-star wl"></a>
+                                    <figure>
+                                        <a href="javascript:void(0);">
+                                            <img src="{{ asset('dist/img/item.jpg') }}" alt="">
+                                            <span class="badge red">Rp. 200.000/hari</span>
+                                        </a>
+                                    </figure>
+                                    <h4><a href="javascript:void(0);">Mobil Avanza</a></h4>
+                                    <h5><a href="javascript:void(0);">Kota</a></h5>
+                                    <div class="host-title">
+                                        <a href="javascript:void(0);">Ini Nama Host</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="dc4 tc6 fl-it">
+                                <div class="inner">
+                                    <a href="javascript:void(0);" class="far fa-star wl"></a>
+                                    <figure>
+                                        <a href="javascript:void(0);">
+                                            <img src="{{ asset('dist/img/item.jpg') }}" alt="">
+                                            <span class="badge red">Rp. 200.000/hari</span>
+                                        </a>
+                                    </figure>
+                                    <h4><a href="javascript:void(0);">Mobil Avanza</a></h4>
+                                    <h5><a href="javascript:void(0);">Kota</a></h5>
+                                    <div class="host-title">
+                                        <a href="javascript:void(0);">Ini Nama Host</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="dc4 tc6 fl-it hovered">
+                                <div class="inner">
+                                    <a href="javascript:void(0);" class="far fa-star wl"></a>
+                                    <figure>
+                                        <a href="javascript:void(0);">
+                                            <img src="{{ asset('dist/img/item.jpg') }}" alt="">
+                                            <span class="badge red">Rp. 200.000/hari</span>
+                                        </a>
+                                    </figure>
+                                    <h4><a href="javascript:void(0);">Mobil Avanza</a></h4>
+                                    <h5><a href="javascript:void(0);">Kota</a></h5>
+                                    <div class="host-title">
+                                        <a href="javascript:void(0);">Ini Nama Host</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="dc4 tc6 fl-it">
+                                <div class="inner">
+                                    <a href="javascript:void(0);" class="far fa-star wl"></a>
+                                    <figure>
+                                        <a href="javascript:void(0);">
+                                            <img src="{{ asset('dist/img/item.jpg') }}" alt="">
+                                            <span class="badge red">Rp. 200.000/hari</span>
+                                        </a>
+                                    </figure>
+                                    <h4><a href="javascript:void(0);">Mobil Avanza</a></h4>
+                                    <h5><a href="javascript:void(0);">Kota</a></h5>
+                                    <div class="host-title">
+                                        <a href="javascript:void(0);">Ini Nama Host</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pg-page">
+                            <a href="javascript:void(0);">Prev</a>
+                            <a href="javascript:void(0);">1</a>
+                            <span>...</span>
+                            <a href="javascript:void(0);">3</a>
+                            <a href="javascript:void(0);" class="active">4</a>
+                            <a href="javascript:void(0);">5</a>
+                            <span>...</span>
+                            <a href="javascript:void(0);">10</a>
+                            <a href="javascript:void(0);">Next</a>
+                        </div>
+                    </div>
+                    <div class="dc5 sdb-src desktop-only">
+                        <div class="inner">
+                            <div class="maps">
+                                <div class="maps-wrp"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}

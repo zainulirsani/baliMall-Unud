@@ -1,0 +1,232 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% set href = path('homepage') %}
+{% set title = translation('title.site') %}
+{% set site_title = '<a href="' ~ href ~ '">' ~ title ~ '</a>' %}
+
+{% block content %}
+    <main class="global-page">
+        <section>
+            <div class="container">
+                <h2>SYARAT DAN KETENTUAN</h2>
+                <p>
+                    Syarat dan Ketentuan ini merupakan bentuk kesepakatan yang berlaku dan mengikat seluruh pengguna layanan situs {{ site_title|raw }}. Jika pengguna tidak menyetujui salah satu, sebagian, atau seluruh Syarat dan Ketentuan, maka pengguna tidak diperkenankan menggunakan layanan di {{ site_title|raw }}. Dengan mengakses dan memiliki akun pada {{ site_title|raw }}, pengguna telah setuju untuk dan terikat serta tunduk secara hukum pada Syarat dan Ketentuan ini. Syarat dan Ketentuan mungkin diubah dan/atau diperbaharui dari waktu ke waktu tanpa pemberitahuan sebelumnya.. Pengguna diharapkan untuk mengunjungi halaman Syarat dan Ketentuan setiap memasuki {{ site_title|raw }}. Penggunaan {{ site_title|raw }} yang dilakukan setelah pembaharuan tersebut, maka akan dianggap sebagai penerimaan dan penundukan pengguna pada Syarat dan Ketentuan yang berlaku pada saat tersebut.
+                </p>
+                <ol class="decimal">
+                    <li>
+                        <strong>Tentang Kami</strong>
+                        <p>
+                            {{ site_title|raw }} adalah produk dari PT. Bali Unggul Sejahtera yang merupakan perusahaan afiliasi dari Baliyoni Group, yang bergerak dalam bidang penyediaan e-marketplace yang nyaman, mudah dan efisien. Balimall memberikan solusi  dalam pemberdayaan dan edukasi pelaku UMKM Bali dengan asas gotong royong memulihkan perekonomian Bali yang sejalan dengan visi Pemerintah Provinsi Bali “Nangun Sat Kerthi Loka Bali”.
+                        </p>
+                    </li>
+                    <li>
+                        <strong>Definisi</strong>
+                        <ol class="lw-alpha">
+                            <li>
+                                Syarat dan Ketentuan adalah perjanjian antara pengguna layanan dan penyedia layanan {{ site_title|raw }} yang didalamnya terdapat hak, kewajiban, tanggung jawab pengguna layanan dan penyedia layanan.
+                            </li>
+                            <li>
+                                E-marketplace adalah media online berbasis internet, tempat melakukan kegiatan bisnis dan transaksi antara pembeli dan penjual.
+                            </li>
+                            <li>
+                                Produk adalah barang yang dijual Merchant dan telah diverifikasi sesuai dengan standar yang telah ditetapkan oleh penyedia layanan.
+                            </li>
+                            <li>
+                                Merchant adalah perusahaan atau perorangan yang berdomisili di Bali yang telah diverifikasi dan terdaftar dalam e-marketplace {{ site_title|raw }}.
+                            </li>
+                            <li>
+                                Pengguna layanan adalah pihak yang menggunakan layanan Balimall, tidak terbatas pada pembeli, merchant maupun pihak lain yang hanya berkunjung ke {{ site_title|raw }}.
+                            </li>
+                            <li>
+                                Pembeli adalah pengguna layanan yang telah memiliki akun dan melakukan permintaan atas produk yang dijual oleh merchant di {{ site_title|raw }}.
+                            </li>
+                        </ol>
+                    </li>
+                    <li>
+                        <strong>Pengguna, Akun, Keamanan, dan Password</strong>
+                        <ol class="lw-alpha">
+                            <li>
+                                Pengguna layanan wajib membaca, memahami serta mengikuti semua ketentuan yang diatur dalam Syarat dan Ketentuan ini
+                            </li>
+                            <li>
+                                Pengguna dengan ini menyatakan bahwa pengguna adalah orang yang cakap dan mempunyai kapasitas untuk mengikatkan dirinya dalam sebuah perjanjian yang sah menurut hukum.
+                            </li>
+                            <li>
+                                Pengguna layanan wajib menyampaikan informasi yang benar, tepat, lengkap dan terbaru dalam rangka penggunaan layanan e-marketplace {{ site_title|raw }}.
+                            </li>
+                            <li>
+                                Penyedia layanan {{ site_title|raw }} tidak memungut biaya pendaftaran kepada pengguna layanan {{ site_title|raw }}.
+                            </li>
+                            <li>
+                                Pengguna layanan {{ site_title|raw }} bertanggung jawab secara pribadi untuk menjaga kerahasiaan akun dan password untuk semua aktivitas yang terjadi dalam akun pengguna.
+                            </li>
+                            <li>
+                                Pengguna dengan ini menyatakan bahwa penyedia layanan {{ site_title|raw }} tidak bertanggung jawab atas kerugian ataupun kendala yang timbul atas penyalahgunaan akun pengguna yang diakibatkan oleh kelalaian pengguna, termasuk namun tidak terbatas pada meminjamkan atau memberikan akses akun kepada pihak lain.
+                            </li>
+                            <li>
+                                Selama menggunakan dan/atau mengakses e-marketplace {{ site_title|raw }}, pengguna dilarang keras mengunggah dan/atau mempergunakan kata-kata, komentar, gambar, atau konten apa pun yang mengandung unsur SARA (Suku, Agama, Ras, dan Antar Golongan), menyesatkan, memfitnah, atau mencemarkan nama baik, diskriminasi, merendahkan atau menyudutkan orang lain, vulgar, bersifat ancaman, kata-kata kasar atau hal-hal lain yang dapat dianggap tidak sesuai dengan nilai dan norma sosial. Penyedia layanan {{ site_title|raw }} dalam hal ini berhak melakukan tindakan yang diperlukan atas pelanggaran ketentuan ini, antara lain penghapusan konten, pemblokiran akun, dan lain-lain.
+                            </li>
+                            <li>
+                                Merchant dilarang menghubungi pembeli melalui media lain selain daripada fitur chat/ kirim pesan yang disediakan oleh penyedia layanan {{ site_title|raw }} guna memastikan keamanan dan kenyamanan pengguna layanan {{ site_title|raw }}.
+                            </li>
+                            <li>
+                                Pengguna layanan dianggap telah mengetahui seluruh peraturan perundang-undangan yang berlaku di wilayah Republik Indonesia dalam setiap transaksi pada {{ site_title|raw }} dan tidak akan melakukan tindakan apa pun yang melanggar peraturan perundang-undangan Republik Indonesia.
+                            </li>
+                            <li>
+                                Penyedia layanan {{ site_title|raw }} berhak sewaktu waktu untuk melakukan pemeriksaan terkait dengan kebenaran, keberlakuan dan keabsahan atas informasi maupun dokumen yang telah disampaikan kepada penyedia layanan {{ site_title|raw }}. Jika kemudian penyedia layanan {{ site_title|raw }} menemukan kecurangan maupun ketidaksesuaian, maka pihak penyedia layanan {{ site_title|raw }} berhak untuk melakukan pemutusan, pembatalan, maupun pemblokiran atas akses serta keanggotaan pengguna layanan terhadap layanan e-marketplace {{ site_title|raw }}.
+                            </li>
+                        </ol>
+                    </li>
+                    <li>
+                        <strong>Transaksi</strong>
+                        <ol class="lw-alpha">
+                            <li>
+                                Pembeli wajib bertransaksi melalui prosedur transaksi yang telah ditetapkan oleh {{ site_title|raw }}.
+                            </li>
+                            <li>
+                                Pembeli bertanggung jawab untuk membaca, memahami, dan menyetujui informasi/deskripsi keseluruhan produk (termasuk didalamnya namun tidak terbatas pada warna, kualitas, fungsi, dan lainnya) sebelum membuat kesepakatan pembelian dengan merchant.
+                            </li>
+                            <li>
+                                Pembeli wajib melakukan konfirmasi penerimaan barang, setelah menerima kiriman produk yang dibeli. Jika dalam batas waktu 3 (tiga) hari tidak ada konfirmasi atau komplain dari pihak pembeli, maka dengan demikian pembeli menyatakan menyetujui dilakukannya konfirmasi penerimaan produk secara otomatis oleh sistem {{ site_title|raw }}.
+                            </li>
+                            <li>
+                                Pembeli memahami dan menyetujui bahwa setiap klaim yang dilaporkan setelah adanya konfirmasi/konfirmasi otomatis penerimaan produk adalah bukan menjadi tanggung jawab penyedia layanan {{ site_title|raw }}.
+                            </li>
+                            <li>
+                                Pembeli memahami dan menyetujui bahwa ketersediaan stok produk merupakan tanggung jawab merchant yang menawarkan produk tersebut. Terkait ketersediaan stok produk dapat berubah sewaktu-waktu.
+                            </li>
+                            <li>
+                                Pembeli wajib melakukan pembayaran dengan nominal yang sesuai dengan jumlah tagihan yang tertera pada halaman pembayaran. Penyedia layanan {{ site_title|raw }} tidak bertanggungjawab atas kerugian yang dialami pembeli apabila melakukan pembayaran yang tidak sesuai dengan jumlah tagihan yang tertera pada halaman pembayaran.
+                            </li>
+                            <li>
+                                Untuk pembeli jenis pembayaran cash, pembayaran wajib dilakukan selambat-lambatnya dalam batas waktu 3 x 24jam setelah pembeli melakukan kesepakatan pemesanan dengan merchant. Jika dalam batas waktu tersebut pembayaran atau konfirmasi pembayaran belum dilakukan oleh pembeli, penyedia layanan {{ site_title|raw }} memiliki kewenangan untuk membatalkan transaksi dimaksud.
+                            </li>
+                        </ol>
+                    </li>
+                    <li>
+                        <strong>Transaksi Penjualan</strong>
+                        <ol class="lw-alpha">
+                            <li>
+                                Merchant setuju bahwa penyedia layanan {{ site_title|raw }} memiliki kewenangan untuk menahan pembayaran kepada merchant sampai waktu yang tidak ditentukan, apabila terdapat permasalahan dan klaim dari pihak pembeli terkait proses pengiriman dan kualitas produk.
+                            </li>
+                            <li>
+                                Merchant dilarang membuat akun dalam jumlah banyak pada {{ site_title|raw }} dengan tujuan yang dapat diindikasikan sebagai usaha persaingan tidak sehat.
+                            </li>
+                            <li>
+                                Merchant wajib mencantumkan foto dan informasi produk dengan lengkap dan jelas sesuai dengan kondisi dan kualitas produk yang dijualnya.
+                            </li>
+                            <li>
+                                Merchant wajib memberikan konfirmasi atas pesanan produk dari pihak pembeli dalam batas waktu 2 x 24 jam terhitung sejak adanya notifikasi pesanan produk dari {{ site_title|raw }}.
+                            </li>
+                        </ol>
+                    </li>
+                    <li>
+                        <strong>Penataan Etalase</strong>
+                        <ol class="lw-alpha">
+                            <li>
+                                Merchant dilarang mempergunakan etalase (termasuk dan tidak terbatas pada informasi toko dan informasi barang) sebagai media untuk beriklan atau melakukan promosi ke halaman situs lain diluar {{ site_title|raw }}.
+                            </li>
+                            <li>
+                                Merchant dilarang memberikan data kontak pribadi dengan maksud untuk melakukan transaksi secara langsung kepada pembeli / calon pembeli.
+                            </li>
+                            <li>
+                                Merchant dilarang memberikan keterangan (informasi toko dan/atau produk) selain/diluar daripada keterangan toko dan/atau produk yang bersangkutan.
+                            </li>
+                            <li>
+                                Penamaan produk dan informasi produk harus dilakukan sesuai dengan informasi detail, spesifikasi, dan kondisi produk, dengan demikian pengguna tidak diperkenankan untuk mencantumkan nama, deskripsi, gambar dan/atau kata yang tidak berkaitan dan/atau tidak sesuai dengan produk tersebut.
+                            </li>
+                            <li>
+                                Penamaan produk dan informasi produk harus sesuai dengan kondisi produk yang ditampilkan dan pengguna tidak diperkenankan mencantumkan nama dan informasi yang tidak sesuai dengan kondisi produk.
+                            </li>
+                            <li>
+                                Penyedia layanan {{ site_title|raw }} berhak tanpa pemberitahuan sebelumnya untuk melakukan penurunan konten dan/atau moderasi toko, apabila didapati pelanggaran.
+                            </li>
+                            <li>
+                                Merchant wajib memisahkan tiap-tiap produk yang memiliki ukuran dan harga yang berbeda.
+                            </li>
+                        </ol>
+                    </li>
+                    <li>
+                        <strong>Komisi</strong>
+                        <ol class="lw-alpha">
+                            <li>
+                                Penyedia layanan {{ site_title|raw }} tidak mengenakan komisi kepada pembeli untuk transaksi yang dilakukan melalui {{ site_title|raw }}, kecuali apabila menggunakan fitur atau layanan tertentu yang dikenakan biaya layanan.
+                            </li>
+                            <li>
+                                Apabila dikemudian hari akan diberlakukan sistem komisi dalam transaksi melalui {{ site_title|raw }}, maka akan diberitahukan kepada pihak yang terkena dampaknya melalui {{ site_title|raw }}.
+                            </li>
+                        </ol>
+                    </li>
+                    <li>
+                        <strong>Harga</strong>
+                        <ol class="lw-alpha">
+                            <li>
+                                Harga produk yang terdapat dalam {{ site_title|raw }} adalah harga yang ditetapkan oleh Merchant. Merchant dilarang memanipulasi harga produk dengan cara apapun.
+                            </li>
+                            <li>
+                                Merchant dilarang menetapkan harga yang tidak wajar pada produk yang ditawarkan melalui {{ site_title|raw }}. Penyedia layanan {{ site_title|raw }} berhak untuk melakukan tindakan berupa memindahkan produk ke gudang, pemeriksaan, penundaan, atau penurunan konten serta tindakan lainnya berdasarkan penilaian sendiri dari penyedia layanan {{ site_title|raw }} atas dasar penetapan harga yang tidak wajar.
+                            </li>
+                            <li>
+                                Pembeli memahami dan menyetujui bahwa kesalahan keterangan harga dan informasi lainnya yang disebabkan tidak terbaharuinya halaman {{ site_title|raw }} dikarenakan browser/ISP yang dipakai pembeli adalah tanggung jawab pembeli.
+                            </li>
+                            <li>
+                                Merchant memahami dan menyetujui bahwa kesalahan ketik yang menyebabkan keterangan harga atau informasi lain menjadi tidak benar/sesuai adalah tanggung jawab Merchant. Perlu diingat dalam hal ini, apabila terjadi kesalahan pengetikan keterangan harga produk yang tidak disengaja, Merchant berhak menolak pesanan produk yang dilakukan oleh pembeli.
+                            </li>
+                            <li>
+                                Dengan melakukan pemesanan melalui {{ site_title|raw }}, pembeli menyetujui untuk membayar total biaya yang harus dibayarkan sebagaimana tertera dalam halaman pembayaran, yang terdiri dari harga barang, ongkos kirim, dan biaya-biaya lain yang mungkin timbul dan akan diuraikan secara tegas dalam halaman pembayaran.
+                            </li>
+                            <li>
+                                {{ site_title|raw }} untuk saat ini hanya melayani transaksi dalam mata uang Rupiah.
+                            </li>
+                        </ol>
+                    </li>
+                    <li>
+                        <strong>Pengiriman</strong>
+                        <ol class="lw-alpha">
+                            <li>
+                                Pengiriman Barang dalam sistem {{ site_title|raw }} wajib menggunakan jasa perusahaan ekspedisi yang telah ditentukan oleh penyedia layanan {{ site_title|raw }}.
+                            </li>
+                            <li>
+                                Setiap ketentuan berkenaan dengan proses pengiriman produk adalah wewenang sepenuhnya penyedia jasa layanan pengiriman produk.
+                            </li>
+                            <li>
+                                Merchant wajib memenuhi ketentuan yang ditetapkan oleh jasa layanan pengiriman produk tersebut dan bertanggung jawab atas setiap produk yang dikirimkan.
+                            </li>
+                            <li>
+                                Pembeli memahami dan menyetujui bahwa setiap permasalahan yang terjadi pada saat proses pengiriman produk oleh penyedia jasa layanan pengiriman produk adalah merupakan tanggung jawab penyedia jasa layanan pengiriman.
+                            </li>
+                            <li>
+                                Merchant wajib memasukkan nomor resi pengiriman produk yang valid dalam batas waktu 2 x 24 jam terhitung sejak barang diserahkan ke jasa pengiriman.
+                            </li>
+                        </ol>
+                    </li>
+                    <li>
+                        <strong>Konten</strong>
+                        <ol class="lw-alpha">
+                            <li>Dalam menggunakan setiap fitur dan/atau layanan {{ site_title|raw }}, pengguna layanan dilarang untuk mengunggah atau mempergunakan kata-kata, komentar, gambar, atau konten apapun yang mengandung unsur SARA, diskriminasi, merendahkan atau menyudutkan orang lain, vulgar, bersifat ancaman, beriklan atau melakukan promosi ke situs selain {{ site_title|raw }}., atau hal-hal lain yang dapat dianggap tidak sesuai dengan nilai dan norma sosial maupun berdasarkan kebijakan yang ditentukan sendiri oleh penyedia layanan {{ site_title|raw }}.
+                            </li>
+                            <li>
+                                Pengguna layanan dilarang mempergunakan foto/gambar produk yang memiliki watermark yang menandakan hak kepemilikan orang lain.
+                            </li>
+                            <li>
+                                Pengguna layanan dengan ini memahami dan menyetujui bahwa penyalahgunaan foto/gambar yang di unggah oleh pengguna adalah tanggung jawab pengguna secara pribadi.
+                            </li>
+                        </ol>
+                    </li>
+                    <li>
+                        <strong>Sanksi</strong>
+                        <p>
+                            {{ site_title|raw }} memiliki kewenangan untuk mengambil tindakan yang dianggap perlu terhadap akun Pengguna, termasuk akun yang diduga dan/atau terindikasi melakukan penyalahgunaan, memanipulasi, dan/atau melanggar aturan penggunaan pada {{ site_title|raw }}. Adapun sanksi yang {{ site_title|raw }} berikan mulai dari pembekuan sementara, pemblokiran  akun pengguna layanan hingga pelaporan kepada pihak yang berwajib namun tidak terbatas pada pihak kepolisian, dan lain-lain jika tindakan tersebut dirasa perlu.
+                        </p>
+                    </li>
+                    <li>
+                        <strong>Ketentuan lainnya</strong>
+                        <p>
+                            Pengguna layanan sepakat dan setuju bahwa pengguna memiliki tanggung jawab untuk menjaga reputasi {{ site_title|raw }} maupun anak perusahaannya sebagai penyedia jasa e-commerce. {{ site_title|raw }} berpendirian bahwa segala tindakan atau upaya percobaan manipulasi, kejahatan, penipuan, dan/atau tindakan-tindakan pelanggaran aturan yang dilakukan oleh pengguna layanan yang terjadi di dalam atau dalam penggunaan Platform merupakan bentuk pelanggaran yang serius.
+                        </p>
+                    </li>
+                </ol>
+            </div>
+        </section>
+    </main>
+{% endblock %}

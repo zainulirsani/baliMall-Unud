@@ -1,0 +1,110 @@
+<?php
+
+namespace App\Service;
+
+use finfo;
+use phpseclib\Net\SFTP;
+
+class SftpUploader
+{
+    private $sftpHost;
+    private $sftpUsername;
+    private $sftpPassword;
+
+    public function __construct()
+    {
+        $this->sftpHost = $_ENV['SFTP_HOST'];
+        $this->sftpUsername = $_ENV['SFTP_USERNAME'];
+        $this->sftpPassword = $_ENV['SFTP_PASSWORD'];
+        $this->sftpPort = $_ENV['SFTP_PORT'];
+    }
+
+    public function upload(string $localFilePath, string $remoteDir, string $remoteFilePath): bool
+    {
+        $sftp = new SFTP($this->sftpHost, $this->sftpPort);
+        if (!$sftp->login($this->sftpUsername, $this->sftpPassword)) {
+            throw new \Exception('Login Failed');
+        }
+
+        if (!$sftp->file_exists($remoteDir)) {
+            $sftp->mkdir($remoteDir, 0755, true);
+        }
+        $remoteFullPath = $remoteDir . $remoteFilePath;
+        return $sftp->put($remoteFullPath, file_get_contents($localFilePath));
+    }
+
+    public function getImageData(string $remoteFilePath): ?string
+    {
+        $sftp = new SFTP($this->sftpHost, $this->sftpPort);
+ 	$sftp->login($this->sftpUsername, $this->sftpPassword);
+      //  if (!$sftp->login($this->sftpUsername, $this->sftpPassword)) {
+      //      throw new \Exception('Login Failed ');
+      //  }
+
+        if (!$sftp->file_exists($remoteFilePath)) {
+            return null;
+        }
+
+        return $sftp->get($remoteFilePath);
+    }
+
+    public function deleteFolder(string $remoteDir, string $uploadedFile, string $filename): ?string
+    {
+        
+        $sftp = new SFTP($this->sftpHost, $this->sftpPort);
+        if (!$sftp->login($this->sftpUsername, $this->sftpPassword)) {
+            throw new \Exception('Login Failed');
+        }
+
+        $prefix = 'uploads';
+        if (substr($uploadedFile, 0, strlen($prefix)) == $prefix) {
+            $fileDirTrim = substr($uploadedFile, strlen($prefix));
+        } 
+        $trimremoteDir = rtrim($remoteDir, '/');
+        $remoteFullPath =  $trimremoteDir . $filename;
+
+        return $sftp->delete($remoteFullPath);
+    }
+
+    public function imageToBase64($path) {
+        // Ambil konten gambar dari URL
+        $remoteDirectory = $_ENV['SFTP_REMOTE_DIR'];
+        $imageName = $path;
+        // VarDumper::dump($path);
+        
+        // dd($remoteDirectory . $imageName);
+        // Ambil gambar dari server SFTP
+        $imageData = $this->getImageData($remoteDirectory . $imageName);
+
+    
+        if ($imageData === false) {
+            return ''; // Gagal mengambil gambar
+        }
+    
+        // Dapatkan tipe MIME dari gambar
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $mimeType = $finfo->buffer($imageData);
+    
+        // Encode ke Base64
+        $base64 = base64_encode($imageData);
+    
+        // Gabungkan format data URI
+        return 'data:' . $mimeType . ';base64,' . $base64;
+    }
+
+    // public function showDocument(string $remoteFileName): string
+    // {
+    //     $remoteFilePath = '/uploads/documents/' . $remoteFileName;
+
+    //     $sftp = new SFTP($this->sftpHost);
+    //     if (!$sftp->login($this->sftpUsername, $this->sftpPassword)) {
+    //         throw new \Exception('Login Failed');
+    //     }
+
+    //     if (!$sftp->file_exists($remoteFilePath)) {
+    //         throw new \Exception('The document does not exist');
+    //     }
+
+    //     return $sftp->get($remoteFilePath);
+    // }
+}

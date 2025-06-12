@@ -1,0 +1,261 @@
+{% set cart_total_items = user_cart is not empty ? user_cart.getTotalItem : 0 %}
+
+<header>
+    <span id="user_id" data-user="{{ app.user.id|default(0) }}"></span>
+    <div class="top-header">
+        <div class="container">
+            <div class="left-side">
+                {# {% if app.user is empty %}
+                    <p>
+                        {{ 'message.info.are_you_a_vendor'|trans }}
+                        <a href="{{ path('register', {'as': 'vendor'}) }}">
+                            {{ 'message.info.no_account_act'|trans }}
+                        </a>
+                    </p>
+                {% endif %} #}
+            </div>
+            <div class="right-side">
+                <a href="https://wa.me/6281131164999">
+                    <i class="fas fa-question-circle"></i> {{ 'label.help_center'|trans }}
+                </a>
+                <a href="{{ path('faq') }}">{{ 'title.page.faq'|trans|upper }}</a>
+            </div>
+            <div class="clear"></div>
+        </div>
+    </div>
+    <div class="container">
+        <a href="{{ path('homepage') }}" class="logo"><img src="{{ asset('dist/img/balimall.png') }}" alt=""  style="height: 60px; width: 60px"></a>
+        <a href="javascript:void(0)" id="toggle">
+            <span class="span1"></span>
+            <span class="span2"></span>
+            <span class="span3"></span>
+        </a>
+        {% if multi_lang == 'yes' %}
+            <div class="notif">
+                <button class="lang-btn" style="font-size: 14px; margin-top: 10px;">
+                    <img src="{{ asset('assets/img/flags/' ~ locale ~ '.png') }}" width="24" alt="{{ 'label.language'|trans }}">
+                </button>
+                <div class="notif-wrapper" style="width: 60px; top: initial; right: -12px;">
+                    <ul>
+                        {% for lang in get_parameter('supported_locales') %}
+                            {% if lang != locale %}
+                                <li>
+                                    <a href="javascript:void(0);" class="locale-picker" data-locale="{{ lang }}">
+                                        <img src="{{ asset('assets/img/flags/' ~ lang ~ '.png') }}" width="24" alt="{{ 'label.language'|trans }}">
+                                    </a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        {% endif %}
+        {% if store_owner == true %}
+            <div class="notif">
+                <button class="notif-btn">
+                    <i class="far fa-bell"></i>
+                    {% if user_notification['count'] > 0 %}<span class="badge red">{{ user_notification['count'] }}</span>{% endif %}
+                </button>
+                <div class="notif-wrapper">
+                    <ul>
+                        {% for notification in user_notification['data']|slice(0, 5) %}
+                            {% set order_id = order_id_from_invoice(notification['n_content']) %}
+                            {% set url = order_id > 0 ? path('user_order_detail', {'id': order_id}) : 'javascript:void(0);' %}
+                            {% set url_style = order_id > 0 ? '' : 'pointer-events: none;' %}
+                            <li>
+                                <a href="{{ url }}" style="{{ url_style }}">
+                                    <div>
+                                        <h6>{{ notification['n_title'] }}</h6>
+                                        <span>{{ notification['n_content'] }}</span>
+                                    </div>
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <div class="btn-wrapper">
+                        <a href="{{ path('user_notification') }}" class="sBtn red small">
+                            {{ 'title.page.notification'|trans }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="cart" {% if app.user and app.user.subRole == 'TREASURER' %} style="display:none;" {% endif %}>
+            <a href="javascript:void(0)" id="toggle-cart">
+                <i class="fas fa-shopping-cart"></i>
+                <span id="cart-total-items">{{ cart_total_items }}</span>
+            </a>
+            <div class="header-cart">
+                <h4 class="ct">{{ 'label.cart'|trans|upper }}</h4>
+                <div id="header-cart">
+                    {% include '@__main__/public/order/fragments/cart_in_header.html.twig' %}
+                </div>
+                <div class="btn-wrapper">
+                    <form action="{{ path('cart_checkout') }}" method="GET" accept-charset="UTF-8">
+                        <a href="{{ path('cart_index') }}">
+                            {{ 'label.cart_detail'|trans }} <i class="fas fa-chevron-right"></i>
+                        </a>
+                        <input type="submit" class="sBtn red right-side small" value="{{ 'button.checkout'|trans|upper }}">
+                        {#{{ csrf_field('checkout_cart') }}#}
+                    </form>
+                    <div class="clear"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mobile-wrapper">
+            <div class="search-wrapper" {% if app.user and app.user.subRole == 'TREASURER' %} style="display:none;" {% endif %}>
+                <form id="header-search-form" action="{{ path('search') }}" method="GET" accept-charset="UTF-8">
+                    <input type="text" title="" name="keywords" placeholder="{{ 'message.info.search_product'|trans }}">
+                    <div id="header-search-form-fields"></div>
+                    <button type="submit"><i class="fas fa-search"></i></button>
+                </form>
+            </div>
+
+            <div class="cat-btn desktop-only" {% if app.user and app.user.subRole == 'TREASURER' %} style="display:none;" {% endif %}>
+                <a href="javascript:void(0);" id="toggle-cat">
+                    <i class="fas fa-store"></i> {{ 'menu.product_category'|trans|upper }}
+                </a>
+            </div>
+
+            {% if app.user %}
+                <div class="profile">
+                    <figure><img src="{{ app.user.photoProfile is not empty ? path('sftp_show_file', {'path': app.user.photoProfile}) :  asset('dist/img/no-image.png') }}" alt=""></figure>
+                    <h5>{{ app.user.firstName ~ ' ' ~ app.user.lastName }}</h5>
+                </div>
+                <div class="user-info">
+                    <a href="javascript:void(0)" class="user-btn">
+                        <img src="{{ app.user.photoProfile is not empty ? path('sftp_show_file', {'path': app.user.photoProfile}) :  asset('dist/img/no-image.png') }}" alt="">
+                    </a>
+                    <div class="panel">
+                        <ul class="links">
+
+                            {% if app.user.subRole != 'TREASURER' and app.user.subRole != 'PPK' %}
+                                <li>
+                                    <a href="{{ path('user_dashboard') }}">
+                                        <i class="fas fa-home"></i> {{ 'menu.dashboard'|trans }}
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li>
+                                    <a href="{{ path('user_ppktreasurer_dashboard') }}">
+                                        <i class="fas fa-home"></i> {{ 'menu.dashboard'|trans }}
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {{ render(controller('App\\Plugins\\ProductCategoryPlugin::header', {'region': 'mobile'})) }}
+                            <li>
+                                <a href="{{ path('user_profile') }}">
+                                    <i class="fas fa-cog"></i> {{ 'label.edit_profile'|trans }}
+                                </a>
+                            </li>
+                            
+                            {% if app.user.subRole != 'TREASURER' %}
+                                {% if enable_chat and app.user and (app.user.role == 'ROLE_USER_SELLER' or app.user.role == 'ROLE_USER_GOVERNMENT') %}
+                                    <li>
+                                        <a href="{{ path('user_chat_index') }}" class="">
+                                            <i class="fas fa-envelope"></i> {{ 'label.message'|trans }}
+                                        </a>
+                                    </li>
+                                {% endif %}
+                                {% if store_owner == true %}
+                                    <li>
+                                        <a href="{{ path('user_store_edit') }}">
+                                            <i class="fas fa-user-cog"></i> {{ 'label.manage_store'|trans }}
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ path('user_product_index') }}">
+                                            <i class="fas fa-database"></i> {{ 'label.manage_product'|trans }}
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    {% if app.user.role == 'ROLE_USER_SELLER' %}
+                                        <li>
+                                            <a href="{{ path('user_store_apply') }}">
+                                                <i class="fas fa-user-cog"></i> {{ 'label.reg_store'|trans }}
+                                            </a>
+                                        </li>
+                                    {% else %}
+                                        <li>
+                                            <a href="{{ path('user_address_index') }}">
+                                                <i class="fas fa-map-marker-alt"></i> {{ 'label.address'|trans }}
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                {% endif %}
+                                {# <li>
+                                    <a href="{{ path('user_order_index') }}">
+                                        <i class="fas fa-list"></i> Data Negosiasi
+                                    </a>
+                                </li> #}
+                                {# {% if store_owner == false %}
+                                    <li>
+                                        <a href="{{ path('user_payment_confirmation') }}">
+                                            <i class="fas fa-check-circle"></i> {{ 'title.page.payment_confirmation'|trans }}
+                                        </a>
+                                    </li>
+                                {% endif %} #}
+                            {% endif %}
+                            {% if (app.user.role == 'ROLE_USER' or app.user.role == 'ROLE_USER_GOVERNMENT' or app.user.role == 'ROLE_USER_BUSINESS') and app.user.subRole != 'TREASURER' %}
+                                <li>
+                                    <a href="{{ path('user_tax_index') }}">
+                                        <i class="fas fa-database"></i> {{ 'label.tax_document'|trans }}
+                                    </a>
+                                </li>
+                                {% if app.user.subRole != 'PPK' %}
+                                    <li>
+                                        <a href="{{ path('user_ppk_index', {'type': 'ppk'}) }}">
+                                            <i class="fas fa-map-marker-alt"></i> Data PPK
+                                        </a>
+                                    </li>
+                                {% endif %}
+                                <li>
+                                    <a href="{{ path('user_ppk_index', {'type': 'treasurer'}) }}">
+                                        <i class="fas fa-user-tie"></i> {{ 'label.data_treasurer'|trans }}
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ path('user_pic_index') }}">
+                                        <i class="fas fa-user-tie"></i> {{ 'label.data_pic'|trans }}
+                                    </a>
+                                </li>
+                            {% endif %}
+                            <li>
+                                <a href="{{ path('logout') }}" class="act-logout">
+                                    <i class="fas fa-sign-out-alt"></i> {{ 'button.logout'|trans }}
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            {% else %}
+                <div class="btn">
+                    <div class="dropdown">
+                        <a href="javascript:void(0);" class="dropbtn">{{ 'button.register'|trans }}</a>
+                        <div class="dropdown-content">
+                            <a href="{{ path('register', {'as': 'vendor'}) }}" style="color: #000000; margin: 0 0 0 0;">
+                                {{ 'label.seller'|trans }}
+                            </a>
+                            {# <a href="{{ path('register', {'as': 'government'}) }}" style="color: #000000; margin: 0 0 0 0;">
+                                {{ 'label.buyer_b2g'|trans }}
+                            </a> #}
+                        </div>
+                    </div>
+                    <a href="{{ path('login') }}">{{ 'button.login'|trans }}</a>
+                </div>
+                <div class="user-info">
+                    <div class="panel">
+                        <ul class="links">
+                            {{ render(controller('App\\Plugins\\ProductCategoryPlugin::header', {'region': 'mobile'})) }}
+                        </ul>
+                    </div>
+                </div>
+            {% endif %}
+            <div class="clear"></div>
+        </div>
+        <div class="clear"></div>
+    </div>
+    {{ render(controller('App\\Plugins\\ProductCategoryPlugin::header')) }}
+</header>

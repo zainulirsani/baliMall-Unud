@@ -1,0 +1,43 @@
+{% block head_scripts %}
+    <script type="text/javascript"
+            src="{{ get_parameter('midtrans_script_url') }}"
+            data-client-key="{{ get_parameter('midtrans_client_key') }}"></script>
+    <!-- Note: replace with src="https://app.midtrans.com/snap/snap.js" for Production environment -->
+{% endblock %}
+
+<div>
+
+</div>
+
+{% block javascripts %}
+    <script>
+        $(document).ready(function () {
+            window.snap.pay('{{ midtrans_payment_data['token'] }}', {
+                onSuccess: function(result){
+                    /* You may add your own implementation here */
+                    // alert("payment success!"); console.log(result);
+                    elementLoading.show();
+                    window.location.href = BASE_URL + '{{ midtrans_payment_data['redirect_url'] }}';
+                },
+                onPending: function(result){
+                    /* You may add your own implementation here */
+                    elementLoading.show();
+                    window.location.href = BASE_URL + '{{ midtrans_payment_data['redirect_url'] }}';
+                },
+                onError: function(result){
+                    showGeneralPopup('Terjadi kesalahan pada sistem. Silahkan ulangi beberapa saat lagi!')
+                    setTimeout(() => {
+                        hideGeneralPopup();
+                        elementLoading.show()
+                        window.location.href = BASE_URL + '{{ midtrans_payment_data['redirect_url'] }}';
+                    },1000)
+                },
+                onClose: function(){
+                    elementLoading.show();
+                    window.location.href = BASE_URL + '{{ midtrans_payment_data['redirect_url'] }}';
+                }
+            })
+        })
+    </script>
+{% endblock %}
+

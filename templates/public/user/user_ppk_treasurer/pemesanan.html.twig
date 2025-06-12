@@ -1,0 +1,1065 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% block content %}
+    <style>
+        .temp-btn {
+            min-width: 120px;
+            text-align: center;
+            height: 24px;
+            line-height: 24px;
+            border-radius: 8px;
+        }
+        .styled-table {
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 0.9em;
+            font-family: sans-serif;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+        }
+        .styled-table thead tr {
+            background-color: #4b85cc;
+            color: #ffffff;
+            text-align: left;
+        }
+        .styled-table th,
+        .styled-table td {
+            padding: 12px 15px;
+        }
+        .styled-table tbody tr {
+            border-bottom: 1px solid #dddddd;
+        }
+
+        .styled-table tbody tr:nth-of-type(even) {
+            background-color: #f3f3f3;
+        }
+
+        .styled-table tbody tr:last-of-type {
+            border-bottom: 2px solid #4b85cc;
+        }
+        .styled-table tbody tr.active-row {
+            font-weight: bold;
+            color: #4b85cc;
+        }
+        .badge-orange {
+            background-color: #FEF2E5;
+            font-size: 12px;
+            padding: 5px 10px;
+            text-align: center;
+            border-radius: 10px;
+            color: #CD6200;
+            border: 1px solid #CD6200;
+        }
+        .badge-green {
+            background-color: #EBF9F1;
+            font-size: 12px;
+            padding: 5px 10px;
+            text-align: center;
+            border-radius: 10px;
+            color: #1F9254;
+            border: 1px solid #1F9254;
+        }
+        .badge-red {
+            background-color: #ffa5a582;
+            font-size: 12px;
+            padding: 5px 10px;
+            text-align: center;
+            border-radius: 10px;
+            color: #4b85cc;
+            border: 1px solid #4b85cc;
+        }
+        .badge-blue {
+            background-color: #008ae838;
+            font-size: 12px;
+            padding: 5px 10px;
+            text-align: center;
+            border-radius: 10px;
+            color: #008ae8;
+            border: 1px solid #008ae8;
+        }
+        .btn-ppk-red,.btn-ppk-red:hover {
+            background-color: #4b85cc;
+            font-size: 14px;
+            padding: 5px 10px;
+            text-align: center;
+            border-radius: 5px;
+            color: #fff;
+            border: 1px solid #4b85cc;
+            margin: 2px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .btn-ppk-red-border,.btn-ppk-red-border:hover {
+            background-color: transparent;
+            font-size: 14px;
+            padding: 5px 10px;
+            text-align: center;
+            border-radius: 5px;
+            color: #4b85cc;
+            border: 1px solid #4b85cc;
+            margin: 2px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .input input[type=text] {
+            background-color: #FFF;
+            border: 1.5px solid #ededed;
+        }
+
+        .btn-search-ppk,.btn-search-ppk:hover {
+            background-color: #4b85cc;
+            font-size: 14px;
+            padding: 14px 18px;
+            text-align: center;
+            border-radius: 5px;
+            color: #fff;
+            border: 1px solid #4b85cc;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-info-ppk,.btn-info-ppk:hover {
+            background-color: #0dcaf0;
+            font-size: 14px;
+            padding: 14px 18px;
+            text-align: center;
+            border-radius: 5px;
+            color: #fff;
+            border: 1px solid #0dcaf0;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .table_ppk_status tr,.table_ppk_status td {
+            padding: 10px;
+        }
+
+        .text-center {text-align:center;}
+        ::-webkit-scrollbar {
+        -webkit-appearance: none;
+            width: 7px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            border-radius: 4px;
+            background-color: rgba(0, 0, 0, .5);
+            box-shadow: 0 0 1px rgba(255, 255, 255, .5);
+        }
+        .fake-scroll-div {
+            overflow-x: scroll !important;
+            height: 20px !important;
+            margin-bottom: 0px !important;
+        }
+    </style>
+    <main class="pdl">
+        {% include '@__main__/public/base/partials/breadcrumb.html.twig' %}
+        <section>
+            <div class="container">
+                <div class="box">
+                    <div class="row">
+                        {% include '@__main__/public/user/fragments/menu.html.twig' %}
+                        <div class="dc9 tc12">
+                            <div id="user-ppk-treasurer-list" class="pr-card" data-id="{{ app.user.id }}" data-page="type">
+                                <div class="row">
+
+                                    {# {% set count_1 = 0 %}
+                                    {% set count_2 = 0 %}
+                                    {% set count_3 = 0 %}
+                                    {% set asset_1 = type == 'PPK' ? asset('assets/img/thumb-down.png') : asset('assets/img/not-paid.png') %}
+                                    {% set asset_2 = type == 'PPK' ? asset('assets/img/thumb-up.png') : asset('assets/img/paid.png') %}
+                                    {% set asset_3 = asset('assets/img/courier.png') %}
+                                    {% set column_card = type == 'PPK' ? 'dc4' : 'dc6' %}
+                                    {% for item in jumlah_data %}
+                                        {% if type == 'PPK' %}
+                                            {% if item[0]['isApprovedPPK'] == true %}
+                                                {% set count_3 = count_3 + 1 %}
+                                            {% else %}
+                                                {% if item[0]['isApprovedOrderPPK'] == true %}
+                                                    {% set count_2 = count_2 + 1 %}
+                                                {% else %}
+                                                    {% set count_1 = count_1 + 1 %}
+                                                {% endif %}
+                                            {% endif %}
+                                        {% else %}
+                                            {% if item[0]['status'] == 'payment_process' or item[0]['status'] == 'paid' %}
+                                                {% set count_1 = count_1 + 1 %}
+                                            {% else %}
+                                                {% set count_2 = count_2 + 1 %}
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endfor %} #}
+
+                                    <div class="dc12">
+                                        <h5 style="text-align: center;margin: 30px 0px;">Alur Transaksi</h5>
+                                        <div class="status-step" style="margin-bottom: 50px;">
+                                            {% set no_active = 1 %}
+                                            {% set pp_style = 'background-color: #999;color: #000;' %}
+                                            {% set merchant_style = 'background-color: #999;color: #000;' %}
+                                            {% set ppk_style = 'background-color: #999;color: #000;' %}
+                                            {% set bendahara_style = 'background-color: #999;color: #000;' %}
+                                            {% set border_style = 'border: 3px #999 solid' %}
+                                            {% set step_user = '' %}
+
+                                            {% if app.user.subRole == 'PPK' %}
+                                                {% set ppk_style = 'background-color: #4b85cc;color: #fff;' %}
+                                                {% set step_user = 'PPK' %}
+                                            {% elseif app.user.subRole == 'TREASURER' %}
+                                                {% set bendahara_style = 'background-color: #4b85cc;color: #fff;' %}
+                                                {% set step_user = 'TREASURER' %}
+                                            {% else %}
+                                                {% if app.user.role == 'ROLE_USER_SELLER' %}
+                                                    {% set merchant_style = 'background-color: #4b85cc;color: #fff;' %}
+                                                    {% set step_user = 'MERCHANT' %}
+                                                {% else %}
+                                                    {% set pp_style = 'background-color: #4b85cc;color: #fff;' %}
+                                                    {% set step_user = 'PP' %}
+                                                {% endif %}
+                                            {% endif %}
+                                            {% for key, step in get_parameter('ppk_step_status') %}
+                                                {% set status_text = 'label.' ~ key %}
+                                                {% set status_text = status_text|trans %}
+                                                {% if step_user == step['user'] %}
+                                                    {% set border_style = 'border: 3px #4b85cc solid' %}
+                                                {% else %}
+                                                    {% set border_style = 'border: 3px #999 solid' %}
+                                                {% endif %}
+                                                <div style="width: 80px;height: 80px;margin: 10px 15px;{{border_style}}">
+                                                    <img src="{{ asset('assets/img/step_status/' ~ step['img'] ) }}" style="max-width: 30px;opacity: 1;" title="{{ status_text }}" alt="{{ status_text }}">
+                                                    <div style="background-color: #4b85cc;color: #fff;padding: 4px 6px;font-size: 10px;position: absolute;bottom: 0;right: 0;">
+                                                        <span>{{status_count[key]}}</span>
+                                                    </div>
+                                                    <div style="font-size: 14px;font-weight:600;position: absolute;bottom: -220%;left: 50%;color:#000;transform: translate(-50%,-50%);height: 100px;">
+                                                        <p>{{status_text}}</p>
+                                                    </div>
+                                                </div> 
+                                                {% set no_active = no_active + 1 %}
+                                            {% endfor %}
+                                        </div>
+                                        <div class="dc3" style="padding: 0px;">
+                                            <p style="{{pp_style}}text-align:center;vertical-align:center;font-weight:600;padding: 3px">
+                                                Pejabat Pengadaan
+                                            </p>
+                                        </div>
+                                        <div class="dc1" style="padding: 0px;margin-left: 15px;">
+                                            <p style="{{ppk_style}}text-align:center;vertical-align:center;font-weight:600;padding: 3px">
+                                                PPK
+                                            </p>
+                                        </div>
+                                        <div class="dc3" style="padding: 0px;margin-left: 15px;">
+                                            <p style="{{merchant_style}}text-align:center;vertical-align:center;font-weight:600;padding: 3px">
+                                                Merchant
+                                            </p>
+                                        </div>
+                                        <div class="dc1" style="padding: 0px;margin-left: 15px;">
+                                            <p style="{{ppk_style}}text-align:center;vertical-align:center;font-weight:600;padding: 3px">
+                                                PPK
+                                            </p>
+                                        </div>
+                                        <div class="dc3" style="padding: 0px;margin-left: 15px;">
+                                            <p style="{{bendahara_style}}text-align:center;vertical-align:center;font-weight:600;padding: 3px">
+                                                Bendahara
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {# <div class="{{column_card}}">
+                                        <div class="box pr-card__1">
+                                            <div class="row" style="padding-top: 20px;">
+                                                <div class="dc5 text-center">
+                                                    <img src="{{asset_1}}" style="max-width: 100px">
+                                                </div>
+                                                <div class="dc7">
+                                                    <h4><span style="font-size: 40px">{{count_2}}</span> Transaksi <br>  {{ type == 'PPK' ? 'Baru' : ' Belum Dibayar' }}</h4>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="{{column_card}}">
+                                        <div class="box pr-card__1">
+                                            <div class="row" style="padding-top: 20px;">
+                                                <div class="dc5 text-center">
+                                                    <img src="{{asset_2}}" style="max-width: 100px">
+                                                </div>
+                                                <div class="dc7">
+                                                    <h4><span style="font-size: 40px">{{count_1}}</span> Transaksi <br> {{ type == 'PPK' ? 'Disetujui' : ' Sudah Dibayar' }}</h4>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="{{column_card}}" {{type != 'PPK' ?'style="display:none"':''}}>
+                                        <div class="box pr-card__1">
+                                            <div class="row" style="padding-top: 20px;">
+                                                <div class="dc5 text-center">
+                                                    <img src="{{asset_3}}" style="max-width: 100px">
+                                                </div>
+                                                <div class="dc7">
+                                                    <h4><span style="font-size: 40px">{{count_3}}</span> Transaksi <br> Diterima</h4>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div> #}
+
+                                        <div class="dc12" style="margin-bottom: 0;">
+                                            <h5 style="text-align: center;margin: 50px 0px;">Data Pemesanan</h5>
+                                            <div class="row">
+
+                                                <form id="filter-ppk-form" action="" method="GET">
+                                                    <div class="dc3" style="margin-bottom: 0;">
+                                                        <div class="input">
+                                                            <input style="height: 48px;" id="ppk-search-invoice" name="search_invoice" type="text" title="" value="{{parameters['key_invoice'] is defined and parameters['key_invoice'] is not empty ? parameters['key_invoice']:''}}" placeholder="No Invoice">
+                                                        </div>
+                                                    </div>
+
+                                                    {% if type == 'PPK' or type == 'TREASURER' %}
+                                                        <div class="dc4" style="margin-bottom: 0;">
+                                                            <div class="input">
+                                                                <select id="search-filter-status" name="filter_status">
+                                                                    <option value="">Status {{ type == 'PPK' ? 'Persetujuan':'Pembayaran' }}</option>
+                                                                    <option value="sudah" {{parameters['filter_status'] is defined and parameters['filter_status'] == 'sudah' ? 'selected' :''}}>Sudah {{ type == 'PPK' ? 'Disetujui':'Dibayar' }}</option>
+                                                                    <option value="belum" {{parameters['filter_status'] is defined and parameters['filter_status'] == 'belum' ? 'selected' :''}}>Belum {{ type == 'PPK' ? 'Disetujui':'Dibayar' }}</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    {% endif %}
+
+                                                    <div class="dc5" style="margin-bottom: 0;">
+                                                        <div class="input">
+                                                            <select id="search-filter-status-order" name="filter_status_order">
+                                                                <option value="">Status Transaksi</option>
+                                                                {% for key, label in get_parameter('status_utama') %}
+                                                                    <option value="{{ key }}" {{parameters['filter_status_order'] is defined and parameters['filter_status_order'] == key ? 'selected' :''}}>{{ label|trans }}</option>
+                                                                {% endfor %}
+                                                            </select>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="dc1" style="margin-bottom: 0;">
+                                                        <div class="input">
+                                                            <button id="search-ppk-btn" class="btn-search-ppk">
+                                                                Cari
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </form>
+
+                                                <div class="dc3" style="margin-bottom: 0;">
+                                                    <div class="input">
+                                                        <button id="export-ppk-btn" type="button" class="btn-search-ppk" data-href="{{ path('user_ppktreasurer_export') }}">
+                                                            Unduh Excel
+                                                        </button>
+                                                    </div>
+                                                    
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {# scoll yg diatas #}
+                                    <div class="dc12 fake-scroll-div">
+                                        <div class="fake-scroll-content"></div>
+                                    </div>
+                                    <div class="dc12 real-scroll-div" style="overflow-x: scroll;">
+                                        <table class="styled-table" id="table-dashboard">
+                                            <thead>
+                                                <tr>
+                                                    <th>No</th>
+                                                    <th>No Invoice</th>
+                                                    <th>No Billing</th>
+                                                    <th>Nama {{ type == 'PPK' or type == 'TREASURER' or app.user.role == 'ROLE_USER_SELLER' ? 'PP' : 'PPK' }}</th>
+                                                    {% if app.user.role == 'ROLE_USER_SELLER' %}
+                                                        <th>Nama PPK</th>
+                                                    {% endif %}
+                                                    {% if type == 'TREASURER' or (type != 'PPK' and type != 'TREASURER' and app.user.role != 'ROLE_USER_SELLER') %}
+                                                        <th>Tipe Pajak</th>
+                                                    {% endif %}
+                                                    <th>Total Transaksi</th>
+                                                    <th>Hasil Negosiasi</th>
+                                                    <th>Status Transaksi</th>
+                                                    <th>
+                                                        {% if type == 'PPK' %}
+                                                            Status Persetujuan
+                                                        {% elseif type == 'TREASURER' %}
+                                                            Status Pembayaran
+                                                        {% else %}
+                                                             Keterangan Status
+                                                        {% endif %}
+                                                    </th>
+                                                    <th>Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                        
+                                                {% if documents|length > 0 %}
+                                                    {% for key,item in documents %}
+
+                                                        {% set nego_batch = 0 %}
+                                                        {% set initial_with_shipping = true %}
+                                                        {% set harga_nego = 0 %}
+                                                        {% set harga_asli = 0 %}
+	                                                    {% set sub_total_nego_price = 0 %}
+	                                                    {% set sub_total_ppn_price = 0 %}
+
+                                                        {% if item[0]['o_negotiatedProducts']|length > 0 %}
+                                                            {% for temp_nego_data in item[0]['o_negotiatedProducts'] %}
+                                                                {% set nego_batch = temp_nego_data['on_batch'] %}
+                                                            {% endfor %}
+                                                        {% endif %}
+
+                                                        {# Selisih Nego #}
+                                                        {% set all_rating = true %}
+                                                        {% set shippingPriceNego = 0 %}
+				                                        {% set initial_with_shipping = true %}
+                                                        {% for product in item[0]['o_products'] %}
+                                                            {% set data_review = product_review(item[0]['id']|to_int, product['p_id']|to_int, item[0]['ppkId']|to_int) %}
+                                                            {% if data_review['pr_id'] is not defined %}
+                                                                {% set all_rating = false %}
+                                                            {% endif %}
+                                                            {% for product_nego in item[0]['o_negotiatedProducts'] %}
+                                                                {% if (product_nego['p_id'] == product['p_id']) and (product_nego['on_batch'] == nego_batch) %}
+                                                                    {# {% set nego_price = (product_nego['on_negotiatedPrice'] * product['op_quantity'])|number_format %}
+                                                                    {% set harga_nego = harga_nego + (product_nego['on_negotiatedPrice'] * product['op_quantity']) + (product_nego['on_taxNominalPrice'] * product['op_quantity']) %}
+                                                                    {% set shippingPriceNego = product_nego['on_negotiatedShippingPrice'] %} #}
+                                                                    {% set nego_price = (product_nego['on_negotiatedPrice'] * product['op_quantity']) %}
+                                                                    {% set sub_total_nego_price = sub_total_nego_price + (product_nego['on_negotiatedPrice'] * product['op_quantity']) %}
+                                                                    {% if initial_with_shipping == true %}
+                                                                        {% set sub_total_ppn_price = sub_total_ppn_price + (product_nego['on_taxNominalPrice'] * product['op_quantity']) + product_nego['on_taxNominalShipping'] %}
+                                                                    {% else %}
+                                                                        {% set sub_total_ppn_price = sub_total_ppn_price + (product_nego['on_taxNominalPrice'] * product['op_quantity']) %}
+                                                                    {% endif %}
+                                                                    {% set initial_with_shipping = false %}
+                                                                    {% set shippingPriceNego = product_nego['on_negotiatedShippingPrice'] %}
+
+                                                                    {% set nego_product_price = product['op_priceBeforeNegotiation']|to_int == 0 ? (product['op_totalPrice'] / product['op_quantity']) : product['op_priceBeforeNegotiation'] %}
+                                                                    {% if product['op_withTax'] == true %}
+                                                                        {% set opNominal = product['op_taxNominal']|to_int != 0 ? product['op_taxNominal'] : (nego_product_price * (11 / 100)) %}
+                                                                        {% set harga_asli = harga_asli + (nego_product_price * product['op_quantity']) + opNominal %}
+                                                                    {% else %}
+                                                                        {% set harga_asli = harga_asli + (nego_product_price * product['op_quantity']) %}
+                                                                    {% endif %}
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        {% endfor %}
+
+
+                                                        {# Status Negosiasi #}
+                                                        {% set data_nego_detail_2 = null %}
+                                                        {% set nego_batch_2 = 0 %}
+                                                        {% set can_approve_negotiation_2 = false %}
+                                                        {% set allow_negotiation_2 = false %}
+                                                        {% set is_nego_seller = false %}
+                                                        {% set is_nego_buyer = false %}
+                                                        {% set user_type = app.user.role == 'ROLE_USER_SELLER' ? 'seller' : 'buyer' %}
+                                                        {% if item[0]['o_negotiatedProducts']|length > 0 %}
+                                                            {% for temp_nego_data in item[0]['o_negotiatedProducts'] %}
+                                                                {% set data_nego_detail_2 = temp_nego_data %}
+                                                                {% set nego_batch_2 = temp_nego_data['on_batch'] %}
+
+                                                                {% if user_type == 'buyer' and data_nego_detail_2['on_customerApproval'] == false %}
+                                                                    {% set allow_negotiation_2 = true %}
+                                                                {% endif %}
+
+                                                                {% if user_type == 'seller' and data_nego_detail_2['on_merchantApproval'] == false %}
+                                                                    {% set allow_negotiation_2 = true %}
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        {% endif %}
+
+                                                        {% if user_type == 'seller' %}
+                                                            {% set seller_attempt = 0 %}
+                                                            {% set seller_batch = [] %}
+                                                            {% for product in item[0]['o_negotiatedProducts'] %}
+                                                                {% if product['on_submittedAs'] == 'seller' and product['on_batch'] not in seller_batch %}
+                                                                    {% set seller_attempt = seller_attempt + 1 %}
+                                                                    {% set seller_batch = seller_batch|merge([product['on_batch']]) %}
+                                                                {% endif %}
+                                                            {% endfor %}
+
+                                                            {% if data_nego_detail_2['on_merchantApproval'] == false %}
+                                                                {% set can_approve_negotiation_2 = true %}
+                                                                {% if (nego_batch_2 % 2) != 0 and allow_negotiation_2 == true %}
+                                                                    {% set is_nego_seller = true %}
+                                                                {% endif %}
+                                                            {% endif %}
+                                                        {% elseif user_type == 'buyer' %}
+                                                            {% set buyer_attempt = 0 %}
+                                                            {% set buyer_batch = [] %}
+                                                            {% for product in item[0]['o_negotiatedProducts'] %}
+                                                                {% if product['on_submittedAs'] == 'buyer' and product['on_batch'] not in buyer_batch %}
+                                                                    {% set buyer_attempt = buyer_attempt + 1 %}
+                                                                    {% set buyer_batch = buyer_batch|merge([product['on_batch']]) %}
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                            {% if data_nego_detail_2['on_customerApproval'] == false %}
+
+                                                                {% if nego_batch_2 == 1 and data_nego_detail_2['on_merchantApproval'] == false %}
+                                                                    {% set can_approve_negotiation_2 = false %}
+                                                                    {# No action needed #}
+                                                                {% else %}
+                                                                    {% set can_approve_negotiation_2 = true %}
+                                                                    {% if (nego_batch_2 % 2) != 0 and data_nego_detail_2['on_merchantApproval'] == false %}
+                                                                    {% elseif nego_batch_2 >= 5 and data_nego_detail_2['on_merchantApproval'] == true %}
+                                                                        {% set is_nego_buyer = true %}
+                                                                    {% else %}
+                                                                        {% set is_nego_buyer = true %}
+                                                                    {% endif %}
+                                                                {% endif %}
+                                                            {% endif %}
+                                                        {% endif %}
+
+                                                        <tr>
+                                                            <td>{{key + 1}}</td>
+                                                            <td>{{item[0]['invoice']}}</td>
+                                                            <td>{{item[0]['dokuInvoiceNumber'] is not empty ? item[0]['dokuInvoiceNumber'] : '-'}}</td>
+                                                            <td>
+                                                                {% if type == 'PPK' or type == 'TREASURER' or app.user.role == 'ROLE_USER_SELLER' %}
+                                                                    {% if item[0]['email'] == user.getEmail %}
+                                                                        -
+                                                                    {% else %}
+                                                                        {{item[0]['name']}}
+                                                                    {% endif %}
+                                                                {% else %}
+                                                                    {{item[0]['ppk_name']}}
+                                                                {% endif %}
+                                                            </td>
+
+                                                            {% if app.user.role == 'ROLE_USER_SELLER' %}
+                                                                <td>{{item[0]['ppk_name']}}</td>
+                                                            {% endif %}
+                                                            {% if type == 'TREASURER' or (type != 'PPK' and type != 'TREASURER' and app.user.role != 'ROLE_USER_SELLER') %}
+                                                                <td>{{ item[0]['taxType'] is not empty ? get_parameter('tax_payment_types')[item[0]['taxType']]['label'] : '-' }}</td>
+                                                            {% endif %}
+                                                            {# <td>{{ get_parameter('ppk_method_options')[item[0]['ppk_payment_method']]}}</td> #}
+                                                            {# {% set total_order = item[0]['status'] == 'confirmed' or item[0]['status'] == 'new_order' ? (item['s_isPKP'] == true ? (item[0]['total'] + (item[0]['total'] * (11 / 100))) : item[0]['total']) : item[0]['total'] %} #}
+                                                            {% set total_order = item[0]['total'] %}
+                                                            <td>{{( total_order + item[0]['shippingPrice'])|number_format}}</td>
+                                                            {# <td>{{ ((harga_asli - harga_nego) + (get_base_price(item[0]['shippingPriceBackup'], 11) - get_base_price(item[0]['shippingPrice'], 11)))|number_format }}</td> #}
+                                                            {% set shippingPriceAsli = item[0]['shippingPriceBackup'] %}
+                                                            <td>{{ ((harga_asli + shippingPriceAsli) - (sub_total_nego_price + shippingPriceNego + sub_total_ppn_price))|number_format }}</td>
+                                                            {# <td>{{ harga_asli  }}</td>
+                                                            <td>{{ shippingPriceAsli  }}</td>
+                                                            <td>{{ sub_total_nego_price}}</td>
+                                                            <td>{{  shippingPriceNego  }}</td>
+                                                            <td>{{ sub_total_ppn_price }}</td> #}
+                                                            <td>{{ get_parameter('order_statuses')[item[0]['status']]|trans }}</td>
+
+                                                            {% set all_resolved = true %}
+                                                            {% for complaint in item[0]['o_complaint'] %}
+                                                                {% if complaint['oc_isResolved'] == false %}
+                                                                    {% set all_resolved = false %}
+                                                                {% endif %}
+                                                            {% endfor %}
+
+                                                            <td style="text-align:center;">
+                                                                {% if type == 'PPK' %}
+                                                                    {% if item[0]['status'] == 'confirmed' %}
+                                                                        <div class="badge-orange">
+                                                                            {% if user_type == 'seller' %}
+                                                                                {% if is_nego_buyer != true and is_nego_seller == true %}
+                                                                                    Negosiasi pada Penjual 
+                                                                                {% else %}
+                                                                                    Negosiasi pada Pembeli
+                                                                                {% endif %}
+                                                                            {% else %}
+                                                                                {% if is_nego_buyer == true and is_nego_seller != true %}
+                                                                                    Negosiasi pada Pembeli
+                                                                                {% else %}
+                                                                                    Negosiasi pada Penjual
+                                                                                {% endif %}
+                                                                            {% endif %}
+                                                                        </div>
+                                                                    {% elseif item[0]['status'] == 'new_order' %}
+                                                                        <div class="badge-orange">
+                                                                            {% if user_type == 'seller' %}
+                                                                                {% if is_nego_buyer != true and is_nego_seller == true %}
+                                                                                    Negosiasi pada Penjual 
+                                                                                {% else %}
+                                                                                    Negosiasi pada Pembeli
+                                                                                {% endif %}
+                                                                            {% else %}
+                                                                                {% if is_nego_buyer == true and is_nego_seller != true %}
+                                                                                    Negosiasi pada Pembeli
+                                                                                {% else %}
+                                                                                    Negosiasi pada Penjual
+                                                                                {% endif %}
+                                                                            {% endif %}
+                                                                        </div>
+                                                                    {% elseif item[0]['status'] == 'processed' %}
+                                                                        <div class="badge-orange">Menunggu Pengiriman</div>
+                                                                    {% elseif item[0]['status'] == 'confirm_order_ppk' %}
+                                                                        <div class="badge-orange">Konfirmasi PPK</div>
+                                                                    {% elseif item[0]['status'] == 'approved_order' %}
+                                                                        <div class="badge-green">Menunggu Pengiriman</div>
+                                                                    {% elseif item[0]['status'] == 'cancel' %}
+                                                                        <div class="badge-red"> Transaksi Dibatalkan </div>
+                                                                    {% else %}
+                                                                        {% if item[0]['isApprovedPPK'] == true %}
+                                                                            {% if all_rating == true %}
+                                                                                <div class="badge-green">Barang Diterima</div>
+                                                                            {% else %}
+                                                                                <div class="badge-orange">Menunggu Rating</div>
+                                                                            {% endif %}
+                                                                        {% else %}
+                                                                            {% if item[0]['o_complaint'][0]['oc_id'] == null or all_resolved %}
+                                                                                <div class="badge-orange">Menunggu Konfirmasi Penerimaan</div>
+                                                                            {% else %}
+                                                                                <div class="badge-red">Tidak Disetujui</div>
+                                                                            {% endif %}
+                                                                        {% endif %}
+                                                                    {% endif %}
+                                                                {% elseif type == 'TREASURER' %}
+                                                                    {% if (item[0]['status'] == 'payment_process' or item[0]['status'] == 'paid') and item[0]['withholdingTaxSlipFile'] is empty and (item[0]['taxType'] == '59' or item[0]['taxType'] == '58') %}
+                                                                        <div class="badge-green">Sudah Dibayar</div>
+                                                                    {% elseif (item[0]['status'] == 'payment_process' or item[0]['status'] == 'paid') and ((item[0]['withholdingTaxSlipFile'] is not empty and item[0]['taxType'] == '59' or item[0]['taxType'] == '58')) %}
+                                                                        <div class="badge-green">Sudah Upload Bukti Pajak</div>
+                                                                    {% elseif item[0]['status'] == 'cancel' %}
+                                                                        <div class="badge-red"> Transaksi Dibatalkan </div>
+                                                                    {% else %}
+                                                                        <div class="badge-orange">Belum Dibayar</div>
+                                                                    {% endif %}
+                                                                {% else %}
+
+                                                                    {% if item[0]['status'] == 'confirmed' %}
+                                                                        <div class="badge-orange">
+                                                                            {% if user_type == 'seller' %}
+                                                                                {% if is_nego_buyer != true and is_nego_seller == true %}
+                                                                                    Negosiasi pada Penjual 
+                                                                                {% else %}
+                                                                                    Negosiasi pada Pembeli
+                                                                                {% endif %}
+                                                                            {% else %}
+                                                                                {% if is_nego_buyer == true and is_nego_seller != true %}
+                                                                                    Negosiasi pada Pembeli
+                                                                                {% else %}
+                                                                                    Negosiasi pada Penjual
+                                                                                {% endif %}
+                                                                            {% endif %}
+                                                                        </div>
+                                                                    {% elseif item[0]['status'] == 'new_order' %}
+                                                                        <div class="badge-orange">
+                                                                            {% if user_type == 'seller' %}
+                                                                                {% if is_nego_buyer != true and is_nego_seller == true %}
+                                                                                    Negosiasi pada Penjual 
+                                                                                {% else %}
+                                                                                    Negosiasi pada Pembeli
+                                                                                {% endif %}
+                                                                            {% else %}
+                                                                                {% if is_nego_buyer == true and is_nego_seller != true %}
+                                                                                    Negosiasi pada Pembeli
+                                                                                {% else %}
+                                                                                    Negosiasi pada Penjual
+                                                                                {% endif %}
+                                                                            {% endif %}
+                                                                        </div>
+                                                                    {% elseif item[0]['status'] == 'processed' %}
+                                                                        <div class="badge-orange"> Menunggu Pengiriman </div>
+                                                                    {% elseif item[0]['status'] == 'confirm_order_ppk' %}
+                                                                        <div class="badge-orange">Menunggu Konfirmasi PPK</div>
+                                                                    {% elseif item[0]['status'] == 'approved_order' %}
+                                                                        <div class="badge-green">Menunggu Pengiriman</div>
+                                                                    {% elseif item[0]['status'] == 'shipped' %}
+                                                                        <div class="badge-orange"> Menunggu Konfirmasi Penerimaan </div>
+                                                                    {% elseif item[0]['status'] == 'received' or item[0]['status'] == 'pending_payment' %}
+                                                                        <div class="badge-orange"> Menunggu Pembayaran </div>
+                                                                    {% elseif (item[0]['status'] == 'pending_payment' or item[0]['status'] == 'payment_process') %}
+                                                                        <div class="badge-orange"> Menunggu Verifikasi Pembayaran </div>
+                                                                    {% elseif item[0]['status'] == 'paid' %}
+                                                                        <div class="badge-green"> Selesai </div>
+                                                                    {% elseif item[0]['status'] == 'cancel' %}
+                                                                        <div class="badge-red"> Transaksi Dibatalkan </div>
+                                                                    {% endif %}
+                                                                    
+                                                                {% endif %}
+                                                                {# {% if type == 'PPK' or type == 'TREASURER' %} #}
+                                                                    {% set detail_redirect = 'user_ppktreasurer_detail-pemesanan' %}
+                                                                {# {% else %}
+                                                                    {% set detail_redirect = 'user_order_detail' %}
+                                                                {% endif %} #}
+                                                                <a href="{{ path(detail_redirect, {'id': item[0]['id']}) }}"><button type="button" class="btn-ppk-red">Detail</button></a>
+                                                            </td>
+
+                                                            <td class="text-center">
+                                                                {% if type == 'PPK' %}
+                                                                    {% if item[0]['status'] == 'approved_order' %}
+                                                                        <a href="{{ path('user_ppktreasurer_shipping_partial', {'id': item[0]['id']}) }}">
+                                                                            <button type="button" class="btn-ppk-red">
+                                                                                Kirim
+                                                                            </button>
+                                                                        </a>
+                                                                    {% elseif item[0]['status'] == 'approved_order' %}
+                                                                        <a href="{{ path('user_ppktreasurer_shipping_partial', {'id': item[0]['id']}) }}"><button type="button" class="btn-ppk-red">Kirim</button></a>
+                                                                    {% elseif item[0]['status'] == 'shipped' %}
+                                                                        {% if (item[0]['o_complaint'][0]['oc_id'] == null or all_resolved) and item[0]['isApprovedPPK'] != true %}
+                                                                            <button type="button" class="btn-ppk-red btn-received-ppk" data-key="{{key}}" data-id="{{item[0]['id']}}" data-invoice="{{item[0]['invoice']}}">
+                                                                                Setuju
+                                                                            </button>
+                                                                            <button type="button" class="btn-ppk-red ppk-complain" data-key="{{key}}">
+                                                                                Tidak Setuju
+                                                                            </button>
+                                                                        {% elseif item[0]['isApprovedPPK'] == true and all_rating != true %}
+                                                                            <a href="{{ path('user_ppktreasurer_detail-pemesanan', {'id': item[0]['id']}) }}"><button type="button" class="btn-ppk-red">Beri Nilai</button></a>
+                                                                        {% endif %}
+                                                                    {% elseif (item[0]['status'] == 'confirmed' or item[0]['status'] == 'new_order') and item[0]['email'] == user.getEmail %}
+                                                                        {% set show_btn_nego = false %}
+                                                                        {% if user_type == 'seller' %}
+                                                                            {% if is_nego_buyer != true and is_nego_seller == true %}
+                                                                                {% set show_btn_nego = true %}
+                                                                            {% endif %}
+                                                                        {% else %}
+                                                                            {% if is_nego_buyer == true and is_nego_seller != true %}
+                                                                                {% set show_btn_nego = true %}
+                                                                            {% endif %}
+                                                                        {% endif %}
+                                                                        {% if show_btn_nego == true %}
+                                                                            <a href="{{ path('user_ppktreasurer_detail-pemesanan', {'id': item[0]['id']}) }}"><button type="button" class="btn-ppk-red">Negosiasi</button></a>
+                                                                        {% endif %}
+                                                                        {# <a href="{{ path('user_ppktreasurer_detail-pemesanan', {'id': item[0]['id']}) }}"><button type="button" class="btn-ppk-red">Negosiasi</button></a> #}
+                                                                    {% endif %}
+                                                                    {% if item[0]['status'] == 'confirmed' or item[0]['status'] == 'new_order' %}
+                                                                        <button type="button" class="btn-ppk-red seller-act-cancel" data-state="cancel" data-user="{{user_type}}" data-order-id="{{ item[0]['id'] }}">Cancel</button>
+                                                                    {% endif %}
+                                                                {% elseif type == 'TREASURER' %}
+                                                                    {% if item[0]['status'] != 'payment_process' and item[0]['status'] != 'paid' %}
+                                                                        <a href="{{ path('user_ppktreasurer_detail-pemesanan', {'id': item[0]['id']}) }}"><button type="button" class="btn-ppk-red">Pembayaran</button></a>
+                                                                    {% elseif (item[0]['status'] == 'paid' or item[0]['status'] == 'payment_process' or item[0]['status'] == 'pending_payment') and item[0]['withholdingTaxSlipFile'] is empty and item[0]['taxInvoiceFile'] is not empty %}
+                                                                        <a href="{{ path('user_ppktreasurer_detail-pemesanan', {'id': item[0]['id']}) }}"><button type="button" class="btn-ppk-red">Unggah Bukti Pajak</button></a>
+                                                                    {% endif %}
+                                                                {% else %}
+                                                                    {# <a href="{{ path('user_order_detail', {'id': item[0]['id']}) }}"><button type="button" class="btn-ppk-red-border">Detail</button></a> #}
+                                                                    {% if item[0]['status'] == 'confirmed' or item[0]['status'] == 'new_order' %}
+                                                                        {% set show_btn_nego = false %}
+                                                                        {% if user_type == 'seller' %}
+                                                                            {% if is_nego_buyer != true and is_nego_seller == true %}
+                                                                                {% set show_btn_nego = true %}
+                                                                            {% endif %}
+                                                                        {% else %}
+                                                                            {% if is_nego_buyer == true and is_nego_seller != true %}
+                                                                                {% set show_btn_nego = true %}
+                                                                            {% endif %}
+                                                                        {% endif %}
+                                                                        {% if show_btn_nego == true %}
+                                                                            <a href="{{ path('user_ppktreasurer_detail-pemesanan', {'id': item[0]['id']}) }}"><button type="button" class="btn-ppk-red">Negosiasi</button></a>
+                                                                        {% endif %}
+                                                                    {% elseif item[0]['status'] == 'processed' and app.user.role == 'ROLE_USER_SELLER' %}
+                                                                        <a href="{{ path('user_ppktreasurer_detail-pemesanan', {'id': item[0]['id']}) }}"><button type="button" class="btn-ppk-red">Proses</button></a>
+                                                                    {% elseif (item[0]['status'] == 'paid' or item[0]['status'] == 'payment_process' or item[0]['status'] == 'pending_payment') and item[0]['taxInvoiceFile'] is empty and item[0]['taxType'] == '59' and app.user.role == 'ROLE_USER_SELLER' %}
+                                                                        <a href="{{ path('user_ppktreasurer_detail-pemesanan', {'id': item[0]['id']}) }}"><button type="button" class="btn-ppk-red">Unggah Faktur Pajak</button></a>
+                                                                    {% endif %}
+
+                                                                    {% if item[0]['status'] == 'confirmed' or item[0]['status'] == 'new_order' %}
+                                                                        <button type="button" class="btn-ppk-red seller-act-cancel" data-state="cancel" data-user="{{user_type}}" data-order-id="{{ item[0]['id'] }}">Cancel</button>
+                                                                    {% endif %}
+                                                                {% endif %}
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                {% else %}
+                                                    <tr>
+                                                        <td colspan="8" class="text-center">
+                                                            No data available in table
+                                                        </td>
+                                                    </tr>
+                                                {% endif %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            {% if pagination is not empty and pagination.getNbResults > pagination.getMaxPerPage %}{{ html|raw }}{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    {% if documents|length > 0 %}
+        {% for key,item in documents %}
+            {% set nego_batch = 0 %}
+            {% set initial_with_shipping = true %}
+            {% set harga_nego = 0 %}
+            {% set harga_asli = 0 %}
+            {% set sub_total_nego_price = 0 %}
+            {% set sub_total_ppn_price = 0 %}
+
+            {% if item[0]['o_negotiatedProducts']|length > 0 %}
+                {% for temp_nego_data in item[0]['o_negotiatedProducts'] %}
+                    {% set nego_batch = temp_nego_data['on_batch'] %}
+                {% endfor %}
+            {% endif %}
+
+                {# {% if order['oc_id'] is defined and order['oc_id'] is empty %} #}
+                <div id="popup-order-complain-{{key}}" class="popup general" title="complain">
+                    <div class="wh100">
+                        <div class="popup-wrapper">
+                            <div class="inner">
+                                <form id="buyer-order-complain-{{key}}-form"
+                                    action="{{ path('user_order_complaint', {'id': item[0]['id']}) }}" method="POST"
+                                    accept-charset="UTF-8">
+                                    <a href="javascript:void(0);" class="close-btn"
+                                    onclick="$(this).parents('.popup').fadeOut();"></a>
+                                    <h3 class="popup-order-complain-{{key}}-title">{{ 'label.order_complain'|trans }}</h3>
+                                    <div class="input">
+                                        <textarea id="buyer-order-complain-{{key}}-description" name="description" class="no-resize"
+                                                title="" placeholder="{{ 'label.message'|trans }}"
+                                                style="border: 1px solid black;"></textarea>
+                                        <p id="buyer-order-complain-{{key}}-description-error" class="error"></p>
+                                    </div>
+                                    <div class="btn-wrapper">
+                                        {{ csrf_field('b2g_order_complain_' ~ key) }}
+                                        <input id="popup-order-complain-{{key}}-btn" type="submit" class="sBtn red"
+                                            value="{{ 'button.submit'|trans }}">
+                                        <a href="javascript:void(0);" class="gBtn red"
+                                        onclick="$(this).parents('.popup').fadeOut();">
+                                            {{ 'button.close'|trans }}
+                                        </a>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {# {% endif %} #}
+
+                <div id="popup-received-ppk-{{key}}" class="popup general" style="display: none;" title="received-komplain">
+                    <div class="wh100">
+                        <div class="popup-wrapper">
+                            <div class="inner">
+                                <a href="javascript:void(0);" class="close-btn" onclick="$(this).parents('.popup').fadeOut();"></a>
+                                <div class="popup-received-komplain-content">
+                                    <div style="width: 100%;text-align: left;">
+                                        <img src="{{ site_url('dist/img/balimall.png') }}" style="width: 120px;" alt="Logo">
+                                    </div>
+                                    <p><h4>TANDA TERIMA</h4><p><b>Nomor : TT/{{item[0]['invoice']}}</b></p></p>
+                                    <div class="row" style="text-align: center;">
+                                        <div class="col-md-12">
+                                            <br>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <table style="width: 100%">
+                                            <colgroup>
+                                                <col span="1" style="width: 25%;">
+                                                <col span="1" style="width: 5%;">
+                                                <col span="1" style="width: 70%;">
+                                            </colgroup>
+                                            <tbody>
+                                                <tr style="text-align: left; font-size: 14px;">
+                                                    <td style="text-align: left; width: 25%;">No Order</td>
+                                                    <td style="text-align: left; width: 5%;">:</td>
+                                                    <td style="text-align: left; width: 70%;">{{ item[0]['id']|default() }}</td>
+                                                </tr>
+                                                <tr style="text-align: left; font-size: 14px;">
+                                                    <td style="text-align: left; width: 25%;">No Invoice</td>
+                                                    <td style="text-align: left; width: 5%;">:</td>
+                                                    <td style="text-align: left; width: 70%;">{{ item[0]['invoice']|default() }}</td>
+                                                </tr>
+                                                <tr style="text-align: left; font-size: 14px;">
+                                                    <td style="text-align: left; width: 25%;">Tanggal</td>
+                                                    <td style="text-align: left; width: 5%;">:</td>
+                                                    <td style="text-align: left; width: 70%;">{{ item[0]['shipped_at']|date('d F Y')  }}</td>
+                                                </tr>
+                                                <tr style="text-align: left; font-size: 14px;">
+                                                    <td style="text-align: left; width: 25%;">Nama Pengadaan</td>
+                                                    <td style="text-align: left; width: 5%;">:</td>
+                                                    <td style="text-align: left; width: 70%;">{{ item[0]['jobPackageName']|default() }}</td>
+                                                </tr>
+                                                <tr style="text-align: left; font-size: 14px;">
+                                                    <td style="text-align: left; width: 25%;">Satuan Kerja</td>
+                                                    <td style="text-align: left; width: 5%;">:</td>
+                                                    {% if item[0]['work_unit_name'] is empty %}
+                                                        <td style="text-align: left; width: 70%;">-</td>
+                                                    {% else %}
+                                                        <td style="text-align: left; width: 70%;">{{ item[0]['work_unit_name']|default() }}</td>
+                                                    {% endif %}
+                                                </tr>
+                                                <tr style="text-align: left; font-size: 14px;">
+                                                    <td style="text-align: left; width: 25%;"></td>
+                                                    <td style="text-align: left; width: 5%;"></td>
+                                                    {% if item[0]['institution_name'] is empty  %}
+                                                        <td style="text-align: left; width: 70%;">-</td>
+                                                    {% else %}
+                                                        <td style="text-align: left; width: 70%;">{{ item[0]['institution_name']|default() }}</td>
+                                                    {% endif %}
+                                                </tr>
+                                                <tr style="text-align: left; font-size: 14px;">
+                                                    <td style="text-align: left; width: 25%;">PIC</td>
+                                                    <td style="text-align: left; width: 5%;">:</td>
+                                                    <td style="text-align: left; width: 70%;">{{ item[0]['unit_name']|default() }}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <br>
+                                    <br>
+                                <div class="row">
+                                    <div class="table-wrapper">
+                                        <table style="width: 100%;font-size: 14px;" class="nego">
+                                            <thead class="text-center">
+                                                <tr>
+                                                    <th>No</th>
+                                                    <th>Nama Barang / Jasa</th>
+                                                    <th>Jumlah Dikirim</th>
+                                                    <th>Satuan</th>
+                                                    <th>Kondisi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% set initial_with_shipping = true %}
+                                                {% for index, product in item[0]['o_products'] %}
+                                                    {% for product_nego in item[0]['o_negotiatedProducts'] %}
+                                                        {% if (product_nego['p_id'] == product['p_id']) and (product_nego['on_batch'] == nego_batch) %}
+                                                            {% set nego_price = (product_nego['on_negotiatedPrice'] * product['op_quantity'])|number_format %}
+                                                            {% set sub_total_nego_price = sub_total_nego_price + (product_nego['on_negotiatedPrice'] * product['op_quantity']) %}
+
+                                                            {% if initial_with_shipping == true %}
+                                                                {% set sub_total_ppn_price = sub_total_ppn_price + ((product_nego['on_negotiatedPrice'] * (product_nego['on_taxValue']/100)) * product['op_quantity']) + product_nego['on_taxNominalShipping'] %}
+                                                            {% else %}
+                                                                {% set sub_total_ppn_price = sub_total_ppn_price + ((product_nego['on_negotiatedPrice'] * (product_nego['on_taxValue']/100)) * product['op_quantity']) %}
+                                                            {% endif %}
+                                                            {% set initial_with_shipping = false %}
+                                                            {% set nego_shipping = product_nego['on_negotiatedShippingPrice'] %}
+                                                            <tr class="border">
+                                                                <td >{{ index+1 }}</td>
+                                                                <td>{{ product['p_name'] }}</td>
+                                                                <td style="text-align: center;">{{ product['op_quantity'] }}</td>
+                                                                <td style="text-align: center;">{{ product['p_unit']|default('Unit') }}</td>
+                                                                <td style="text-align: center;">Baik</td>
+                                                            </tr>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                        </div>
+                                    </div>
+                                    </div>
+
+                                        <p style="font-size: 14px; margin-top: 20px;text-align: left;">Catatan Pembeli : {{ item[0]['note'] }}</p>
+                                        <p style="font-size: 14px;text-align: left;">Tanda Terima ini berfungsi sebagai bukti serah terima.</p>
+                                        <p style="font-size: 14px;text-align: left;">Demikian Tanda Terima ini dibuat dengan sebenarnya untuk dipergunakan sebagaimana seharusnya.</p>
+                                        <br>
+                                        <div class="row" style="margin-top: 20px;">
+
+                                            {% set url_global = get_parameter('app_url') %}
+                                            <table style="width:100%;font-size: 14px;">
+                                                <tr>
+                                                    <th style="width: 40%; float: center; text-align: center;vertical-align: text-top;">Yang Menyerahkan <br> {{item['s_name']}}</th>
+                                                    <th style="width: 20%;"></th>
+                                                    <th style="width: 40%; float: center; text-align: center;vertical-align: text-top;">Penerima</th>
+                                                </tr>
+                                                <tr>
+                                                    <td style="text-align: center;">
+                                                        {% if item['ow_user_signature'] is not empty %}
+                                                            {% set user_seller_signature = asset(item['ow_user_signature'])  %}
+                                                            <img src="{{ url_global ~ '/sftp/file' ~ user_seller_signature }}" style="max-width: 120px;" />
+                                                            {% if item['ow_user_stamp'] is not empty %}
+                                                            {% set user_seller_stamp = asset(item['ow_user_stamp'])  %}
+                                                                <img src="{{ url_global ~ '/sftp/file' ~ user_seller_stamp }}" style="max-width: 120px;z-index: 99;position:absolute;margin-left: -140px;" />
+                                                            {% endif %}
+                                                            
+                                                        {% else %}
+                                                            <br><br><br>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td></td>
+                                                    <td style="text-align: center;vertical-align: top;">
+                                                        {% if item[0]['shipped_method'] == 'self_courier' %}
+                                                        <span>Pengiriman dilakukan oleh merchant</span><br>
+                                                        <table style="width: 100%;font-size: 14px;" class="">
+                                                            <tr>
+                                                                <td width="50%">Nama Penerima</td>
+                                                                <td width="1%">:</td>
+                                                                <td>{{item[0]['self_courier_name']}}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Posisi/Jabatan</td>
+                                                                <td>:</td>
+                                                                <td>{{item[0]['self_courier_position']}}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>No HP</td>
+                                                                <td>:</td>
+                                                                <td>{{item[0]['self_courier_telp']}}</td>
+                                                            </tr>
+                                                        </table>
+                                                        {% else %}
+                                                        <span>Pengiriman dilakukan oleh kurir</span><br>
+                                                        <table style="width: 100%;font-size: 14px;" class="">
+                                                            <tr>
+                                                                <td width="50%">No Resi</td>
+                                                                <td width="1%">:</td>
+                                                                <td>{{item[0]['trackingCode']}}</td>
+                                                            </tr>
+                                                        </table>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td></td>
+                                                    <td></td>
+                                                    <td></td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="text-align: center;">
+                                                        {{ item['ow_firstName']|default() ~ ' ' ~ item['ow_lastName']|default() }}<br>Pemilik
+                                                    </td>
+                                                    <td></td>
+                                                    <td></td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                        <br>
+                                        <br>
+                                        <table style="width:100%;font-size: 14px;text-align:center;">
+                                            <tr>
+                                                <td>Mengetahui,</td>
+                                            </tr>
+                                            {% set mengetahui =  'label.' ~ item[0]['ppk_type'] %}
+                                            <tr>
+                                                <td>{{mengetahui|trans}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>{{item[0]['work_unit_name']}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>{{item[0]['institution_name']}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    {# <p>TTD</p> #}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>{{item[0]['ppk_name']}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>{{item[0]['ppk_nip']}}</td>
+                                            </tr>
+                                        </table>
+                                        <br>
+                                        <br>
+                                        <br>
+
+                                    <div class="btn-wrapper">
+                                        <input id="buyer-order-id" type="hidden" value="{{item[0]['id']}}">
+                                        <input id="buyer-order-state" type="hidden" value="received">
+                                        <button id="popup-received-btn-{{key}}" type="submit" class="sBtn red">
+                                            {{ 'button.approve_received'|trans }}
+                                        </button>
+                                        {# <a href="javascript:void(0);" class="gBtn grey ppk-complain-{{key}}">
+                                            Tidak Setuju
+                                        </a> #}
+                                    </div>
+                                </div>
+
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        {% endfor %}
+    {% endif %}
+
+{% endblock %}

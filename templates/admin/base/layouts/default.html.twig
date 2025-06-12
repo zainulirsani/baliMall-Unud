@@ -1,0 +1,16 @@
+{% extends '@__main__/admin/base/layouts/base.html.twig' %}
+
+{% block body %}
+    {% include '@__main__/admin/base/partials/header.html.twig' %}
+    {% include '@__main__/admin/base/partials/sidebar.html.twig' %}
+    <div class="content-wrapper">
+        {% include '@__main__/admin/base/partials/page_header.html.twig' %}
+        <section class="content">
+            {% include '@__main__/admin/base/partials/messages.html.twig' %}
+            {% block content %}{% endblock %}
+        </section>
+    </div>
+    {% include '@__main__/admin/base/partials/dz_template.html.twig' %}
+    {% include '@__main__/admin/base/partials/modal.html.twig' %}
+    {% include '@__main__/admin/base/partials/footer.html.twig' %}
+{% endblock %}

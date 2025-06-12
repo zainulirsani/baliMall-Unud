@@ -1,0 +1,51 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Print QR Code Product</title>
+        <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css" rel="stylesheet">
+        <style>
+            @page { size:  284pt  284pt; }
+            * { margin:0; padding:0; box-sizing:border-box; }
+            table, th, td {
+                border: 1px solid black;
+                border-collapse: collapse;
+            }
+            table {
+                margin: 0 auto;
+                margin-top: 20px;
+            }
+            html, body {
+                width: 100%;
+            }
+        </style>
+    </head>
+    <body>
+        {% if product_name|length > 0 %}
+            {% for key, data in product_name %}
+                <table>
+                    <tr>
+                        <td>
+                            <center><img src="{{ data_uri[key] }}" alt="" width="260px" height="260px"></center>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span style="padding-left: 5px;"><b>{{ data }}</b></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p style="padding-left: 5px;">Rp. {{ price[key] }}</p>
+                        </td>
+                    </tr>
+                </table>
+            {% endfor %}
+        {% endif %}
+        <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+        <!-- Include all compiled plugins (below), or include individual files as needed -->
+        <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+    </body>
+</html>

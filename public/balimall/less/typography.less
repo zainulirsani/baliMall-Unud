@@ -1,0 +1,90 @@
+/* FONTS */
+/*@font-face {
+    font-family: 'ComfortaaRegular';
+    src: url('fonts/ComfortaaRegular.eot');
+    src: url('fonts/ComfortaaRegular.eot') format('embedded-opentype'),
+         url('fonts/ComfortaaRegular.woff2') format('woff2'),
+         url('fonts/ComfortaaRegular.woff') format('woff'),
+         url('fonts/ComfortaaRegular.ttf') format('truetype'),
+         url('fonts/ComfortaaRegular.svg#ComfortaaRegular') format('svg');
+}
+.cf( @size:12px, @weight:400 ){
+	font-family: 'ComfortaaRegular', sans-serif;
+	font-size: @size;
+	font-weight: @weight;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+.cf{
+	font-family: 'ComfortaaRegular', sans-serif;
+}*/
+.rbt( @size:12px, @weight:400 ){
+	font-family: 'Roboto', sans-serif;
+	font-size: @size;
+	font-weight: @weight;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+li,p{
+	font-size: 1em;
+	margin-bottom: 16px;
+	&.small{
+		font-size: 0.8em;
+	}
+	&.error{
+		color: @red;
+		font-size: 10px;
+		margin: 5px 0;
+	}
+}
+h1,h2,h3,h4,h5,h6,p{
+	line-height: 1.4;
+}
+p{
+	@media @tablet{
+		line-height: 1.6;
+	}
+}
+h1, .h1{
+	font-size: 3.052em;
+	margin-bottom: 32px;
+	&.large{
+		font-size: 10em;
+	}
+	@media @tablet{
+		font-size: 1.802em;
+	}
+}
+h2, .h2{
+	font-size: 2.44em;
+	margin-bottom: 32px;
+	@media @tablet{
+		font-size: 1.602em;
+	}
+}
+h3, .h3{
+	font-size: 1.953em;
+	margin-bottom: 16px;
+	@media @tablet{
+		font-size: 1.424em;
+	}
+}
+h4, .h4{
+	font-size: 1.563em;
+	margin-bottom: 16px;
+	@media @tablet{
+		font-size: 1.266em;
+	}
+}
+h5, .h5{
+	font-size: 1.25em;
+	margin-bottom: 16px;
+	@media @tablet{
+		font-size: 1.125em;
+	}
+}
+h6, .h6{
+	font-size: 1em;
+	margin-bottom: 16px;
+}

@@ -1,0 +1,83 @@
+{% extends '@__main__/admin/base/layouts/default.html.twig' %}
+
+{% set trans_parameter = {'%name%': form_data['v_code']} %}
+{% set page_header = page_title|trans(trans_parameter) %}
+{% set index_route = 'admin_' ~ page_section ~ '_index' %}
+{% set edit_route = 'admin_' ~ page_section ~ '_edit' %}
+{% set voucher_id = form_data['v_id']|default(0) %}
+{% set voucher_start_at = form_data['v_startAt']|default() %}
+{% set voucher_end_at = form_data['v_endAt']|default() %}
+{% set voucher_qr_image = form_data['v_qrImage']|default() %}
+
+{% if voucher_start_at is not empty %}
+    {% set voucher_start_at = voucher_start_at is datetime ? voucher_start_at.modify('+1 day') : voucher_start_at %}
+    {% set voucher_start_at = voucher_start_at|date('Y-m-d') %}
+{% endif %}
+
+{% if voucher_end_at is not empty %}
+    {% set voucher_end_at = voucher_end_at|date('Y-m-d') %}
+{% endif %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">{{ page_header }}</h3>
+                </div>
+                <div id="voucher-form" class="box-body">
+                    <div class="panel-body">
+                        <div class="nav-tabs-custom">
+                            <ul class="nav nav-tabs voucher-tabs">
+                                <li class="active voucher-tab-data">
+                                    <a href="#tab-data" data-toggle="tab" data-tab="data">{{ 'label.data'|trans }}</a>
+                                </li>
+                            </ul>
+                            <div class="tab-content tab-voucher-content">
+                                <div id="tab-data" class="tab-pane fade in active">
+                                    <div class="m-top-15"></div>
+                                    <div class="form-group">
+                                        <label for="input-name">{{ 'label.name'|trans }}</label>
+                                        <input id="input-name" class="form-control" value="{{ form_data['v_name']|default() }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-description">{{ 'label.description'|trans }}</label>
+                                        <textarea id="input-description" class="form-control" rows="3" readonly>{{ form_data['v_description']|default() }}</textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-amount">{{ 'label.amount'|trans }}</label>
+                                        <input id="input-amount" class="form-control" value="Rp. {{ form_data['v_amount']|default()|number_format }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-start-at">{{ 'label.start_at'|trans }}</label>
+                                        <input id="input-start-at" class="form-control" value="{{ voucher_start_at }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-end-at">{{ 'label.end_at'|trans }}</label>
+                                        <input id="input-end-at" class="form-control" value="{{ voucher_end_at }}" readonly>
+                                    </div>
+                                    {#{% if voucher_qr_image is not empty %}
+                                        <div class="col-md-6 form-group" style="padding-left: 0;">
+                                            <label for="input-qr-image">{{ 'label.qr_image'|trans }}</label>
+                                            <figure>
+                                                <img src="{{ asset(voucher_qr_image) }}" class="img-responsive" alt="">
+                                            </figure>
+                                        </div>
+                                    {% endif %}#}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="box-footer">
+                    <div id="button-tab-data" class="button-tabs-voucher" style="display: inline;">
+                        <a href="{{ path(edit_route, {'id': voucher_id}) }}" class="btn btn-primary">{{ 'button.edit'|trans }}</a>
+                    </div>
+                    <div style="display: inline;">
+                        <a href="{{ path(index_route) }}" class="btn btn-default">{{ 'button.cancel'|trans }}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

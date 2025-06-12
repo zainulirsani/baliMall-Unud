@@ -1,0 +1,12 @@
+<script src="{{ asset('dist/compiled/site.js') }}"></script>
+{% if text_editor is defined and text_editor == true %}
+    <script src="{{ asset('vendor/ckeditor/ckeditor.js') }}"></script>
+{% endif %}
+{% if date_picker is defined and date_picker == true %}
+    <script src="{{ asset('vendor/flatpickr/flatpickr.min.js') }}"></script>
+    <script src="{{ asset('vendor/flatpickr/l10n/id.js') }}"></script>
+{% endif %}
+{% if colorbox is defined and colorbox == true %}
+    <script src="{{ asset('vendor/colorbox/colorbox.min.js') }}"></script>
+{% endif %}
+<script src="{{ asset('assets/js/additional.js') }}"></script>

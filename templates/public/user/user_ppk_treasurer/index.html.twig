@@ -1,0 +1,67 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% block content %}
+    <style>
+        .temp-btn {
+            min-width: 120px;
+            text-align: center;
+            height: 24px;
+            line-height: 24px;
+            border-radius: 8px;
+        }
+    </style>
+    <main class="pdl">
+        {% include '@__main__/public/base/partials/breadcrumb.html.twig' %}
+        <section>
+            <div class="container">
+                <div class="box">
+                    <div class="row">
+                        {% include '@__main__/public/user/fragments/menu.html.twig' %}
+                        <div class="dc9 tc12">
+                            <div class="sub-title">
+                                <div class="text">
+                                    {% set label_menu = 'label.data_' ~ type %}
+                                    <h3>{{ label_menu|trans }}</h3>
+                                </div>
+                                <div class="clear"></div>
+                                <div class="btn-wrapper">
+                                    <a href="{{ path('user_ppk_new', {'type': type}) }}" class="sBtn small blue">
+                                        {{ 'button.add'|trans }}
+                                    </a>
+                                </div>
+                            </div>
+                            <div id="user-ppk-treasurer-list" class="pr-card" data-id="{{ app.user.id }}" data-page="type">
+                                <div class="row">
+                                    {% for document in documents %}
+                                        <div class="dc12">
+                                            <div class="box pr-card__1">
+                                                <div class="top">
+                                                    <div class="text">{{ document['name'] is not empty ?  document['name']:'-' }}<br>
+                                                    {% set label_type_account = 'label.' ~ document['type_account'] %}
+                                                    <span style="font-size: 12px"><i>{{label_type_account|trans}}</i></span><br>
+                                                    <span style="font-size: 12px"><i>{{document['nip'] is not empty ?  document['nip']:'-' }}</i></span></div>
+                                                    <span class="badge blue temp-btn">
+                                                        <a href="{{ path('user_ppk_edit', {'id': document['id']}) }}">
+                                                            {{ 'button.edit'|trans }}
+                                                        </a>
+                                                    </span>
+                                                </div>
+                                                <div class="info">
+                                                    <div>
+                                                        <span>{{ document['email'] }} || {{ document['telp']|default('-') }}</span>
+                                                    </div>
+                                                    <a href="{{ path('user_ppk_delete') }}" class="sBtn red act-delete-ppk" data-id="{{ document['id'] }}">{{ 'button.delete'|trans }}</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% if pagination is not empty and pagination.getNbResults > pagination.getMaxPerPage %}{{ html|raw }}{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}

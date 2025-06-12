@@ -1,0 +1,78 @@
+{% set avatar = '' %}
+{% set avatar_style = avatar is empty ? 'display: none;' : '' %}
+{% set name_placeholder = reg_as == 'government' ? 'label.instance_name' : 'label.full_name' %}
+{% set reg_link_label = reg_as != 'government' ? 'message.info.government_instance' : 'message.info.regular_instance' %}
+{% set reg_link_href = reg_as != 'government' ? path('register', {'as': 'government'}) : path('register') %}
+
+{% if form_data['photo_profile_src'] is defined and form_data['photo_profile_src'] != '' %}
+    {% set avatar = form_data['photo_profile_src'] %}
+    {% set avatar_style = avatar is empty ? 'display: none;' : '' %}
+{% endif %}
+
+<main class="nothing-page">
+    <section>
+        <div class="container">
+            <div class="row">
+                <div class="dc6 mc12 auto">
+                    <div class="box login-wrapper">
+                        <h1 class="ct">{{ 'title.register'|trans }}</h1>
+                        <form id="registration-form" action="{{ path('register-vendor')}}" method="post" accept-charset="UTF-8">
+                            {% set error = errors['firstName'] is defined ? 'error' : null %}
+                            <div class="input {{ error }}">
+                                <input id="input-full-name" type="text" name="full_name" value="{{ form_data['full_name']|default() }}" title="" placeholder="{{ name_placeholder|trans }}">
+                                {% if error %}<p class="{{ error }}">{{ errors['firstName'] }}</p>{% endif %}
+                            </div>
+                            {% set error = errors['email'] is defined ? 'error' : null %}
+                            <div class="input {{ error }}">
+                                <input id="valid-email" type="email" name="email" value="{{ form_data['email']|default() }}" title="" placeholder="{{ 'label.email'|trans }}" data-id="0">
+                                <p id="valid-email-error" class="error" style="display: none;"></p>
+                                {% if error %}<p class="{{ error }}">{{ errors['email'] }}</p>{% endif %}
+                            </div>
+                            {% set error = errors['password'] is defined ? 'error' : null %}
+                            <div class="input {{ error }}">
+                                <input id="input-password" type="password" name="password" title="" placeholder="{{ 'label.password'|trans }}">
+                                <p id="input-password-error" class="error" style="display: none;">{{ 'message.info.password_not_match'|trans }}</p>
+                                <p id="input-password-weak" class="error" style="display: none;">{{ 'message.info.password_weak'|trans }}</p>
+                                {% if error %}<p class="{{ error }}">{{ errors['password'] }}</p>{% endif %}
+                            </div>
+                            {% set errorConfirm = errors['passwordMatch'] is defined ? 'error' : null %}
+                            <div class="input {{ error ~ ' ' ~ errorConfirm }}">
+                                <input id="input-confirm-password" type="password" name="confirm_password" title="" placeholder="{{ 'label.confirm_password'|trans }}">
+                                {% if errorConfirm %}
+                                    <p class="{{ errorConfirm }}">{{ errors['passwordMatch'] }}</p>
+                                {% elseif error %}
+                                    <p class="{{ error }}">{{ errors['password'] }}</p>
+                                {% endif %}
+                            </div>
+                            {% set error = errors['phoneNumber'] is defined ? 'error' : null %}
+                            <div class="input {{ error }}">
+                                <input id="input-phone" type="text" name="phone" value="{{ form_data['phone']|default() }}" title="" placeholder="{{ 'label.phone'|trans }}">
+                                {% if error %}<p class="{{ error }}">{{ errors['phoneNumber'] }}</p>{% endif %}
+                            </div>
+                            <div class="input">
+                                <input type="hidden" name="_csrf_token" value="{{ csrf_token(token_id) }}">
+                                <input type="hidden" name="_csrf_token_id" value="{{ token_id }}">
+                                <input type="hidden" name="reg_as" value="{{ reg_as }}">
+                                {#<input id="user-slug" type="hidden" name="slug" value="{{ form_data['slug']|default() }}">#}
+                            </div>
+                            <div class="input">
+                                <input id="validate-reg-input" type="submit" class="sBtn red" value="{{ 'button.save'|trans }}" data-message="{{ 'message.confirm.user_reg_alt'|trans }}">
+                                <div class="left-side" style="width: 100%">
+                                    <p>
+                                        {{ 'message.info.have_account'|trans }}
+                                        <a href="{{ path('login') }}">{{ 'message.info.have_account_act'|trans }}</a>
+                                    </p>
+{#                                    <p>#}
+{#                                        {{ reg_link_label|trans }}#}
+{#                                        <a href="{{ reg_link_href }}">{{ 'message.info.no_account_act'|trans }}</a>#}
+{#                                    </p>#}
+                                </div>
+                                <div class="clear"></div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>

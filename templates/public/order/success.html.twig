@@ -1,0 +1,129 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% block content %}
+    <main class="cr-page">
+        <section>
+            <div class="container">
+                <div class="sc-cart row">
+                    <div class="dc6 tc12 auto box ct">
+                        <h5>{{ 'label.thank_you'|trans }}</h5>
+                        <div class="trx-id">
+                            <h4>{{ 'label.invoice'|trans ~ ' ' ~ invoices }}</h4>
+                        </div>
+                        <p class="ct">{{ 'message.info.order_acknowledge'|trans }}</p>
+                        {% if app.user.role == 'ROLE_USER' %}
+                            <p class="ct">{{ 'message.success.payment_info'|trans }}</p>
+                        {% endif %}
+                        <div class="btn-wrapper">
+                            {% if app.user.subRole == 'TREASURER' or app.user.subRole == 'PPK' %}
+                                {% set redirect_dashboard = 'user_ppk_dashboard' %}
+                            {% else %}
+                                {% set redirect_dashboard = 'user_dashboard' %}
+                            {% endif %}
+                            <a href="{{ path(redirect_dashboard) }}" class="gBtn red">{{ 'menu.dashboard'|trans }}</a>
+                            
+                            {% if order_success_button == 'v2' %}
+                                {% if app.user.role == 'ROLE_USER_GOVERNMENT' %}
+                                    <a href="{{ path(redirect_dashboard) }}" class="sBtn red">
+                                        {{ 'label.order_history'|trans }}
+                                    </a>
+                                {% else %}
+                                    <a href="{{ path('user_payment_confirmation', {'invoice': shared_id}) }}" class="sBtn red">
+                                        {{ 'title.page.payment_confirmation'|trans }}
+                                    </a>
+                                {% endif %}
+                            {% else %}
+                                <a href="{{ path(redirect_dashboard) }}" class="sBtn red">
+                                    {{ 'label.order_history'|trans }}
+                                </a>
+                            {% endif %}
+                        </div>
+                        {% if app.user.role != 'ROLE_USER_GOVERNMENT' and is_order_paid == false %}
+                            <div class="btn-wrapper" style="margin-top: 20px;">
+                                {% if qris_pay['enable'] == 'yes' and qris_pay_availability == 'available' %}
+                                    <a href="{{ path('order_pay_with_channel', {'channel': 'qris', 'id': shared_id}) }}" class="sBtn red">
+                                        {{ 'label.pay_with_qris'|trans }}
+                                    </a>
+                                {% endif %}
+                                {% if va_pay['enable'] == 'yes' %}
+                                    <a href="{{ path('order_pay_with_channel', {'channel': 'virtual-account', 'id': shared_id}) }}" class="sBtn red">
+                                        {{ 'label.pay_with_virtual_account'|trans }}
+                                    </a>
+                                {% endif %}
+                            </div>
+
+                            <div class="btn-wrapper" style="margin-top: 20px;">
+                                {% if is_doku_enable %}
+                                    {# <a href="{{ path('order_pay_with_channel', {'channel': 'doku', 'id': shared_id}) }}" class="sBtn red">
+                                        {{ 'label.pay_with_doku'|trans }}
+                                    </a> #}
+                                {% endif %}
+
+                                {% if is_midtrans_enable %}
+                                    <a href="{{ path('order_pay_with_channel', {'channel': 'midtrans', 'id': shared_id}) }}" class="sBtn red">
+                                        {{ 'label.pay_with_midtrans'|trans }}
+                                    </a>
+                                {% endif %}
+                            </div>
+
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        if (GTM_TRACKING_ID !== '') {
+            dataLayer.push({ ecommerce: null });
+            dataLayer.push({
+                'event': 'checkout',
+                'ecommerce': {
+                    'checkout': {
+                        'actionField': {'step': 1},
+                        'products': {{ order_products|json_encode|raw }}
+                    }
+                }
+            });
+
+            dataLayer.push({ ecommerce: null });
+            dataLayer.push({
+                'ecommerce': {
+                    'purchase': {
+                        'actionField': {
+                            'id': '{{ order_invoice }}',
+                            'affiliation': 'BaliMall',
+                            'revenue': '{{ order_total }}',
+                            'tax': '{{ order_tax }}',
+                            'shipping': '{{ order_shipping }}',
+                            'coupon': ''
+                        },
+                        'products': {{ order_products|json_encode|raw }}
+                    }
+                }
+            });
+        }
+
+        if (FB_PIXEL_CODE !== '') {
+            fbq('track', 'InitiateCheckout', {
+                content_category: 'product_group',
+                num_items: {{ order_products|length }},
+                contents : [{{ order_products|json_encode|raw }}],
+                currency : 'IDR',
+                value: '{{ order_total }}'
+            })
+
+            fbq('track', 'Purchase', {
+                content_ids: '{{ order_invoice }}',
+                content_type: 'product_group',
+                contents: [
+                    {{ order_products|json_encode|raw }}
+                ],
+                currency: 'IDR',
+                value: '{{ order_total }}',
+            })
+        }
+    </script>
+{% endblock %}

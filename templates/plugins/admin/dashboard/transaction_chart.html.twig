@@ -1,0 +1,225 @@
+{% set current_year = 'now'|date('Y') %}
+{% set tooltip_template = '<%if (label){%><%=label %>: <%}%>' %}
+
+{% if parameters['year'] is defined and parameters['year'] is not empty %}
+    {% set current_year = parameters['year'] %}
+{% endif %}
+
+<div class="box box-primary">
+    <div class="box-header with-border">
+        <h3 class="box-title">{{ 'title.chart.transaction_per_month'|trans({'%year%': current_year}) }}</h3>
+        <span class="pull-right">
+            <a href="{{ path('admin_download', {'origin': 'transaction_per_month', 'token': token_data}) }}" class="text-muted" target="_blank"><i class="fa fa-download"></i></a>
+        </span>
+    </div>
+    <div class="box-body">
+        <div class="chart">
+            <div class="col-md-10">
+                <canvas id="transaction-chart" style="height: 350px;"></canvas>
+            </div>
+            <div class="col-md-2">
+                <ul class="chart-legend clearfix">
+                    <li><i class="fa fa-circle-o" style="color: #00a65a;"></i> {{ "label.regular_transaction"|trans }}</li>
+                    <li><i class="fa fa-circle-o" style="color: #fda65a;"></i> {{ "label.b2g_transaction"|trans }}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="box box-primary">
+    <div class="box-header with-border">
+        <h3 class="box-title">{{ 'title.chart.nominal_transaction_per_month'|trans({'%year%': current_year}) }}</h3>
+        <span class="pull-right">
+            <a href="{{ path('admin_download', {'origin': 'transaction_nominal_per_month', 'token': token_nominal}) }}" class="text-muted" target="_blank"><i class="fa fa-download"></i></a>
+        </span>
+    </div>
+    <div class="box-body">
+        <div class="chart">
+            {% if nominal_chart_type == 'bar' %}
+                <div class="col-md-10">
+                    <canvas id="nominal-transaction-chart" style="height: 350px;"></canvas>
+                </div>
+                <div class="col-md-2">
+                    <ul class="chart-legend clearfix">
+                        <li><i class="fa fa-circle-o" style="color: #00a65a;"></i> {{ "label.regular_transaction"|trans }}</li>
+                        <li><i class="fa fa-circle-o" style="color: #fda65a;"></i> {{ "label.b2g_transaction"|trans }}</li>
+                        {#<li>(result x 1.000.000)</li>#}
+                    </ul>
+                </div>
+            {% elseif nominal_chart_type == 'pie' %}
+                <div class="col-md-6">
+                    <h3 class="text-center">{{ "label.regular_transaction"|trans }}</h3>
+                    <canvas id="nominal-pie-transaction-chart-reg" style="height: 230px;"></canvas>
+                </div>
+                <div class="col-md-6">
+                    <h3 class="text-center">{{ "label.b2g_transaction"|trans }}</h3>
+                    <canvas id="nominal-pie-transaction-chart-b2g" style="height: 230px;"></canvas>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function() {
+        var trxChartOptions = {
+            scaleBeginAtZero: true,
+            scaleShowGridLines: true,
+            scaleGridLineColor: 'rgba(0,0,0,.05)',
+            scaleGridLineWidth: 1,
+            scaleShowHorizontalLines: true,
+            scaleShowVerticalLines: true,
+            barShowStroke: true,
+            barStrokeWidth: 2,
+            barValueSpacing: 5,
+            barDatasetSpacing: 1,
+            responsive: true,
+            maintainAspectRatio: true,
+            datasetFill: false
+        };
+
+        var trxPieOptions = {
+            segmentShowStroke: true,
+            segmentStrokeColor: '#fff',
+            segmentStrokeWidth: 2,
+            percentageInnerCutout: 0,
+            animationSteps: 100,
+            animationEasing: 'easeOutBounce',
+            animateRotate: true,
+            animateScale: false,
+            responsive: true,
+            maintainAspectRatio: true,
+            tooltips: {
+                callbacks: {
+                    label: function(context, data) {
+                        var tempLabel = data.labels[context.index] || 'Data';
+                        var tempValue = data.datasets[0].data[context.index] || 0;
+
+                        return tempLabel+': '+tempValue.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
+                    }
+                }
+            }
+        };
+
+        var trxChartData = {
+            labels: {{ data_labels|raw }},
+            datasets: [
+                {
+                    label: '{{ "label.regular_transaction"|trans }}',
+                    backgroundColor: '#00a65a',
+                    strokeColor: '#00a65a',
+                    pointColor: '#00a65a',
+                    pointStrokeColor: 'rgba(60,141,188,1)',
+                    pointHighlightFill: '#fff',
+                    pointHighlightStroke: 'rgba(60,141,188,1)',
+                    data: {{ data_regular|raw }}
+                },
+                {
+                    label: '{{ "label.b2g_transaction"|trans }}',
+                    backgroundColor: '#fda65a',
+                    strokeColor: '#fda65a',
+                    pointColor: '#fda65a',
+                    pointStrokeColor: 'rgba(60,141,188,1)',
+                    pointHighlightFill: '#fff',
+                    pointHighlightStroke: 'rgba(60,141,188,1)',
+                    data: {{ data_b2g|raw }}
+                }
+            ]
+        };
+
+        var trxNominalChartData = {
+            labels: {{ nominal_labels|raw }},
+            datasets: [
+                {
+                    label: '{{ "label.regular_transaction"|trans }}',
+                    backgroundColor: '#00a65a',
+                    strokeColor: '#00a65a',
+                    pointColor: '#00a65a',
+                    pointStrokeColor: 'rgba(60,141,188,1)',
+                    pointHighlightFill: '#fff',
+                    pointHighlightStroke: 'rgba(60,141,188,1)',
+                    data: {{ nominal_regular|raw }}
+                },
+                {
+                    label: '{{ "label.b2g_transaction"|trans }}',
+                    backgroundColor: '#fda65a',
+                    strokeColor: '#fda65a',
+                    pointColor: '#fda65a',
+                    pointStrokeColor: 'rgba(60,141,188,1)',
+                    pointHighlightFill: '#fff',
+                    pointHighlightStroke: 'rgba(60,141,188,1)',
+                    data: {{ nominal_b2g|raw }}
+                }
+            ]
+        };
+
+        var trxChartCanvas = $('#transaction-chart').get(0).getContext('2d');
+
+        // Transaction chart
+        new Chart(trxChartCanvas, {
+            type: 'horizontalBar',
+            data: trxChartData,
+            options: trxChartOptions
+        });
+
+        {% if nominal_chart_type == 'bar' %}
+            var trxNominalChartCanvas = $('#nominal-transaction-chart').get(0).getContext('2d');
+
+            trxChartOptions.tooltips = {
+                callbacks: {
+                    label: function(context) {
+                        var tempLabel = context.datasetIndex === 0 ? 'Regular Transaction' : 'Government Transaction';
+
+                        return tempLabel+': '+context.value.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
+                    }
+                }
+            };
+            trxChartOptions.scales = {
+                xAxes: [{
+                    ticks: {
+                        callback: function(value, index, values) {
+                            return value.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
+                        }
+                    }
+                }]
+            };
+
+            // Nominal transaction chart
+            new Chart(trxNominalChartCanvas, {
+                type: 'horizontalBar',
+                data: trxNominalChartData,
+                options: trxChartOptions
+            });
+        {% elseif nominal_chart_type == 'pie' %}
+            var trxNominalPieRegChartCanvas = $('#nominal-pie-transaction-chart-reg').get(0).getContext('2d');
+            var trxNominalPieB2GChartCanvas = $('#nominal-pie-transaction-chart-b2g').get(0).getContext('2d');
+
+            // Nominal transaction chart
+            new Chart(trxNominalPieRegChartCanvas, {
+                type: 'pie',
+                data: {
+                    labels: {{ nominal_labels|raw }},
+                    datasets: [{
+                        data: {{ nominal_regular_pie|raw }},
+                        backgroundColor: {{ pie_colors|raw }}
+                    }]
+                },
+                options: trxPieOptions
+            });
+
+            // Nominal transaction chart
+            new Chart(trxNominalPieB2GChartCanvas, {
+                type: 'pie',
+                data: {
+                    labels: {{ nominal_labels|raw }},
+                    datasets: [{
+                        data: {{ nominal_b2g_pie|raw }},
+                        backgroundColor: {{ pie_colors|raw }}
+                    }]
+                },
+                options: trxPieOptions
+            });
+        {% endif %}
+    });
+</script>

@@ -1,0 +1,228 @@
+{% extends '@__main__/public/base/layouts/email_invoice.html.twig' %}
+
+{% set shipping_total = 0 %}
+{% set grand_total = 0 %}
+{% set ppn_total = 0 %}
+{% set order_payment_accounts = get_parameter('order_payment_accounts') %}
+{% set order_shared_id = null %}
+{% set order_vouchers_list = null %}
+{% set order_vouchers_lists = null %}
+{% set order_by_b2g = false %}
+{% set order_with_tax = false %}
+{% set is_pkp = 0 %}
+{% block body %}
+    {% for order in orders %}
+        {% if order.getIsB2gTransaction == true %}
+            {% set order_by_b2g = true %}
+        {% endif %}
+    {% endfor %}
+    <div class="text">
+        {#<h1>Invoice: #123456789</h1>#}
+        <p class="top">
+        {% if order_by_b2g == true %}
+            Terima kasih telah menggunakan <a href="{{ path('homepage') }}">balimall.id</a>.
+            Berikut adalah barang yang anda ajukan untuk dinegosiasikan dengan penyedia:
+        {% else %}
+            Terima kasih telah menggunakan <a href="{{ path('homepage') }}">balimall.id</a>.
+            Berikut adalah barang yang anda beli:
+        {% endif %}
+
+        </p>
+        <hr>
+        <div class="table-wrapper">
+            <div class="inner">
+                <table>
+                    {% for order in orders %}
+                        {% set seller = order.getSeller %}
+                        {% set sub_total = 0 %}
+                        {% set products = order_products(order.getId) %}
+                        {% set order_shared_id = order.getSharedId %}
+
+                        <tr>
+                            <td colspan="5">
+                                Toko: <b>{{ seller.getName }}</b>
+                                [INVOICE: <b>{{ order.getInvoice }}</b>]
+                            </td>
+                        </tr>
+                        {% for order_product in products %}
+                            {#{% set sub_product_total = order.getTotal|to_float %}#}
+                            {% set sub_product_total = order_product['op_totalPrice']|to_float + order_product['op_taxNominal']|to_float %}
+                            {% set sub_total = sub_total + sub_product_total %}
+                            {% set ppn_total = ppn_total + order_product['op_taxNominal']|to_float %}
+                            {% if order_product['op_withTax'] == true %}
+                                {% set order_with_tax = true %}
+                            {% endif %}
+                            {% if order_product['s_pkp']|default(0)|to_bool == true %}
+                                {% set is_pkp = is_pkp + 1 %}
+                            {% endif %}
+                            <tr>
+                                <td>Produk: <b>{{ order_product['p_name'] }}</b></td>
+                                <td>Kuantitas: <b>{{ order_product['op_quantity'] }}</b></td>
+                                {#<td>Berat: <b>{{ order_product['op_weight'] }}</b> kg</td>#}
+                                <td class="rt">Rp. {{ order_product['op_price']|number_format }}</td>
+                            </tr>
+                        {% endfor %}
+                        <tr>
+                            <td colspan="3">
+                                <table>
+                                    <tr>
+                                        <td>Alamat: <b>{{ order.getAddress ~ ', ' ~ order.getCity ~ ', ' ~ order.getDistrict ~ ', ' ~ order.getProvince ~ ', Indonesia' }}</b></td>
+                                        <td>Catatan: {% if order.getNote is not empty %}<b>{{ order.getNote }}</b>{% endif %}</td>
+                                        <td>Pengiriman: <b>{{ order.getShippingCourier ~ ' [' ~ order.getShippingService ~ ']' }}</b></td>
+                                        {% if order_by_b2g == true %}
+                                            <td>Biaya: <b>Rp. {{ order.getShippingPrice|number_format }}</b></td>
+                                        {% else %}
+                                            <td>Biaya: <b>Rp. {{ order.getShippingPrice|number_format }}</b></td>
+                                        {% endif %}
+                                    </tr>
+                                </table>
+                            </td>
+                            <td></td>
+                        </tr>
+
+                        {% if order_by_b2g == true %}
+                            {% set grand_total = grand_total + sub_total + order.getShippingPrice %}
+                            {% set ppn_total = ppn_total + get_ppn(order.getShippingPrice) %}
+                            {% set shipping_total = shipping_total + order.getShippingPrice %}
+                        {% else %}
+                            {% set shipping_total = shipping_total + order.getShippingPrice %}
+                            {% set grand_total = grand_total + sub_total + order.getShippingPrice %}
+                        {% endif %}
+
+                    {% endfor %}
+                    {% if order_shared_id is not empty %}
+                        {% set order_vouchers_list = order_vouchers(order_shared_id) %}
+                        {% set order_vouchers_lists = order_vouchers(order_shared_id, 'no') %}
+                        {% if order_vouchers_list|length > 0 %}
+                            {% set v_lists = [] %}
+                            <tr>
+                                <td colspan="3">
+                                    <table>
+                                        {% for voucher_list in order_vouchers_lists %}
+                                            {% if voucher_list['v_code'] not in v_lists %}
+                                                <tr>
+                                                    <td>Voucher: <b>{{ voucher_list['v_code'] }}</b></td>
+                                                    <td>Nominal: <b>Rp. {{ voucher_list['v_amount']|number_format }}</b></td>
+                                                </tr>
+                                                {% set v_lists = v_lists|merge([voucher_list['v_code']]) %}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </table>
+                                </td>
+                                <td></td>
+                            </tr>
+                        {% endif %}
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+        <div class="content">
+            <p>
+                <span class="label">Biaya Pengiriman:</span>
+                <span class="right-side">Rp. {{ shipping_total|number_format }}</span>
+            </p>
+            <div class="clear"></div>
+            {% if is_pkp > 0 and (order_by_b2g == true or order_with_tax == true) %}
+                <p>
+                    <span class="label">PPN (10%):</span>
+                    <span class="right-side">Rp. {{ ppn_total|number_format }}</span>
+                </p>
+                <div class="clear"></div>
+            {% endif %}
+            <p>
+                <span class="label">Total Transaksi:</span>
+                {% if order_vouchers_list is not empty %}
+                    {% if order_vouchers_list|length > 0 %}
+                        {% set total_order_amount = 0 %}
+                        {% set total_voucher_amount = 0 %}
+                        {% set o_lists = [] %}
+                        {% set v_lists = [] %}
+
+                        {% for voucher_list in order_vouchers_lists %}
+                            {% if voucher_list['vul_orderId'] not in o_lists %}
+                                {% set total_order_amount = total_order_amount + voucher_list['vul_orderAmount'] %}
+                                {% set o_lists = o_lists|merge([voucher_list['vul_orderId']]) %}
+                            {% endif %}
+                            {% if voucher_list['v_code'] not in v_lists %}
+                                {% set total_voucher_amount = total_voucher_amount + voucher_list['v_amount'] %}
+                                {% set v_lists = v_lists|merge([voucher_list['v_code']]) %}
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if order_with_tax %}
+                            {% set total_order_amount = total_order_amount + ppn_total%}
+                        {% endif %}
+
+                        {% set grand_total = total_order_amount - total_voucher_amount %}
+                        {% set grand_total_value = 'Rp. ' ~ grand_total|number_format %}
+                        {% if grand_total < 0 %}
+                            {% set grand_total = (grand_total * -1) %}
+                            {% set grand_total_value = '(Rp. ' ~ grand_total|number_format ~ ')' %}
+                        {% endif %}
+                        <span class="right-side">{{ grand_total_value }}</span>
+                    {% else %}
+                        <span class="right-side">Rp. {{ grand_total|number_format }}</span>
+                    {% endif %}
+                {% else %}
+                    <span class="right-side">Rp. {{ grand_total|number_format }}</span>
+                {% endif %}
+            </p>
+            <div class="clear"></div>
+        </div>
+        <hr>
+        <div class="user">
+            <p>Pembeli</p>
+            <h3>{{ full_name }}</h3>
+            {#<h5>Alamat: Denpasar, Bali, Indonesia</h5>#}
+        </div>
+        {#<div class="user right">
+            <p>Toko</p>
+            <h3>Nama Toko</h3>
+            <h5>Alamat: Denpasar, Bali, Indonesia</h5>
+        </div>#}
+        <div class="clear"></div>
+        <hr>
+        {% if order_by_b2g == true %}
+            <p>
+                Proses <b>PEMBAYARAN</b> dilakukan <b>KETIKA BARANG SUDAH SAMPAI</b>, dan <b>TIDAK ADA KOMPLAIN</b> dari Pembeli.
+                <br>
+                 Nominal pembayaran yang nanti anda bayarkan adalah nominal kesepakatan dari hasil negosiasi anda dengan penyedia.
+            </p>
+            <p>
+                Silahkan cek secara berkala perkembangan proses negosiasi anda di <a href="{{ path('homepage') }}">balimall.id</a>.
+            </p>
+        {% else %}
+            <p>
+                Untuk pembayaran, silahkan melakukan transfer ke:<br>
+                {% if is_b2g == true %}
+                    <code>
+                        {% if show_pay_account_1 == 'yes' %}{{ order_payment_accounts['all_1']|join('<br>')|raw }}{% endif %}
+                        {% if show_pay_account_2 == 'yes' %}<br><br>{{ order_payment_accounts['all_2']|join('<br>')|raw }}{% endif %}
+                    </code>
+                {% else %}
+                    {% if with_tax == true %}
+                        <code>
+                            {% if show_pay_account_1 == 'yes' %}{{ order_payment_accounts['all_1']|join('<br>')|raw }}{% endif %}
+                            {% if show_pay_account_2 == 'yes' %}<br><br>{{ order_payment_accounts['all_2']|join('<br>')|raw }}{% endif %}
+                        </code>
+                    {% else %}
+                        <code>
+                            {% if show_pay_account_1 == 'yes' %}{{ order_payment_accounts['all_1']|join('<br>')|raw }}{% endif %}
+                            {% if show_pay_account_2 == 'yes' %}<br><br>{{ order_payment_accounts['all_2']|join('<br>')|raw }}{% endif %}
+                        </code>
+                    {% endif %}
+                {% endif %}
+            </p>
+            <p>
+                Gunakan tautan berikut untuk melihat status transaksi Anda: <a href="{{ link_order }}" target="_blank">Riwayat Transaksi</a>
+            </p>
+            <p>
+                Atau tautan berikut untuk melakukan konfirmasi pembayaran: <a href="{{ link_confirmation }}" target="_blank">Konfirmasi Pembayaran</a>
+            </p>
+            <p>
+                Jika dalam 1x24 jam tidak melakukan pembayaran, transaksi Anda akan dibatalkan.
+            </p>
+        {% endif %}
+
+    </div>
+{% endblock %}

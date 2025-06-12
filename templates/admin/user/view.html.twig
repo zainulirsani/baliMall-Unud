@@ -1,0 +1,363 @@
+{% extends '@__main__/admin/base/layouts/default.html.twig' %}
+
+{% set trans_parameter = {'%name%': form_data['u_username']} %}
+{% set index_route = 'admin_' ~ page_section ~ '_index' %}
+{% set edit_route = 'admin_' ~ page_section ~ '_edit' %}
+{% set user_avatar = form_data['u_photoProfile']|default('dist/img/adminlte/avatar-male.png') %}
+{% set user_gender = '' %}
+{% set roleParam = app.request.query.get('role') %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-12">
+                <h1 class="page-header">{{ page_title|trans(trans_parameter) }}</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading"></div>
+                    <div class="panel-body">
+                        <div class="nav-tabs-custom">
+                            <ul class="nav nav-tabs user-tabs">
+                                <li class="active user-tab-data">
+                                    <a href="#tab-data" data-toggle="tab" data-tab="data">{{ 'label.data'|trans }}</a>
+                                </li>
+                                <li class="user-tab-profile">
+                                    <a href="#tab-profile" data-toggle="tab" data-tab="profile">{{ 'label.profile'|trans }}</a>
+                                </li>
+                                <li class="user-tab-address">
+                                    <a href="#tab-address" data-toggle="tab" data-tab="address">{{ 'label.address'|trans }}</a>
+                                </li>
+                                {% if form_data['u_role'] == 'ROLE_USER_GOVERNMENT' %}
+                                    <li class="user-tab-government">
+                                        <a href="#tab-government" data-toggle="tab" data-tab="government">{{ 'label.government'|trans }}</a>
+                                    </li>
+                                {% endif %}
+
+                                {% if form_data['u_subRole'] != 'PPK' and form_data['u_subRole'] != 'TREASURER' %}
+                                    {# <li class="user-tab-ppk">
+                                        <a href="#tab-ppk" data-toggle="tab" data-tab="ppk">{{ 'label.data_ppk'|trans }}</a>
+                                    </li>
+
+                                    <li class="user-tab-treasurer">
+                                        <a href="#tab-treasurer" data-toggle="tab" data-tab="treasurer">{{ 'label.data_treasurer'|trans }}</a>
+                                    </li> #}
+
+                                    <li class="user-tab-pic">
+                                        <a href="#tab-pic" data-toggle="tab" data-tab="pic">{{ 'label.data_pic'|trans }}</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                            <div class="tab-content tab-user-content">
+                                <div id="tab-data" class="tab-pane fade in active">
+                                    <div class="m-top-15"></div>
+                                    <div class="form-group">
+                                            <label for="">{{ 'label.is_user_testing'|trans }}</label>
+
+                                            {% set checked = form_data['u_isUserTesting'] == true ? 'checked' : '' %}
+                                            <div class="checkbox">
+                                                <label><input id="isUserTesting" type="checkbox" name="u_isUserTesting" value="1" {{ checked }} disabled></label>
+                                            </div>
+                                        </div>
+                                    {#<div class="form-group">
+                                        <label for="input-username">{{ 'label.username'|trans }}</label>
+                                        <input id="input-username" class="form-control" value="{{ form_data['u_username'] }}" readonly>
+                                    </div>#}
+                                    <div class="form-group">
+                                        <label for="input-email">{{ 'label.email'|trans }}</label>
+                                        <input id="input-email" class="form-control" value="{{ form_data['u_email'] }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-role">{{ 'label.role'|trans }}</label>
+                                        <input id="input-role" class="form-control" value="{{ form_data['u_role'] }}" readonly>
+                                    </div>
+                                    {% if form_data['u_role'] == 'ROLE_USER_GOVERNMENT' %}
+                                        <div class="form-group">
+                                            <label for="input-role">{{ 'label.sub_role'|trans }}</label>
+                                            <input id="input-role" class="form-control" value="{{ form_data['u_subRole'] }}" readonly>
+                                        </div>
+                                        {% if form_data['u_subRole'] == 'PPK' %}
+                                            <div class="form-group">
+                                                <label for="input-role">{{ 'label.sub_role'|trans }} Type</label>
+                                                {% set subRoleTypeLabel = 'label.' ~ form_data['u_subRoleTypeAccount'] %}
+                                                <input id="input-role" class="form-control" value="{{ subRoleTypeLabel|trans }}" readonly>
+                                            </div>
+                                        {% endif %}
+                                    {% endif %}
+                                    <div class="form-group">
+                                        {% set user_status = form_data['u_isActive'] == '1' ? 'label.active' : 'label.inactive' %}
+                                        <label for="input-status">{{ 'label.status'|trans }}</label>
+                                        <input id="input-status" class="form-control" value="{{ user_status|trans }}" readonly>
+                                    </div>
+
+
+                                    {% if form_data['u_subRole'] == 'TREASURER' %}
+                                        <div class="form-group">
+                                            <label for="input-username">VA BNI</label>
+                                            <input class="form-control" name="u_username" value="{{ form_data['u_vaBni']|default() }}" disabled>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div id="tab-profile" class="tab-pane fade">
+                                    <div class="m-top-15"></div>
+                                    <div class="form-group">
+                                        <img src="{{ asset(user_avatar) }}" class="profile-user-img img-responsive img-circle" alt="">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-first-name">{{ 'label.first_name'|trans }}</label>
+                                        <input id="input-first-name" class="form-control" value="{{ form_data['u_firstName'] }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-last-name">{{ 'label.last_name'|trans }}</label>
+                                        <input id="input-last-name" class="form-control" value="{{ form_data['u_lastName'] }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        {% for key, gender in get_parameter('gender_choices') %}
+                                            {% if form_data['u_gender'] == key %}{% set user_gender = gender|trans %}{% endif %}
+                                        {% endfor %}
+                                        <label for="input-gender">{{ 'label.gender'|trans }}</label>
+                                        <input id="input-gender" class="form-control" value="{{ user_gender }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-phone">{{ 'label.phone'|trans }}</label>
+                                        <input id="input-phone" class="form-control" value="{{ form_data['u_phoneNumber'] }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-dob">{{ 'label.dob'|trans }}</label>
+                                        <input id="input-dob" class="form-control" value="{{ form_data['u_dob'] }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-description">{{ 'label.description'|trans }}</label>
+                                        <textarea id="input-description" class="form-control" rows="3" readonly>{{ form_data['u_description'] }}</textarea>
+                                    </div>
+                                </div>
+                                <div id="tab-address" class="tab-pane fade">
+                                    <div class="m-top-15"></div>
+                                    {{ render(controller('App\\Plugins\\AdminPlugin::userAddressList', {
+                                        'userId': form_data['u_id'],
+                                        'type': 'view'
+                                    })) }}
+                                </div>
+                                {% if form_data['u_role'] == 'ROLE_USER_GOVERNMENT' %}
+                                    <div id="tab-government" class="tab-pane fade">
+                                        <div class="m-top-15"></div>
+                                        <div class="form-group">
+                                            <label for="input-nip">{{ 'label.nip'|trans }}</label>
+                                            <input id="input-nip" class="form-control" value="{{ form_data['u_nip'] }}" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="input-pp-name">{{ 'label.pp_name'|trans }}</label>
+                                            <input id="input-pp-name" class="form-control" value="{{ form_data['u_ppName'] }}" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="input-ppk-name">{{ 'label.ppk_name'|trans }}</label>
+                                            <input id="input-ppk-name" class="form-control" value="{{ form_data['u_ppkName'] }}" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="input-lkpp-lpse-id">{{ 'label.lpse_id'|trans }}</label>
+                                            <input id="input-lkpp-lpse-id" class="form-control" value="{{ form_data['u_lkppLpseId'] }}" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="input-lkpp_kldi">K/L/PD</label>
+                                            <input id="input-lkpp_kldi" class="form-control" value="{{ form_data['u_lkppKLDI'] }}" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="input-lkpp-work_unit">{{ 'label.work_unit'|trans }}</label>
+                                            <input id="input-lkpp-work_unit" class="form-control" value="{{ form_data['u_lkppWorkUnit'] }}" readonly>
+                                        </div>
+                                    </div>
+                                {% endif %}
+
+                                        <div id="tab-ppk" class="tab-pane fade">
+                                            <div class="m-top-15"></div>
+                                            <div class="form-group">
+                                                <label for="input-ppk">{{ 'label.data_ppk'|trans }}</label>
+                                                <select id="input-ppk" class="form-control" name="id_ppk">
+                                                    <option value="0">Select {{ 'label.data_ppk'|trans }}</option>
+                                                    {% for value in form_data['u_userPpkTreasurer'] %}
+                                                        {% if value.getType == 'ppk' %}
+                                                            <option value="{{ value.getId }}" data-name="{{ value.getName }}" data-nip="{{ value.getNip }}" data-email="{{ value.getEmail }}" data-type="{{ value.getTypeAccount }}">{{ value.getName }}</option>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="input-ppk_name">{{ 'label.ppk_name'|trans }}</label>
+                                                <input id="input-ppk_name" class="form-control" value="" name="ppk_name" readonly>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="input-ppk_nip">{{ 'label.ppk_nip'|trans }}</label>
+                                                <input id="input-ppk_nip" class="form-control" value="" name="ppk_nip" readonly>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="input-ppk_email">{{ 'label.ppk_email'|trans }}</label>
+                                                <input id="input-ppk_email" class="form-control" value="" name="ppk_email" readonly>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="input-ppk_type_account">{{ 'label.type'|trans }}</label>
+                                                <select id="input-ppk_type_account" class="form-control" name="ppk_type_account" disabled>
+                                                    {% for option in get_parameter('ppk_type_options') %}
+                                                        {% set label_option = 'label.' ~ option %}
+                                                        <option value="{{ option }}">{{ label_option|trans }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div id="tab-treasurer" class="tab-pane fade">
+                                            <div class="m-top-15"></div>
+                                            <div class="form-group">
+                                                <label for="input-treasurer">{{ 'label.data_treasurer'|trans }}</label>
+                                                <select id="input-treasurer" class="form-control" name="id_treasurer">
+                                                    <option value="0">Select {{ 'label.data_treasurer'|trans }}</option>
+                                                    {% for value in form_data['u_userPpkTreasurer'] %}
+                                                        {% if value.getType == 'treasurer' %}
+                                                            <option value="{{ value.getId }}" data-name="{{ value.getName }}" data-nip="{{ value.getNip }}" data-email="{{ value.getEmail }}" data-type="{{ value.getTypeAccount }}">{{ value.getName }}</option>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="input-treasurer_name">{{ 'label.treasurer_name'|trans }}</label>
+                                                <input id="input-treasurer_name" class="form-control" value="" name="treasurer_name" readonly>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="input-treasurer_nip">{{ 'label.treasurer_nip'|trans }}</label>
+                                                <input id="input-treasurer_nip" class="form-control" value="" name="treasurer_nip" readonly>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="input-treasurer_email">{{ 'label.treasurer_email'|trans }}</label>
+                                                <input id="input-treasurer_email" class="form-control" value="" name="treasurer_email" readonly>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="input-treasurer_type_account">{{ 'label.type'|trans }}</label>
+                                                <select id="input-treasurer_type_account" class="form-control" name="treasurer_type_account" disabled>
+                                                    {% for option in get_parameter('treasurer_type_options') %}
+                                                        {% set label_option = 'label.' ~ option %}
+                                                        <option value="{{ option }}">{{ label_option|trans }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div id="tab-pic" class="tab-pane fade">
+                                            <div class="m-top-15"></div>
+                                            <div class="form-group">
+                                                <label for="input-pic">{{ 'label.data_pic'|trans }}</label>
+                                                <select id="input-pic" class="form-control" name="id_pic">
+                                                    <option>{{ 'label.pic_data_choose'|trans }}</option>
+                                                    {% for value in form_data['u_userPic'] %}
+                                                        <option value="{{ value.getId }}" data-name="{{ value.getName }}" data-telp="{{ value.getNotelp }}" data-email="{{ value.getEmail }}" data-unit="{{ value.getUnit }}" data-address="{{ value.getAddress }}">{{ value.getName }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="input-pic_name">{{ 'label.pic_name'|trans }}</label>
+                                                <input id="input-pic_name" class="form-control" value="" name="pic_name" readonly>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="input-pic_telp">{{ 'label.pic_telp'|trans }}</label>
+                                                <input id="input-pic-telp" class="form-control" value="" name="pic_telp" readonly>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="input-pic_email">{{ 'label.pic_email'|trans }}</label>
+                                                <input id="input-pic_email" class="form-control" value="" name="pic_email" readonly>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="input-pic_unit">{{ 'label.pic_unit'|trans }}</label>
+                                                <input id="input-pic_unit" class="form-control" value="" name="pic_unit" readonly>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="input-pic_address">{{ 'label.pic_address'|trans }}</label>
+                                                <input id="input-pic_address" class="form-control" value="" name="pic_address" readonly>
+                                            </div>
+                                        </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel-footer">
+                        <div id="button-tab-data" class="button-tabs-user" style="display: inline;">
+                            <button type="button" class="btn btn-primary btn-tab-step" data-current="data" data-step="profile">
+                                {{ 'button.next'|trans }}
+                            </button>
+                        </div>
+                        <div id="button-tab-profile" class="button-tabs-user hidden" style="display: inline;">
+                            <button type="button" class="btn btn-primary btn-tab-step" data-current="profile" data-step="data">
+                                {{ 'button.previous'|trans }}
+                            </button>
+                            <button type="button" class="btn btn-primary btn-tab-step" data-current="profile" data-step="address">
+                                {{ 'button.next'|trans }}
+                            </button>
+                        </div>
+                        {% if form_data['u_role'] == 'ROLE_USER_GOVERNMENT' %}
+                            <div id="button-tab-address" class="button-tabs-user hidden" style="display: inline;">
+                                <button type="button" class="btn btn-primary btn-tab-step" data-current="address" data-step="profile">
+                                    {{ 'button.previous'|trans }}
+                                </button>
+                                <button type="button" class="btn btn-primary btn-tab-step" data-current="address" data-step="government">
+                                    {{ 'button.next'|trans }}
+                                </button>
+                            </div>
+                                <div id="button-tab-government" class="button-tabs-user hidden" style="display: inline;">
+
+                                {% if form_data['u_subRole'] != 'PPK' %}
+                                    <button type="button" class="btn btn-primary btn-tab-step" data-current="government" data-step="address">
+                                        {{ 'button.previous'|trans }}
+                                    </button>
+                                    <button type="button" class="btn btn-primary btn-tab-step" data-current="government" data-step="ppk">
+                                        {{ 'button.next'|trans }}
+                                    </button>
+                                {% else %}
+                                    <button type="button" class="btn btn-primary btn-tab-step" data-current="government" data-step="address">
+                                        {{ 'button.previous'|trans }}
+                                    </button>
+                                    {% if form_data['is_allowed_to_edit'] %}
+                                        <a href="{{ path(edit_route, {'id': form_data['u_id'], 'role': roleParam}) }}" class="btn btn-primary">{{ 'button.edit'|trans }}</a>
+                                    {% endif %}
+                                {% endif %}
+                                </div>
+                                <div id="button-tab-ppk" class="button-tabs-user hidden" style="display: inline;">
+                                    <button type="button" class="btn btn-primary btn-tab-step" data-current="ppk" data-step="government">
+                                        {{ 'button.previous'|trans }}
+                                    </button>
+                                    <button type="button" class="btn btn-primary btn-tab-step" data-current="ppk" data-step="treasurer">
+                                        {{ 'button.next'|trans }}
+                                    </button>
+                                </div>
+                                <div id="button-tab-treasurer" class="button-tabs-user hidden" style="display: inline;">
+                                    <button type="button" class="btn btn-primary btn-tab-step" data-current="treasurer" data-step="ppk">
+                                        {{ 'button.previous'|trans }}
+                                    </button>
+                                    <button type="button" class="btn btn-primary btn-tab-step" data-current="treasurer" data-step="pic">
+                                        {{ 'button.next'|trans }}
+                                    </button>
+                                </div>
+                                <div id="button-tab-pic" class="button-tabs-user hidden" style="display: inline;">
+                                    <button type="button" class="btn btn-primary btn-tab-step" data-current="pic" data-step="treasurer">
+                                        {{ 'button.previous'|trans }}
+                                    </button>
+                                    {% if form_data['is_allowed_to_edit'] %}
+                                        <a href="{{ path(edit_route, {'id': form_data['u_id'], 'role': roleParam}) }}" class="btn btn-primary">{{ 'button.edit'|trans }}</a>
+                                    {% endif %}
+                                </div>
+                        {% else %}
+                            <div id="button-tab-address" class="button-tabs-user hidden" style="display: inline;">
+                                <button type="button" class="btn btn-primary btn-tab-step" data-current="address" data-step="profile">
+                                    {{ 'button.previous'|trans }}
+                                </button>
+                                {% if form_data['is_allowed_to_edit'] %}
+                                    <a href="{{ path(edit_route, {'id': form_data['u_id'], 'role': roleParam}) }}" class="btn btn-primary">{{ 'button.edit'|trans }}</a>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                        <div style="display: inline;">
+                            <a href="{{ path(index_route) }}" class="btn btn-default">{{ 'button.cancel'|trans }}</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

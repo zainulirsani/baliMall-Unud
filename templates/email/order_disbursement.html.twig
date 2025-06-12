@@ -1,0 +1,123 @@
+{% extends '@__main__/public/base/layouts/email.html.twig' %}
+
+{% block stylesheets %}
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            padding: 5px;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        table {
+            width: 100%;
+            border-spacing: 1px 2px;
+        }
+
+        tr {
+            line-height: 30px;
+        }
+
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="text">
+        <h1>Hi, {{ name }}!</h1>
+        {% if data['status'] == 'processed' %}
+        <h3>Disbursement untuk invoice {{ invoice }} telah diproses.</h3>
+        <p>
+            Gunakan tautan berikut untuk melihat riwayat pesanan: <a href="{{ link }}" target="_blank">Riwayat Transaksi</a>
+        </p>
+        {% elseif data['status'] == 'done' %}
+            <h3>Disbursement untuk invoice {{ invoice }} telah selesai.</h3>
+            <h4>Bank Name    : {{ data['rekening_name']|capitalize }}</h4>
+            <h4>Bank Account : {{ data['bank_name']|upper }}</h4>
+            <h4>No. Rekening : {{ data['nomor_rekening'] }}</h4>
+            <hr>
+            <table class="tb-order-products">
+                <thead>
+                <tr>
+                    <th>{{ 'label.products'|trans }}</th>
+                    <th>{{ 'label.product_category'|trans }}</th>
+                    <th>{{ 'label.qty'|trans }}</th>
+                    <th>{{ 'label.fee'|trans }}</th>
+                    <th>{{ 'label.price'|trans }}</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% set total_product_price = data['total_product_price'] %}
+                {% set product_fee = data['product_fee'] %}
+                {% set sub_total_after_product_fee = total_product_price - product_fee %}
+                {% set total_ppn = 0 %}
+                {% for product in data['products'] %}
+                    {% set qty = product['op_quantity'] %}
+                    {% set product_price = product['op_price'] * qty %}
+                    {% set ppn_product = product['op_withTax'] == true ? product['op_taxNominal'] : 0 %}
+                    {% set total_ppn = total_ppn + (ppn_product) %}
+
+                    <tr>
+                        <td>{{ product['p_name'] }}</td>
+                        <td>{{ product['pc_name'] }}</td>
+                        <td>{{ qty }}</td>
+                        <td>{{ product['op_fee']|default(0) ~ '%' }}</td>
+                        <td>{{ product_price|number_format }}</td>
+                    </tr>
+                {% endfor %}
+
+                {% set sub_total_without_tax = total_product_price - total_ppn %}
+
+                <tr>
+                    <td colspan="4"><strong>{{ 'label.sub_total'|trans }}</strong></td>
+                    <td>{{ sub_total_without_tax|number_format }}</td>
+                </tr>
+                <tr>
+                    <td colspan="4"><strong>{{ 'label.tax'|trans }}</strong></td>
+                    <td>{{ total_ppn|number_format }}</td>
+                </tr>
+                <tr>
+                    <td colspan="4"><strong>{{ 'label.sub_total_with_tax'|trans }}</strong></td>
+                    <td>{{ total_product_price|number_format }}</td>
+                </tr>
+                <tr>
+                    <td colspan="4"><strong>{{ 'label.product_fee'|trans }}</strong></td>
+                    <td>{{ product_fee|number_format }}</td>
+                </tr>
+                <tr>
+                    <td colspan="4"><strong>{{ 'label.sub_total_after_product_fee'|trans }}</strong></td>
+                    <td>{{ sub_total_after_product_fee|number_format }}</td>
+                </tr>
+                <tr>
+                    <td colspan="4"><strong>{{ 'label.ppn'|trans }} ( {{ data['persentase_ppn'] }} %)</strong></td>
+                    <td>{{ data['ppn']|number_format }}</td>
+                </tr>
+                <tr>
+                    <td colspan="4"><strong>{{ 'label.pph'|trans }} ( {{ data['persentase_pph'] }} %)</strong></td>
+                    <td>{{ data['pph']|number_format }}</td>
+                </tr>
+                <tr>
+                    <td colspan="4"><strong>{{ 'label.bank_fee'|trans }} ( {{ data['persentase_bank'] }} %)</strong></td>
+                    <td>{{ data['bank_fee']|number_format }}</td>
+                </tr>
+                <tr>
+                    <td colspan="4"><strong>{{ 'label.management_fee'|trans }} ( {{ data['persentase_management'] }} %)</strong></td>
+                    <td>{{ data['management_fee']|number_format }}</td>
+                </tr>
+                <tr>
+                    <td colspan="4"><strong>{{ 'label.other_fee'|trans }} ( {{ data['persentase_other'] }} %)</strong></td>
+                    <td>{{ data['other_fee']|number_format }}</td>
+                </tr>
+                <tr>
+                    <td colspan="4"><strong>{{ 'label.grand_total'|trans }}</strong></td>
+                    <td>{{ data['total']|number_format }}</td>
+                </tr>
+                </tbody>
+            </table>
+            <hr>
+
+            <p>
+                Gunakan tautan berikut untuk melihat riwayat pesanan: <a href="{{ link }}" target="_blank">Riwayat Transaksi</a>
+            </p>
+        {% endif %}
+    </div>
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends '@__main__/admin/base/layouts/default.html.twig' %}
+
+{% set trans_parameter = {'%name%': form_data['s_name']} %}
+{% set page_header = page_title|trans(trans_parameter) %}
+{% set store_owner_id = form_data['u_id']|default(0) %}
+{% set store_owner_full_name = null %}
+
+{% if store_owner_id > 0 %}
+    {% set store_owner_full_name = form_data['u_firstName'] ~ ' ' ~ form_data['u_lastName'] %}
+{% endif %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="box box-primary">
+                <form id="store-form" accept-charset="UTF-8" method="post" action="">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">{{ page_header }}</h3>
+                    </div>
+                    <div class="box-body">
+                        {{ csrf_field(token_id) }}
+                        <div class="panel-body">
+                            <div class="nav-tabs-custom">
+                                <ul class="nav nav-tabs store-tabs">
+                                    <li class="active store-tab-owner">
+                                        <a href="#tab-owner" data-toggle="tab" data-tab="owner">{{ 'label.change_owner'|trans }}</a>
+                                    </li>
+                                    {% if app.user.role == 'ROLE_SUPER_ADMIN' %}
+                                        <li class="store-tab-history">
+                                            <a href="#tab-history" data-toggle="tab" data-tab="history">{{ 'label.history'|trans }}</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                                <div class="tab-content tab-store-content">
+                                    <div id="tab-owner" class="tab-pane fade in active">
+                                        <div class="m-top-15"></div>
+                                        <div class="form-group">
+                                            <label for="input-current-owner">{{ 'label.current_owner'|trans }}</label>
+                                            <input id="input-current-owner" class="form-control" value="{{ store_owner_full_name }}" readonly>
+                                        </div>
+                                        <div class="form-group {% if errors['currentOwner']|default() %}has-error{% endif %}">
+                                            <label for="input-owned-by">{{ 'label.new_owner'|trans }}</label>
+                                            {% if errors['currentOwner']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['currentOwner'] }}</span>
+                                            {% endif %}
+                                            <select id="input-owned-by" class="form-control" name="owner_id">
+                                                <option value="">{{ 'label.select_option'|trans }}</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group {% if errors['reason']|default() %}has-error{% endif %}">
+                                            <label for="input-reason">{{ 'label.reason'|trans }}</label>
+                                            {% if errors['reason']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['reason'] }}</span>
+                                            {% endif %}
+                                            <textarea id="input-reason" class="form-control" rows="3" name="reason">{{ form_data['reason']|default() }}</textarea>
+                                        </div>
+                                    </div>
+                                    {% if app.user.role == 'ROLE_SUPER_ADMIN' %}
+                                        <div id="tab-history" class="tab-pane fade">
+                                            <div class="m-top-15"></div>
+                                            <ul class="products-list product-list-in-box">
+                                                {% for history in histories %}
+                                                    {% set admin_name = history['adm_firstName'] ~ ' ' ~ history['adm_lastName'] %}
+                                                    {% set previous = history['po_firstName'] ~ ' ' ~ history['po_lastName'] %}
+                                                    {% set current = history['co_firstName'] ~ ' ' ~ history['co_lastName'] %}
+                                                    <li class="item">
+                                                        <div class="product-info" style="margin-left: 0;">
+                                                            <span class="pull-right">
+                                                                {{ history['sol_createdAt']|date('d F Y, H:i') }}
+                                                            </span>
+                                                            <span class="product-description" style="color: black;">
+                                                                {{ admin_name|trim }} (ID #{{ history['sol_updatedBy'] }})
+                                                                change owner of "{{ form_data['s_name'] }}"
+                                                                from "{{ previous|trim }}" to "{{ current|trim }}"
+                                                                <br>
+                                                                {{ 'label.reason'|trans ~ ': ' ~ history['sol_reason'] }}
+                                                            </span>
+                                                        </div>
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box-footer">
+                        {% if app.user.role == 'ROLE_SUPER_ADMIN' %}
+                            <div id="button-tab-owner" class="button-tabs-store" style="display: inline;">
+                                <button type="button" class="btn btn-primary btn-tab-step" data-current="owner" data-step="history">
+                                    {{ 'button.next'|trans }}
+                                </button>
+                            </div>
+                            <div id="button-tab-history" class="button-tabs-store hidden" style="display: inline;">
+                                <button type="button" class="btn btn-primary btn-tab-step" data-current="history" data-step="owner">
+                                    {{ 'button.previous'|trans }}
+                                </button>
+                            </div>
+                        {% endif %}
+                        <div style="display: inline;">
+                            <button type="submit" class="btn btn-primary">
+                                {{ 'button.save'|trans }}
+                            </button>
+                            <a href="{{ path('admin_store_index') }}" class="btn btn-default">{{ 'button.cancel'|trans }}</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

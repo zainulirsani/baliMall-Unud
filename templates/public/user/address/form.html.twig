@@ -1,0 +1,165 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% set province_id = form_data['province_id']|default(0) %}
+{% set city_data_select = province_id > 0 ? city_data[province_id] : []  %}
+
+{% block stylesheets %}
+<style>
+    #map { height: 300px; }
+</style>
+{% endblock %}
+
+{% block content %}
+    <main class="pdl">
+        {% include '@__main__/public/base/partials/breadcrumb.html.twig' %}
+        <section>
+            <div class="container">
+                <div class="box">
+                    <div class="row">
+                        {% include '@__main__/public/user/fragments/menu.html.twig' %}
+                        <div class="dc9 tc12">
+                            <div class="sub-title">
+                                <div class="text">
+                                    <h3>{{ 'label.address_add'|trans }}</h3>
+                                </div>
+                                <div class="clear"></div>
+                            </div>
+                            <div class="pr-card">
+                                <div class="row">
+                                    <div class="container fc">
+                                        <form id="user-address-form" action="" method="post" accept-charset="UTF-8">
+                                            {% set error = errors['title'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                                <input id="input-title" type="text" name="title" value="{{ form_data['title']|default() }}" title="" placeholder="{{ 'label.title'|trans }}">
+                                                {% if error %}<p class="{{ error }}">{{ errors['title'] }}</p>{% endif %}
+                                            </div>
+                                            {% set error = errors['address'] is defined ? 'error' : null %}
+                                            <div class="input">
+                                                <textarea id="user-address" name="address" class="no-resize" title="" placeholder="{{ 'label.address'|trans }}">{{ form_data['address']|default() }}</textarea>
+                                                {% if error %}<p class="{{ error }}">{{ errors['address'] }}</p>{% endif %}
+                                            </div>
+                                            {% set error = errors['province'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                                <select id="user-province" name="province_id" title="">
+                                                    <option value="">{{ 'label.select_option'|trans }}</option>
+                                                    {% for province in province_data %}
+                                                        {% set selected = province_id == province['province_id'] ? 'selected' : '' %}
+                                                        <option value="{{ province['province_id'] }}" {{ selected }}>{{ province['province'] }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                                <input id="input-province-name" type="hidden" name="province" value="{{ form_data['province']|default() }}">
+                                                {% if error %}<p class="{{ error }}">{{ errors['province'] }}</p>{% endif %}
+                                            </div>
+                                            {% set error = errors['city'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                                <select id="user-city" name="city_id" title="">
+                                                    <option value="">{{ 'label.select_option'|trans }}</option>
+                                                    {% for city in city_data_select %}
+                                                        {% set selected = form_data['city_id']|default(0) == city['city_id'] ? 'selected' : '' %}
+                                                        <option value="{{ city['city_id'] }}" {{ selected }}>{{ city['city_name'] }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                                <input id="input-city-name" type="hidden" name="city" value="{{ form_data['city']|default() }}">
+                                                {% if error %}<p class="{{ error }}">{{ errors['city'] }}</p>{% endif %}
+                                            </div>
+                                            {% set error = errors['district'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                                <input id="input-district" type="text" name="district" value="{{ form_data['district']|default() }}" title="" placeholder="{{ 'label.district'|trans }}">
+                                                {% if error %}<p class="{{ error }}">{{ errors['district'] }}</p>{% endif %}
+                                            </div>
+                                            {% set error = errors['postCode'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                                <input id="user-post-code" type="text" name="post_code" value="{{ form_data['post_code']|default() }}" title="" placeholder="{{ 'label.post_code'|trans }}">
+                                                {% if error %}<p class="{{ error }}">{{ errors['postCode'] }}</p>{% endif %}
+                                            </div>
+                                            <div id="map"></div>
+                                            <div class="input">
+                                                <input type="hidden" name="_csrf_token" value="{{ csrf_token(token_id) }}">
+                                                <input type="hidden" name="_csrf_token_id" value="{{ token_id }}">
+                                                <input type="hidden" name="lat" value="{{ form_data['addressLat']|default }}" id="lat">
+                                                <input type="hidden" name="lng" value="{{ form_data['addressLng']|default }}" id="lng">
+                                            </div>
+                                            <div class="input">
+                                                <input type="submit" value="{{ 'button.save'|trans }}" class="sBtn red btn-submit">
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        CITY_LIST = {{ city_data|json_encode|raw }};
+
+        const reqMsg = "{{ 'message.info.check_form'|trans }}"
+
+        const addressLat = $('#lat');
+        const addressLng = $('#lng');
+        const inputTitle = $('#input-title');
+        const isAddressLatLngEmpty = addressLat.val() === '' && addressLng.val() === '';
+        const popup = L.popup();
+        const iconLoc = L.icon({iconUrl: "{{ asset('dist/img/marker-icon.png') }}"});
+
+        let mymap;
+        let marker;
+
+        if (isAddressLatLngEmpty) {
+            mymap = L.map('map').setView([-8.6725072, 115.1542332], 10);
+        }else {
+            const latLng = [addressLat.val(), addressLng.val()]
+
+            mymap = L.map('map').setView(latLng, 10);
+            marker = L.marker(latLng, {icon: iconLoc}).addTo(mymap);
+            popup
+                .setLatLng(latLng)
+                .setContent(inputTitle.val())
+                .openOn(mymap);
+        }
+
+        L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+            maxZoom: 18,
+            id: 'mapbox/streets-v11',
+            tileSize: 512,
+            zoomOffset: -1,
+            accessToken: LEAFLET_ACCESS_TOKEN
+        }).addTo(mymap);
+
+        mymap.on('click', function (e) {
+
+            addressLat.val(e.latlng.lat)
+            addressLng.val(e.latlng.lng);
+
+            if (marker) {
+                mymap.removeLayer(marker)
+                marker = L.marker([e.latlng.lat, e.latlng.lng], {icon: iconLoc}).addTo(mymap)
+            }else {
+                marker = L.marker([e.latlng.lat, e.latlng.lng], {icon: iconLoc}).addTo(mymap);
+            }
+
+            popup
+                .setLatLng(e.latlng)
+                .setContent(inputTitle.val() || 'Alamat anda')
+                .openOn(mymap);
+        })
+
+        $('.btn-submit').on('click', function (e) {
+            e.preventDefault();
+
+            if (addressLat.val() === "" && addressLng.val() === "") {
+                showGeneralPopup(reqMsg)
+            }else {
+                $('#user-address-form').submit()
+            }
+
+        })
+
+    </script>
+{% endblock %}

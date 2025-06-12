@@ -1,0 +1,41 @@
+<div class="inner-box">
+    {% if 'free_shipping' in vendor_couriers %}
+        <span class="check-wrapper">
+            <input type="checkbox" name="pick_up[{{ hash }}]" class="check self-pick-up pu-{{ hash }}" value="1" title="" data-hash="{{ hash }}">
+            <label></label>
+        </span>
+        <p>
+            {{ 'label.self_pick_up'|trans }}<br>
+            {{ 'message.info.self_pick_up'|trans }}
+        </p>
+    {% endif %}
+    {% if free_shipping_method['v2'] == 'include' and 'free_shipping_2' in vendor_couriers %}
+        <span class="check-wrapper">
+            <input type="checkbox" name="pick_up[{{ hash }}]" class="check self-pick-up pu-{{ hash }}" value="2" title="" data-hash="{{ hash }}">
+            <label></label>
+        </span>
+        <p>
+            {{ 'label.self_pick_up'|trans }}<br>
+            {{ 'message.info.self_pick_up_2'|trans }}
+        </p>
+    {% endif %}
+    {% if free_shipping_method['v2'] == 'include' and 'free_shipping_3' in vendor_couriers %}
+        <span class="check-wrapper">
+            <input type="checkbox" name="pick_up[{{ hash }}]" class="check self-pick-up pu-{{ hash }}" value="3" title="" data-hash="{{ hash }}">
+            <label></label>
+        </span>
+        <p>
+            {# {{ 'label.self_pick_up'|trans }}<br> #}
+            {{ 'message.info.self_pick_up_3'|trans }}
+        </p>
+    {% endif %}
+    {% if free_shipping_method['v2'] == 'include' and 'free_shipping_4' in vendor_couriers %}
+        <span class="check-wrapper">
+            <input type="checkbox" name="pick_up[{{ hash }}]" class="check self-pick-up pu-{{ hash }}" value="4" title="" data-hash="{{ hash }}">
+            <label></label>
+        </span>
+        <p>
+            {{ 'message.info.self_pick_up_4'|trans }}
+        </p>
+    {% endif %}
+</div>

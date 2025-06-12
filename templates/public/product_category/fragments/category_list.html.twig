@@ -1,0 +1,18 @@
+<div class="cat cat--filtered">
+    <div class="row">
+        {% for key, category in product_category_featured|slice(0, 6) %}
+            {% set category_id = category['id'] %}
+            <div class="dc2 tc4">
+                <div class="cat__single">
+                    <a href="javascript:void(0);" class="cat__{{ loop.index }} btn-gtm-bm-pcc find-category" data-index="{{ key }}" data-id="{{ category['id'] }}" data-parent="0" data-level="0">
+                        <img src="{{ asset(category['icon']) }}" alt=""> {{ category['text'] }}
+                    </a>
+                    <div>
+                        <input id="gtm-pcc-name-{{ category_id }}" type="hidden" value="{{ category['text'] }}">
+                        <input id="gtm-pcc-id-{{ category_id }}" type="hidden" value="{{ category_id }}">
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>

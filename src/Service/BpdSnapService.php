@@ -1,0 +1,484 @@
+<?php
+
+namespace App\Service;
+
+
+use App\Exception\HttpClientException;
+use App\Helper\StaticHelper;
+use Psr\Log\LoggerInterface;
+use Carbon\Carbon;
+
+class BpdSnapService
+{
+    protected $headers;
+    protected $endpoint;
+    protected $logger;
+    protected $baseUrl;
+
+    protected $merchantPan;
+    protected $baseUrlToken;
+
+    protected $bpdUrl;
+    protected $snapUrl;
+    protected $snapVersion;
+    protected $privateKey;
+    protected $clientId;
+    protected $clientSecret;
+    protected $token;
+    protected $tokenType;
+    protected $tokenExpired;
+    protected $merchantId;
+    protected $terminalId;
+    protected $terminalSingleFlowId;
+    protected $bindingUrl;
+
+    public function __construct(LoggerInterface $logger)
+    {
+        $this->logger = $logger;
+        
+        $this->baseUrl = getenv('CC_BPD_URL');
+        $this->baseUrlToken = getenv('CC_BPD_URL_TOKEN');
+        $this->snapVersion = getenv('SNAP_VERSION');
+        $this->privateKey = getenv('BPD_SNAP_PRIVATE_KEY');
+        $this->clientId = getenv('BPD_SNAP_CLIENT_ID');
+        $this->clientSecret = getenv('BPD_SNAP_CLIENT_SECRET');
+        $this->merchantPan = getenv('BPD_MERCHANT_PAN');
+        $this->terminalId = getenv('BPD_TERMINAL_ID');
+        $this->terminalSingleFlowId = getenv('BPD_TERMINAL_SINGLE_FLOW_ID');
+        $this->bindingUrl = getenv('BPD_BINDING_URL');
+    }
+
+    function accessToken() {
+        $currentDateTime = Carbon::now('Asia/Makassar')->format('Y-m-d\TH:i:sP');
+
+        $binary_signature = "";
+        $stringToSign = $this->clientId . "|" . $currentDateTime;
+        
+        $privateKey = openssl_pkey_get_private(file_get_contents(__DIR__."/../../rsa_private.pem"));
+        $pkeyId = $privateKey;
+        openssl_sign($stringToSign, $binary_signature, $pkeyId, OPENSSL_ALGO_SHA256);
+        $signature = base64_encode($binary_signature);
+
+        
+        $header = $this->getHeader([
+            'timestamp' => $currentDateTime,
+            'clientId' => $this->clientId,
+            'signature' => $signature
+        ]);
+        $request = [
+            'grantType' => 'client_credentials',
+            'additionalInfo' => (object) [],
+        ];
+        $url = $this->baseUrlToken . $this->snapVersion . '/access-token/b2b';
+        $this->logger->error(sprintf('BPD API Access Token request: %s', json_encode([$header,$request])));
+        $result = $this->send($url, $header, json_encode($request));
+        $this->logger->error(sprintf('BPD API Access Token response: %s', $result));
+        return $result;
+    }
+
+    function authenticationCpts($token, $request, $binding = null) {
+        $currentDateTime = Carbon::now('Asia/Jakarta')->format('Y-m-d\TH:i:sP');
+        $currentDateTimeSend = Carbon::now('Asia/Makassar')->addMinutes(15)->format('Y-m-d\TH:i:sP');
+        $terminalId = $this->terminalId;
+        $request_body = [
+            'merchantId' => $this->merchantPan,
+            'terminalId' => $this->terminalId,
+            'amount' => (object) [
+                'value' => $request['nominal'],
+                'currency' => 'IDR',
+            ],
+            'partnerReferenceNo' => $request['partnerReferenceNo'],
+            'additionalInfo' => (object) [
+                'customerPan' => $request['cpan'],
+                // 'merchantExpired' => $request['merchantExpired'],
+                'trxDateTime' => $currentDateTimeSend,
+            ],
+        ];
+
+        if (isset($request['ott']) && !empty($request['ott'])) {
+            $request_body['additionalInfo']->ott = $request['ott'];
+        }
+
+        // cek apakah mengaktifkan binding atau menggunakan cpan dan ott dari list binding
+        if ($binding != null) {
+            $request_body['additionalInfo']->binding = $binding;
+            // cek manual atau dari list binding, kalau manual bindingType nya not isset
+            if (isset($request['bindingType']) && !empty($request['bindingType'])) {
+                if ($request['bindingType'] == 'single') {
+                    $terminalId = $this->terminalSingleFlowId;
+                }
+                $request_body['additionalInfo']->bindingToken = $request['bindingToken'];
+            }
+        } else {
+            $request_body['additionalInfo']->items = $request['items'];
+            $request_body['additionalInfo']->binding = "O";
+        }
+        // $terminalId
+        $request_body['terminalId'] = 'A01';
+        // dd($request_body);
+        $endpoint = $this->snapVersion.'/cpts/authentication';
+        $url = $this->baseUrl.$endpoint;
+        $sha256Hash = hash('sha256', json_encode($request_body));
+        $stringToSign = 'POST'.':'.'/'.$endpoint.':'.$token.':'. $sha256Hash.':'.$currentDateTime;
+        
+        // tambahkan signature menggunakan RSA private
+        $signature = base64_encode(hash_hmac('sha512', $stringToSign, $this->clientSecret, true));
+        $header = $this->getHeader([
+            'timestamp' => $currentDateTime,
+            'signature' => $signature,
+            'partnerId' => $this->clientId,
+            'externalId' => $request['externalId'],
+            'channelId' => '92551',
+            'token' => $token
+        ]);
+        $this->logger->error(sprintf('BPD API Authentication CPTS request: %s', json_encode([$header,$request_body])));
+        $result = $this->send($url, $header, json_encode($request_body));
+        // dd($header, $request_body, $result);
+        $this->logger->error(sprintf('BPD API Authentication CPTS request: %s', $result));
+        return $result;
+    }
+
+    function checkStatusCpts($token, $request) {
+        $currentDateTime = Carbon::now('Asia/Jakarta')->format('Y-m-d\TH:i:sP');
+        $request_body = [
+            'merchantId' => $this->merchantPan,
+            'serviceCode' => '01',
+            'partnerReferenceNo' => $request['partnerReferenceNo'],// max 12 digit
+            'additionalInfo' => (object) [
+                'customerPan' => $request['cpan'],
+                'terminalId' => $this->terminalId,
+                'approvalCode' => $request['approvalCode'],
+            ],
+        ];
+
+        if (isset($request['ott']) && !empty($request['ott'])) {
+            $request_body['additionalInfo']->ott = $request['ott'];
+        }
+
+        if (isset($request['binding']) && !empty($request['binding'])) {
+            $request_body['additionalInfo']->binding = $request['binding'];
+            $request_body['additionalInfo']->bindingToken = $request['bindingToken'];
+        }
+
+        $endpoint = $this->snapVersion.'/cpts/check';
+        $url = $this->baseUrl.$endpoint;
+        $sha256Hash = hash('sha256', json_encode($request_body));
+        $stringToSign = 'POST'.':'.'/'.$endpoint.':'.$token.':'. $sha256Hash.':'.$currentDateTime;
+        
+        $signature = base64_encode(hash_hmac('sha512', $stringToSign, $this->clientSecret, true));
+        $header = $this->getHeader([
+            'timestamp' => $currentDateTime,
+            'signature' => $signature,
+            'partnerId' => $this->clientId,
+            'externalId' => $request['externalId'],
+            'channelId' => '92551',
+            'token' => $token
+        ]);
+        $this->logger->error(sprintf('BPD API Check Status CPTS request: %s', json_encode([$header,$request_body])));
+        $result = $this->send($url, $header, json_encode($request_body));
+        $this->logger->error(sprintf('BPD API Check Status CPTS response: %s', $result));
+        return $result;
+    }
+
+    function refundCpts($token) {
+        $currentDateTime = Carbon::now('Asia/Jakarta')->format('Y-m-d\TH:i:sP');
+        $request_body = [
+            'partnerRefundNo' => '69',
+            'originalPartnerReferenceNo' => "balimall-1",// max 12 digit
+            'additionalInfo' => (object) [
+                'merchantId' => $this->merchantPan,
+                'terminalId' => $this->terminalId,
+            ],
+        ];
+        $endpoint = $this->snapVersion.'/cpts/refund';
+        $url = $this->baseUrl.$endpoint;
+        $sha256Hash = hash('sha256', json_encode($request_body));
+        $stringToSign = 'POST'.':'.'/'.$endpoint.':'.$token.':'. $sha256Hash.':'.$currentDateTime;
+        
+        $signature = base64_encode(hash_hmac('sha512', $stringToSign, $this->clientSecret, true));
+        $header = $this->getHeader([
+            'timestamp' => $currentDateTime,
+            'signature' => $signature,
+            'partnerId' => $this->clientId,
+            'externalId' => gmdate("His"),
+            'channelId' => '92551',
+            'token' => $token
+        ]);
+
+        $this->logger->error(sprintf('BPD API Refund CPTS request: %s', json_encode([$header, $request])));
+        $result = $this->send($url, $header, json_encode($request_body));
+        $this->logger->error(sprintf('BPD API Refund CPTS response: %s', $result));
+        return $result;
+    }
+
+    function listBinding($request) {
+        $token = $request['token'];
+        $partnerReferenceNo = $request['partnerReferenceNo'];
+        $currentDateTime = Carbon::now('Asia/Jakarta')->format('Y-m-d\TH:i:sP');
+        $request_body = [
+            'merchantId' => $this->merchantPan,
+            'partnerReferenceNo' => $partnerReferenceNo,
+        ];
+        $endpoint = $this->snapVersion.'/cpts/list-binding';
+        $url = $this->baseUrl.$endpoint;
+        $sha256Hash = hash('sha256', json_encode($request_body));
+        $stringToSign = 'POST'.':'.'/'.$endpoint.':'.$token.':'. $sha256Hash.':'.$currentDateTime;
+        
+        $signature = base64_encode(hash_hmac('sha512', $stringToSign, $this->clientSecret, true));
+        $header = $this->getHeader([
+            'timestamp' => $currentDateTime,
+            'signature' => $signature,
+            'partnerId' => $this->clientId,
+            'externalId' => $request['externalId'],
+            'channelId' => '92551',
+            'token' => $token
+        ]);
+        $this->logger->error(sprintf('BPD API List Binding request: %s', json_encode([$header,$request_body])));
+        $result = $this->send($url, $header, json_encode($request_body));
+        $this->logger->error(sprintf('BPD API List Binding request: %s', $result));
+        return $result;
+    }
+
+    // function requestBinding($request) {
+    //     $token = $request['token'];
+    //     $partnerReferenceNo = $request['partnerReferenceNo'];
+    //     $custIdMerchant = $request['custIdMerchant'];
+    //     $ott = $request['ott'];
+    //     $customerPan = $request['customerPan'];
+    //     $created = $request['created'];
+    //     $currentDateTime = Carbon::now('Asia/Jakarta')->format('Y-m-d\TH:i:sP');
+    //     $terminalId = $this->terminalId;
+    //     $request_body = [
+    //         'merchantId' => $this->merchantPan,
+    //         'terminalId'=> $terminalId,
+    //         'custIdMerchant'=> $custIdMerchant,
+    //         'partnerReferenceNo' => $partnerReferenceNo,
+    //         'additionalInfo' => (object)[
+    //             'customerPan'=> $customerPan,
+    //             'ott'=> $ott,
+    //             'trxDateTime'=> $created,
+    //             'binding'=> 'O'
+    //         ]
+    //     ];
+    //     $endpoint = $this->snapVersion.'/registration-card-bind';
+    //     $url = $this->bindingUrl.$endpoint;
+    //     $sha256Hash = hash('sha256', json_encode($request_body));
+    //     $stringToSign = 'POST'.':'.'/'.$endpoint.':'.$token.':'. $sha256Hash.':'.$currentDateTime;
+        
+    //     $signature = base64_encode(hash_hmac('sha512', $stringToSign, $this->clientSecret, true));
+    //     $header = $this->getHeader([
+    //         'timestamp' => $currentDateTime,
+    //         'signature' => $signature,
+    //         'partnerId' => $this->clientId,
+    //         'externalId' => $request['externalId'],
+    //         'channelId' => '92551',
+    //         'token' => $token
+    //     ]);
+    //     $this->logger->error(sprintf('BPD API Request Binding request: %s', json_encode([$header,$request_body])));
+    //     $result = $this->send($url, $header, json_encode($request_body));
+
+    //     dd($result);
+    //     $this->logger->error(sprintf('BPD API Request Binding request: %s', $result));
+    //     return $result;
+    // }
+
+    function requestBinding($request) {
+        $token = $request['token'];
+        $partnerReferenceNo = $request['partnerReferenceNo'];
+        $custIdMerchant = $request['custIdMerchant'];
+        $ott = $request['ott'];
+        $customerPan = $request['customerPan'];
+
+        $hashSecret = md5(getenv('BPD_SNAP_CLIENT_SECRET'));
+        $hashSecretSplit = substr($hashSecret, 0, 16);
+        $cpanEncrypted = openssl_encrypt($customerPan, 'aes-256-cbc', $hashSecret, OPENSSL_RAW_DATA, $hashSecretSplit);
+        $ottEncrypted = openssl_encrypt($ott, 'aes-256-cbc', $hashSecret,  OPENSSL_RAW_DATA, $hashSecretSplit);
+        $cipherCpan = strtoupper(bin2hex($cpanEncrypted));
+        $cipherOtt = strtoupper(bin2hex($ottEncrypted));
+
+        $created = $request['created'];
+        $currentDateTime = Carbon::now('Asia/Jakarta')->format('Y-m-d\TH:i:sP');
+        $terminalId = $this->terminalId;
+        $request_body = [
+            'merchantId' => $this->merchantPan,
+            'terminalId'=> $terminalId,
+            'cardData'=> $cipherCpan,
+            'custIdMerchant'=> $custIdMerchant,
+            'partnerReferenceNo' => $partnerReferenceNo,
+            'additionalInfo' => (object)[
+                'ott'=> $cipherOtt,
+                'trxDateTime'=> $created,
+                'binding'=> 'O'
+            ]
+        ];
+
+        // dd($request_body);
+        $endpoint = $this->snapVersion.'/registration-card-bind';
+        $url = $this->bindingUrl.$endpoint;
+
+        $sha256Hash = hash('sha256', json_encode($request_body));
+        $stringToSign = 'POST'.':'.'/'.$endpoint.':'.$token.':'. $sha256Hash.':'.$currentDateTime;
+        
+        $signature = base64_encode(hash_hmac('sha512', $stringToSign, $this->clientSecret, true));
+        $header = $this->getHeader([
+            'timestamp' => $currentDateTime,
+            'signature' => $signature,
+            'partnerId' => $this->clientId,
+            'externalId' => $request['externalId'],
+            'channelId' => '92551',
+            'token' => $token
+        ]);
+        // dd($header, json_encode($request_body), $endpoint);
+        $this->logger->error(sprintf('BPD API Request Binding request: %s', json_encode([$header,$request_body])));
+        $result = $this->send($url, $header, json_encode($request_body));
+        $this->logger->error(sprintf('BPD API Request Binding request: %s', $result));
+        return $result;
+    }
+
+    function requestUnbinding($request) {
+        $token = $request['token'];
+        $issuerToken = $request['issuerToken'];
+        $partnerReferenceNo = $request['partnerReferenceNo'];
+        $linkId = $request['linkId'];
+        $customerPan = $request['customerPan'];
+        $currentDateTime = Carbon::now('Asia/Jakarta')->format('Y-m-d\TH:i:sP');
+        $terminalId = $this->terminalId;
+        $request_body = [
+            'partnerReferenceNo' => $partnerReferenceNo,
+            'token' => $issuerToken,
+            'additionalInfo' => (object)[
+                'merchantId' => $this->merchantPan,
+                'customerPan'=> $customerPan,
+                'terminalId'=> $terminalId,
+                'linkId'=> $linkId
+            ]
+        ];
+        $endpoint = $this->snapVersion.'/registration-card-unbind';
+        $url = $this->bindingUrl.$endpoint;
+        $sha256Hash = hash('sha256', json_encode($request_body));
+        $stringToSign = 'POST'.':'.'/'.$endpoint.':'.$token.':'. $sha256Hash.':'.$currentDateTime;
+        
+        $signature = base64_encode(hash_hmac('sha512', $stringToSign, $this->clientSecret, true));
+        $header = $this->getHeader([
+            'timestamp' => $currentDateTime,
+            'signature' => $signature,
+            'partnerId' => $this->clientId,
+            'externalId' => $request['externalId'],
+            'channelId' => '92551',
+            'token' => $token
+        ]);
+        // dd($header, json_encode($request_body), $endpoint);
+        $this->logger->error(sprintf('BPD API Request Unbinding request: %s', json_encode([$header,$request_body])));
+        $result = $this->send($url, $header, json_encode($request_body));
+        $this->logger->error(sprintf('BPD API Request Unbinding request: %s', $result));
+        return $result;
+    }
+
+    function getHeader($data) {
+        $header[] = 'Content-Type: application/json';
+        $header[] = "X-TIMESTAMP:".$data['timestamp'];
+        if (isset($data['token']) && !empty($data['token'])) {
+            $header[] = "Authorization: Bearer ".$data['token'];
+        }
+        if (isset($data['clientId']) && !empty($data['clientId'])) {
+            $header[] = "X-CLIENT-KEY:".$data['clientId'];
+        }
+        if (isset($data['signature']) && !empty($data['signature'])) {
+            $header[] = "X-SIGNATURE:".$data['signature'];
+        }
+        if (isset($data['partnerId']) && !empty($data['partnerId'])) {
+            $header[] = "X-PARTNER-ID:".$data['partnerId'];
+        }
+        if (isset($data['externalId']) && !empty($data['externalId'])) {
+            $header[] = "X-EXTERNAL-ID:".$data['externalId'];
+        }
+        if (isset($data['channelId']) && !empty($data['channelId'])) {
+            $header[] = "CHANNEL-ID:".$data['channelId'];
+        }
+
+        return $header;
+    }
+
+
+    function send($url, $header = '', $post = '') {
+        // dd($header, $post);
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        if ($header) {
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        }
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        // curl_setopt($ch, CURLOPT_VERBOSE, false);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_ENCODING, true);
+        // curl_setopt($ch, CURLOPT_AUTOREFERER, true);
+        // curl_setopt($ch, CURLOPT_MAXREDIRS, 5);
+    
+        curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.120 Safari/537.36");
+    
+        if ($post)
+        {
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
+        }
+    
+    
+        $rs = curl_exec($ch);
+        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        // dd($rs, ht)
+        // $this->logger->error(sprintf('BPD API request: %s', json_encode($post)));
+        // dd($rs, $httpcode);
+        if(empty($rs)){
+            // dd($rs, curl_error($ch));
+            curl_close($ch);
+            return false;
+        }
+        curl_close($ch);
+        // dd($rs);
+        return $rs;
+    }
+
+    // function registrationBindings($request) {
+    //     $token = $request['token'];
+    //     $partnerReferenceNo = $request['partnerReferenceNo'];
+    //     $custIdMerchant = $request['custIdMerchant'];
+    //     $ott = $request['ott'];
+    //     $customerPan = $request['customerPan'];
+    //     $created = $request['created'];
+    //     $currentDateTime = Carbon::now('Asia/Jakarta')->format('Y-m-d\TH:i:sP');
+    //     $terminalId = $this->terminalId;
+    //     $request_body = [
+    //         'merchantId' => $this->merchantPan,
+    //         'terminalId'=> $terminalId,
+    //         'cardData'=> $customerPan,
+    //         'custIdMerchant'=> $custIdMerchant,
+    //         'partnerReferenceNo' => $partnerReferenceNo,
+    //         'additionalInfo' => (object)[
+    //             'ott'=> $ott,
+    //             'trxDateTime'=> $created,
+    //             'binding'=> 'O'
+    //         ]
+    //     ];
+    //     $endpoint = $this->snapVersion.'/registration-card-bind';
+    //     $url = $this->bindingUrl.$endpoint;
+    //     $sha256Hash = hash('sha256', json_encode($request_body));
+    //     $stringToSign = 'POST'.':'.'/'.$endpoint.':'.$token.':'. $sha256Hash.':'.$currentDateTime;
+        
+    //     $signature = base64_encode(hash_hmac('sha512', $stringToSign, $this->clientSecret, true));
+    //     $header = $this->getHeader([
+    //         'timestamp' => $currentDateTime,
+    //         'signature' => $signature,
+    //         'partnerId' => $this->clientId,
+    //         'externalId' => $request['externalId'],
+    //         'channelId' => '92551',
+    //         'token' => $token
+    //     ]);
+    //     $this->logger->error(sprintf('BPD API Request Binding request: %s', json_encode([$header,$request_body])));
+    //     $result = $this->send($url, $header, json_encode($request_body));
+    //     $this->logger->error(sprintf('BPD API Request Binding request: %s', $result));
+    //     return $result;
+    // }
+}

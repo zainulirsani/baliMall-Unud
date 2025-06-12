@@ -1,0 +1,223 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% block content %}
+    <main class="dtl-prd">
+        <section>
+            <div class="container">
+                <div class="box">
+                    <h1 class="ct">{{ page_title|trans }}</h1>
+                    <div class="row">
+                        <form action="" method="GET" accept-charset="UTF-8">
+                            <div class="dc4 tc12 compare-no-mbt">
+                                <div class="input">
+                                    <div class="searchable-content">
+                                        <input id="product1-input" type="text" title="" name="product1" placeholder="{{ 'label.search'|trans }}" data-index="1">
+                                        <ul id="product1-list"></ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="dc4 tc12 compare-no-mbt">
+                                <div class="input">
+                                    <div class="searchable-content">
+                                        <input id="product2-input" type="text" title="" name="product2" placeholder="{{ 'label.search'|trans }}" data-index="2">
+                                        <ul id="product2-list"></ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="dc4 tc12 compare-no-mbt">
+                                <div class="input">
+                                    <div class="searchable-content">
+                                        <input id="product3-input" type="text" title="" name="product3" placeholder="{{ 'label.search'|trans }}" data-index="3">
+                                        <ul id="product3-list"></ul>
+                                    </div>
+                                </div>
+                            </div>
+                            {#<div class="dc12 tc12 compare-no-mbt">
+                                <div class="input">
+                                    <input type="submit" value="{{ 'label.compare'|trans }}" class="sBtn red">
+                                </div>
+                            </div>#}
+                        </form>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="dc4 tc12">
+                            {% if product1 is not empty %}
+                                {% set store_url = path('store_page', {'store': product1['s_slug']}) %}
+                                {% set rating_count = 0 %}
+                                {% set store_verified = product1['s_isVerified']|to_bool %}
+                                {% set store_pkp = product1['s_isPKP']|to_bool %}
+                                {% set product_price = store_pkp ? (product1['p_price'] + (product1['p_price'] * get_ppn_percentage(product1['s_umkm_category']))) : product1['p_price'] %}
+                                {% set product_url = path('store_product_page', {
+                                    'store': product1['s_slug'],
+                                    'product': product1['p_slug']
+                                }) %}
+
+                                {% if product1['p_ratingCount'] > 0 and product1['pr_total'] > 0 %}
+                                    {% set rating_count = product1['p_ratingCount'] / product1['pr_total']|round(0, 'floor') %}
+                                {% endif %}
+
+                                {% set rating_remaining = 5 - rating_count %}
+                                <div class="prd-info">
+                                    <div class="compare-img-comparison">
+                                        <img src="{{ asset(product_main_image(product1['p_id']|default(0))) }}" alt="">
+                                    </div>
+                                    <h2>{{ product1['p_name'] }}</h2>
+                                    <h3 class="price">
+                                        <b>Rp. {{ product_price|number_format }}</b>
+                                    </h3>
+                                    <p class="price">
+                                        <b>{{ 'label.category'|trans ~ ': ' ~ product1['pc_name'] }}</b>
+                                        <br>
+                                        <b>{{ 'label.quantity_alt'|trans ~ ': ' ~ product1['p_quantity'] }}</b>
+                                    </p>
+                                    <div class="text">
+                                        <h6>{{ 'label.product_description'|trans }}</h6>
+                                        {{ product1['p_description']|raw }}
+                                    </div>
+                                    <div class="rnt">
+                                        <span class="rate-wrp">
+                                            {% if rating_count > 0 %}
+                                                {% for i in 1..rating_count %}<i class="fas fa-star"></i>{% endfor %}
+                                                {% if rating_remaining > 0 %}
+                                                {% for j in 1..rating_remaining %}<i class="far fa-star"></i>{% endfor %}
+                                            {% endif %}
+                                            {% else %}
+                                                {% for j in 1..5 %}<i class="far fa-star"></i>{% endfor %}
+                                            {% endif %}
+                                        </span>
+                                        <div class="right-side">
+                                            <span><i class="fas fa-tag"></i> {{ product1['pr_total'] }}</span>
+                                            <span><i class="fas fa-eye"></i> {{ product1['p_viewCount'] }}</span>
+                                            <span><i class="fas fa-star"></i> {{ rating_count }}</span>
+                                        </div>
+                                        <div class="clear"></div>
+                                    </div>
+                                </div>
+                                {#<button id="btn-add-to-cart" class="sBtn red" data-hash="">
+                                    <i class="fas fa-shopping-cart"></i> {{ 'label.add_to_cart'|trans }}
+                                </button>#}
+                            {% endif %}
+                        </div>
+                        <div class="dc4 tc12">
+                            {% if product2 is not empty %}
+                                {% set store_url = path('store_page', {'store': product2['s_slug']}) %}
+                                {% set rating_count = 0 %}
+                                {% set store_verified = product2['s_isVerified']|to_bool %}
+                                {% set store_pkp = product2['s_isPKP']|to_bool %}
+                                {% set product_price = store_pkp ? (product2['p_price'] + (product2['p_price'] * get_ppn_percentage(product2['s_umkm_category']))) : product2['p_price'] %}
+                                {% set product_url = path('store_product_page', {
+                                    'store': product2['s_slug'],
+                                    'product': product2['p_slug']
+                                }) %}
+
+                                {% if product2['p_ratingCount'] > 0 and product2['pr_total'] > 0 %}
+                                    {% set rating_count = product2['p_ratingCount'] / product2['pr_total']|round(0, 'floor') %}
+                                {% endif %}
+
+                                {% set rating_remaining = 5 - rating_count %}
+                                <div class="prd-info">
+                                    <div class="compare-img-comparison">
+                                        <img src="{{ asset(product_main_image(product2['p_id']|default(0))) }}" alt="">
+                                    </div>
+                                    <h2>{{ product2['p_name'] }}</h2>
+                                    <h3 class="price">
+                                        <b>Rp. {{ product_price|number_format }}</b>
+                                    </h3>
+                                    <p class="price">
+                                        <b>{{ 'label.category'|trans ~ ': ' ~ product2['pc_name'] }}</b>
+                                        <br>
+                                        <b>{{ 'label.quantity_alt'|trans ~ ': ' ~ product2['p_quantity'] }}</b>
+                                    </p>
+                                    <div class="text">
+                                        <h6>{{ 'label.product_description'|trans }}</h6>
+                                        {{ product2['p_description']|raw }}
+                                    </div>
+                                    <div class="rnt">
+                                        <span class="rate-wrp">
+                                            {% if rating_count > 0 %}
+                                                {% for i in 1..rating_count %}<i class="fas fa-star"></i>{% endfor %}
+                                                {% if rating_remaining > 0 %}
+                                                    {% for j in 1..rating_remaining %}<i class="far fa-star"></i>{% endfor %}
+                                                {% endif %}
+                                            {% else %}
+                                                {% for j in 1..5 %}<i class="far fa-star"></i>{% endfor %}
+                                            {% endif %}
+                                        </span>
+                                        <div class="right-side">
+                                            <span><i class="fas fa-tag"></i> {{ product2['pr_total'] }}</span>
+                                            <span><i class="fas fa-eye"></i> {{ product2['p_viewCount'] }}</span>
+                                            <span><i class="fas fa-star"></i> {{ rating_count }}</span>
+                                        </div>
+                                        <div class="clear"></div>
+                                    </div>
+                                </div>
+                                {#<button id="btn-add-to-cart" class="sBtn red" data-hash="">
+                                    <i class="fas fa-shopping-cart"></i> {{ 'label.add_to_cart'|trans }}
+                                </button>#}
+                            {% endif %}
+                        </div>
+                        <div class="dc4 tc12">
+                            {% if product3 is not empty %}
+                                {% set store_url = path('store_page', {'store': product3['s_slug']}) %}
+                                {% set rating_count = 0 %}
+                                {% set store_verified = product3['s_isVerified']|to_bool %}
+                                {% set store_pkp = product3['s_isPKP']|to_bool %}
+                                {% set product_price = store_pkp ? (product3['p_price'] + (product3['p_price'] * get_ppn_percentage(product3['s_umkm_category']))) : product3['p_price'] %}
+                                {% set product_url = path('store_product_page', {
+                                    'store': product3['s_slug'],
+                                    'product': product3['p_slug']
+                                }) %}
+
+                                {% if product3['p_ratingCount'] > 0 and product3['pr_total'] > 0 %}
+                                    {% set rating_count = product3['p_ratingCount'] / product3['pr_total']|round(0, 'floor') %}
+                                {% endif %}
+
+                                {% set rating_remaining = 5 - rating_count %}
+                                <div class="prd-info">
+                                    <div class="compare-img-comparison">
+                                        <img src="{{ asset(product_main_image(product3['p_id']|default(0))) }}" alt="">
+                                    </div>
+                                    <h2>{{ product3['p_name'] }}</h2>
+                                    <h3 class="price">
+                                        <b>Rp. {{ product_price|number_format }}</b>
+                                    </h3>
+                                    <p class="price">
+                                        <b>{{ 'label.category'|trans ~ ': ' ~ product3['pc_name'] }}</b>
+                                        <br>
+                                        <b>{{ 'label.quantity_alt'|trans ~ ': ' ~ product3['p_quantity'] }}</b>
+                                    </p>
+                                    <div class="text">
+                                        <h6>{{ 'label.product_description'|trans }}</h6>
+                                        {{ product3['p_description']|raw }}
+                                    </div>
+                                    <div class="rnt">
+                                        <span class="rate-wrp">
+                                            {% if rating_count > 0 %}
+                                                {% for i in 1..rating_count %}<i class="fas fa-star"></i>{% endfor %}
+                                                {% if rating_remaining > 0 %}
+                                                {% for j in 1..rating_remaining %}<i class="far fa-star"></i>{% endfor %}
+                                            {% endif %}
+                                            {% else %}
+                                                {% for j in 1..5 %}<i class="far fa-star"></i>{% endfor %}
+                                            {% endif %}
+                                        </span>
+                                        <div class="right-side">
+                                            <span><i class="fas fa-tag"></i> {{ product3['pr_total'] }}</span>
+                                            <span><i class="fas fa-eye"></i> {{ product3['p_viewCount'] }}</span>
+                                            <span><i class="fas fa-star"></i> {{ rating_count }}</span>
+                                        </div>
+                                        <div class="clear"></div>
+                                    </div>
+                                </div>
+                                {#<button id="btn-add-to-cart" class="sBtn red" data-hash="">
+                                    <i class="fas fa-shopping-cart"></i> {{ 'label.add_to_cart'|trans }}
+                                </button>#}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}

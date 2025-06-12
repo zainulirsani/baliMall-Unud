@@ -1,0 +1,1384 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% set element_id = 'trx-detail' %}
+{% set order_status = order_step_status(order['o_status'], order['u_role']) %}
+{% set status_label = 'label.' ~ order['o_status'] %}
+{% set order_with_tax = false %}
+{% set step_status = [
+    'dist/img/s-paid.png',
+    'dist/img/s-confirmation.png',
+    'dist/img/s-proccessed.png',
+    'dist/img/s-shipped.png',
+] %}
+{% set step_status_b2g = [
+    'dist/img/s-confirmation.png',
+    'dist/img/s-proccessed.png',
+    'dist/img/s-shipped.png',
+    'dist/img/s-paid.png',
+    'dist/img/s-paid.png',
+] %}
+{% set step_status_text = ['paid', 'confirmed', 'processed', 'shipped'] %}
+{% set step_status_text_b2g = ['confirmed', 'processed', 'shipped', 'payment_process', 'paid'] %}
+{% set order_vouchers_list = order_vouchers(order['o_sharedId']) %}
+{% set order_vouchers_lists = order_vouchers(order['o_sharedId'], 'no') %}
+
+{% set total = 0 %}
+{% set is_pkp = 0 %}
+{% set is_tax_invoice_requested = false %}
+{% set tax_value = 0 %}
+
+{% if user_type == 'buyer' %}
+    {% set element_id = 'buyer-trx-detail' %}
+{% elseif user_type == 'seller' %}
+    {% set element_id = 'seller-trx-detail' %}
+{% endif %}
+
+{% set shared_voucher = order['o_sharedId'] and reduce_order_by_id is not empty ? true : false %}
+{% set is_pkp_order = order['s_pkp'] == '1' %}
+{% set umkm_category = order['s_umkm_category'] %}
+
+{% set type_user_submited = '' %}
+
+{% if app.user.role == 'ROLE_USER_GOVERNMENT' %}
+    {% set type_user_submited = 'buyer' %}
+{% elseif app.user.role == 'ROLE_USER_SELLER' %}
+    {% set type_user_submited = 'seller' %}
+{% endif %}
+
+{% set delivery_detail = [] %}
+
+{% if (order['o_products']|first)['op_deliveryDetails'] is defined %}
+    {% if (order['o_products']|first)['op_deliveryDetails'] is not empty %}
+        {% set tmp_delivery_detail = ((order['o_products']|first)['op_deliveryDetails'])|json_decode %}
+
+        {% set partial = true %}
+
+        {% for product in order['o_products'] %}
+            {% if product['op_deliveryDetails'] is not empty %}
+                {% set detail = (product['op_deliveryDetails']|json_decode) %}
+                {% if (detail|last)['remaining'] == 0 and detail|length == 1 %}
+                    {% set partial = false %}
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+
+        {% if tmp_delivery_detail|length >= 1 and partial == true %}
+            {% set delivery_detail = tmp_delivery_detail %}
+        {% endif %}
+
+    {% endif %}
+{% endif %}
+
+{% for product in order['o_products'] %}
+    {% if product['op_withTax'] == 1 and (product['op_taxValue']|to_int) > 0%}
+        {% set tax_value = product['op_taxValue']|to_int %}
+    {% endif %}
+{% endfor %}
+
+{% block content %}
+    <main class="pdl">
+        {% include '@__main__/public/base/partials/breadcrumb.html.twig' %}
+        <section>
+            <div class="container">
+                <div class="box">
+                    <div class="row">
+                        {% include '@__main__/public/user/fragments/menu.html.twig' %}
+                        <div id="{{ element_id }}" class="dc9 tc12 order-id" data-id="{{ order['o_id'] }}">
+                            <input type="hidden" id="store_umkm_category_percentage"
+                                   value="{{ get_ppn_percentage(umkm_category) }}"/>
+                            <div class="sub-title">
+                                <div class="text">
+                                    <h4>{{ 'title.page.order'|trans ~ ' ' ~ order['o_invoice'] }} </h4>
+                                    {# {% if order['o_status'] == 'paid' %}
+                                        <a href="{{ path('user_order_print', {'id': order['o_id'], 'type': 'invoice'}) }}" class="gBtn red" target="_blank">
+                                            {{ 'label.invoice'|trans }}
+                                        </a>
+                                    {% endif %} #}
+                                </div>
+                                {% if disbursement_data is not empty and (disbursement_data.getStatus() == 'done' or disbursement_data.getStatus() == 'processed') %}
+                                    <br><br>
+                                    <div class="ccp__section ccp__box">
+                                        <div class="row">
+                                            <h4>&nbsp;{{ 'label.disbursement'|trans }}</h4>
+                                            <div class="dc6 tc12">
+                                                <h5>{{ 'label.disbursement_nominal'|trans }}</h5>
+                                                Rp. {{ disbursement_data.getTotal()|number_format }}
+                                            </div>
+                                            <div class="dc6 tc12">
+                                                <h5>{{ 'label.status'|trans }}</h5>
+                                                <div id="order-content-status">
+                                                    {{ disbursement_data.getStatus()|capitalize }}
+                                                </div>
+                                            </div>
+                                            <div class="dc6 tc12">
+                                                <a href="{{ path('user_order_print_disbursement', {'orderId': order['o_id']}) }}"
+                                                   target="_blank"><i
+                                                        class="fa fa-download">&nbsp;{{ 'label.download_detail'|trans }}</i></a>
+                                                {% if disbursement_data.getStatus() == 'done' %}
+                                                    {# <a href="{{ asset(disbursement_data.getPaymentProof()) }}"
+                                                       target="_blank" style="margin-left:10px;"><i
+                                                            class="fa fa-download">&nbsp;{{ 'label.payment_date_image'|trans }}</i></a> #}
+                                                    <a href="{{ path('sftp_show_file', {'path': disbursement_data.getPaymentProof()}) }}"
+                                                       target="_blank" style="margin-left:10px;"><i
+                                                            class="fa fa-download">&nbsp;{{ 'label.payment_date_image'|trans }}</i></a>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+
+                                <div class="right-side">
+                                    {# <div class="status-step">
+                                        {% if order['u_role'] == 'ROLE_USER_GOVERNMENT' %}
+                                            {% for key, step in step_status_b2g %}
+                                                {% set status_text = 'label.' ~ step_status_text_b2g[key] %}
+                                                {% set status_text = status_text|trans %}
+                                                <div class="{% if order_status < 9 and key <= order_status %}active{% endif %}">
+                                                    <img src="{{ asset(step) }}" title="{{ status_text }}" alt="{{ status_text }}">
+                                                </div>
+                                            {% endfor %}
+                                        {% else %}
+                                            {% for key, step in step_status %}
+                                                {% set status_text = 'label.' ~ step_status_text[key] %}
+                                                {% set status_text = status_text|trans %}
+                                                <div class="{% if order_status < 9 and key <= order_status %}active{% endif %}">
+                                                    <img src="{{ asset(step) }}" title="{{ status_text }}" alt="{{ status_text }}">
+                                                </div>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                    <p class="ct">{{ status_label|trans }}</p> #}
+                                </div>
+                                <div class="clear"></div>
+                            </div>
+
+                            {% if order['o_status'] == 'paid' %}
+                                {% if order['op_type'] == 'doku' %}
+                                    {% if order['od_status'] == 'SUCCESS' %}
+                                        <div class="badges green">
+                                            <span>
+                                                <i class="fas fa-check-circle"></i>
+                                                Pembayaran menggunakan VA Doku Berhasil
+                                            </span>
+                                        </div>
+                                    {% else %}
+                                        <div class="badges yellow2">
+                                            <span>
+                                                <i class="fas fa-exclamation-circle"></i>
+                                                Pembayaran menggunakan VA Doku Expired
+                                            </span>
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                            {% endif %}
+                            
+
+                            {# HIDE PRODUCT ITEM SAAT ROLE USER GOVERNMENT #}
+                            {% if order['u_role'] != 'ROLE_USER_GOVERNMENT' %}
+                                <div class="pr-card">
+                                    <div class="row">
+                                        {% for product in order['o_products'] %}
+                                            {% set sub_total = order['o_total'] %}
+                                            {% set product_price = product['op_totalPrice'] + product['op_taxNominal'] %}
+                                            {% set total = total + product_price %}
+                                            {# {% set sub_total = product['op_totalPrice'] %} #}
+                                            {% set product_url = 'javascript:void(0);' %}
+                                            {% set product_id = product['p_id']|default(0) %}
+
+                                            {% if product['op_withTax'] == 1 %}
+                                                {% set is_pkp = is_pkp + 1 %}
+                                            {% endif %}
+                                            {% if product['p_slug'] is not empty and product['s_slug'] is not empty %}
+                                                {% set product_url = path('store_product_page', {
+                                                    'store': product['s_slug'],
+                                                    'product': product['p_slug'],
+                                                }) %}
+                                            {% endif %}
+
+                                            {% if product['op_note'] == 'Request tax invoice' %}
+                                                {% set is_tax_invoice_requested = true %}
+                                            {% endif %}
+                                            <div class="dc12">
+                                                <div class="box pr-card__1 pr-card--detail">
+                                                    <div class="top">
+                                                        <figure>
+                                                            <a href="{{ product_url }}" class="btn-gtm-bm"
+                                                               data-id="{{ product_id }}">
+                                                                <img
+                                                                    src="{{ path('sftp_show_file', {'path': product_main_image(product['p_id']|default(0))}) }}"
+                                                                    alt="">
+                                                            </a>
+                                                        </figure>
+                                                        <div class="text">
+                                                            <a href="{{ product_url }}" class="btn-gtm-bm"
+                                                               data-id="{{ product_id }}">
+                                                                <h6>{{ product['p_name'] }}</h6>
+                                                            </a>
+                                                            <p>{{ order['s_name']|raw }}</p>
+                                                        </div>
+                                                        <div class="info">
+                                                            <div>
+                                                                <span>{{ 'label.qty'|trans|upper }} <b>{{ product['op_quantity'] }}</b></span>
+                                                                <span><i
+                                                                        class="fas fa-wallet"></i> Rp. {{ product_price|number_format }}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <input id="gtm-pc-name-{{ product_id }}" type="hidden"
+                                                                   value="{{ product['p_name'] }}">
+                                                            <input id="gtm-pc-id-{{ product_id }}" type="hidden"
+                                                                   value="{{ product_id }}">
+                                                            <input id="gtm-pc-price-{{ product_id }}" type="hidden"
+                                                                   value="{{ product['op_price']|number_format(2, '.', '') }}">
+                                                            <input id="gtm-pc-brand-{{ product_id }}" type="hidden"
+                                                                   value="{{ order['s_name'] }}">
+                                                            <input id="gtm-pc-category-{{ product_id }}" type="hidden"
+                                                                   value="{{ product_category_name(product_id) }}">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% else %}
+                                {# B2G :: Di isi ketika kedua belah pihak sepakat negosiasi #}
+                                {% if order['o_negotiationStatus'] != 'none' %}
+                                    {% set data_nego_detail = null %}
+                                    {% set data_nego_last_response = null %}
+                                    {% set nego_batch = 0 %}
+                                    {% set can_approve_negotiation = false %}
+                                    {% set allow_negotiation = false %}
+                                    {% set execution_options = get_parameter('execution_time_options') %}
+                                    {% set sub_total_nego_price = 0 %}
+                                    {% set sub_total_ppn_price = 0 %}
+
+                                    {% if order['o_negotiatedProducts']|length > 0 %}
+                                        {% for temp_nego_data in order['o_negotiatedProducts'] %}
+                                            {% set data_nego_detail = temp_nego_data %}
+                                            {% set data_nego_last_response = temp_nego_data['on_submittedAs'] %}
+                                            {% set nego_batch = temp_nego_data['on_batch'] %}
+                                        {% endfor %}
+                                    {% endif %}
+
+                                    {% for product in order['o_products'] %}
+                                        {% if product['op_withTax'] == 1 %}
+                                            {% set is_pkp = is_pkp + 1 %}
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if data_nego_detail['on_isApproved'] == true %}
+                                        <div class="pr-card">
+                                            <div class="row">
+                                                {% for product in order['o_products'] %}
+                                                    {% for product_nego in order['o_negotiatedProducts'] %}
+                                                        {% if (product_nego['p_id'] == product['p_id']) and (product_nego['on_batch'] == nego_batch) %}
+                                                            {% set nego_price = product_nego['on_negotiatedPrice']|number_format %}
+                                                            {% set product_url = 'javascript:void(0);' %}
+                                                            {% set product_id = product['p_id']|default(0) %}
+
+                                                            {% if product['p_slug'] is not empty and product['s_slug'] is not empty %}
+                                                                {% set product_url = path('store_product_page', {
+                                                                    'store': product['s_slug'],
+                                                                    'product': product['p_slug'],
+                                                                }) %}
+                                                            {% endif %}
+                                                            <div class="dc12">
+                                                                <div class="box pr-card__1 pr-card--detail">
+                                                                    <div class="top">
+                                                                        <figure>
+                                                                            <a href="{{ product_url }}"
+                                                                               class="btn-gtm-bm"
+                                                                               data-id="{{ product_id }}">
+                                                                                <img
+                                                                                    src="{{ path('sftp_show_file', {'path': product_main_image(product['p_id']|default(0))}) }}"
+                                                                                    alt="">
+                                                                            </a>
+                                                                        </figure>
+                                                                        <div class="text">
+                                                                            <a href="{{ product_url }}"
+                                                                               class="btn-gtm-bm"
+                                                                               data-id="{{ product_id }}">
+                                                                                <h6>{{ product['p_name'] }}</h6>
+                                                                            </a>
+                                                                            <p>{{ order['s_name']|raw }}</p>
+                                                                        </div>
+                                                                        <div class="info">
+                                                                            <div>
+                                                                                <span>{{ 'label.qty'|trans|upper }} <b>{{ product['op_quantity'] }}</b></span>
+                                                                                <span><i
+                                                                                        class="fas fa-wallet"></i> Rp. {{ nego_price }}</span>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div>
+                                                                            <input id="gtm-pc-name-{{ product_id }}"
+                                                                                   type="hidden"
+                                                                                   value="{{ product['p_name'] }}">
+                                                                            <input id="gtm-pc-id-{{ product_id }}"
+                                                                                   type="hidden"
+                                                                                   value="{{ product_id }}">
+                                                                            <input id="gtm-pc-price-{{ product_id }}"
+                                                                                   type="hidden"
+                                                                                   value="{{ product['op_price']|number_format(2, '.', '') }}">
+                                                                            <input id="gtm-pc-brand-{{ product_id }}"
+                                                                                   type="hidden"
+                                                                                   value="{{ order['s_name'] }}">
+                                                                            <input id="gtm-pc-category-{{ product_id }}"
+                                                                                   type="hidden"
+                                                                                   value="{{ product_category_name(product_id) }}">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% else %}
+                                    <div class="pr-card">
+                                        <div class="row">
+                                            {% for product in order['o_products'] %}
+                                                {% set nego_price = product['op_price']|number_format %}
+                                                {% set product_url = 'javascript:void(0);' %}
+                                                {% set product_id = product['p_id']|default(0) %}
+
+                                                {% if product['p_slug'] is not empty and product['s_slug'] is not empty %}
+                                                    {% set product_url = path('store_product_page', {
+                                                        'store': product['s_slug'],
+                                                        'product': product['p_slug'],
+                                                    }) %}
+                                                {% endif %}
+                                                <div class="dc12">
+                                                    <div class="box pr-card__1 pr-card--detail">
+                                                        <div class="top">
+                                                            <figure>
+                                                                <a href="{{ product_url }}" class="btn-gtm-bm"
+                                                                   data-id="{{ product_id }}">
+                                                                    <img
+                                                                        src="{{ path('sftp_show_file', {'path': product_main_image(product['p_id']|default(0))}) }}"
+                                                                        alt="">
+                                                                </a>
+                                                            </figure>
+                                                            <div class="text">
+                                                                <a href="{{ product_url }}" class="btn-gtm-bm"
+                                                                   data-id="{{ product_id }}">
+                                                                    <h6>{{ product['p_name'] }}</h6>
+                                                                </a>
+                                                                <p>{{ order['s_name']|raw }}</p>
+                                                            </div>
+                                                            <div class="info">
+                                                                <div>
+                                                                    <span>{{ 'label.qty'|trans|upper }} <b>{{ product['op_quantity'] }}</b></span>
+                                                                    <span><i
+                                                                            class="fas fa-wallet"></i> Rp. {{ nego_price }}</span>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+                                                                <input id="gtm-pc-name-{{ product_id }}" type="hidden"
+                                                                       value="{{ product['p_name'] }}">
+                                                                <input id="gtm-pc-id-{{ product_id }}" type="hidden"
+                                                                       value="{{ product_id }}">
+                                                                <input id="gtm-pc-price-{{ product_id }}" type="hidden"
+                                                                       value="{{ product['op_price']|number_format(2, '.', '') }}">
+                                                                <input id="gtm-pc-brand-{{ product_id }}" type="hidden"
+                                                                       value="{{ order['s_name'] }}">
+                                                                <input id="gtm-pc-category-{{ product_id }}"
+                                                                       type="hidden"
+                                                                       value="{{ product_category_name(product_id) }}">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+
+                            <div class="ccp">
+                                <div class="ccp__section">
+                                    <p class="ccp__price">
+                                        {% if order['o_shippingCourier'] == 'free_delivery' %}
+                                            {{ 'label.self_pick_up_alt'|trans }}
+                                            {% if order['o_shippingService'] == 'self_pick_up_2' %}
+                                                <b>[{{ 'message.info.self_pick_up_address_2'|trans }}]</b>
+                                            {% elseif order['o_shippingService'] == 'self_pick_up_3' %}
+                                                <b>[{{ 'message.info.self_pick_up_address_3'|trans }}]</b>
+                                            {% else %}
+                                                <b>[{{ 'message.info.self_pick_up_address'|trans }}]</b>
+                                            {% endif %}
+                                            Rp. 0
+                                        {% else %}
+                                            {% if order['u_role'] == 'ROLE_USER_GOVERNMENT' %}
+                                                {% set nego_batch = 0 %}
+                                                {% set nego_shipping_price = 0 %}
+                                                {% if order['o_negotiatedProducts']|length > 0 %}
+                                                    {% for temp_nego_data in order['o_negotiatedProducts'] %}
+                                                        {% set nego_batch = temp_nego_data['on_batch'] %}
+                                                    {% endfor %}
+
+                                                    {% for product in order['o_products'] %}
+                                                        {% for product_nego in order['o_negotiatedProducts'] %}
+                                                            {% if (product_nego['p_id'] == product['p_id']) and (product_nego['on_batch'] == nego_batch) %}
+                                                                {% set nego_shipping_price = product_nego['on_negotiatedShippingPrice'] %}
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    {% endfor %}
+                                                {% endif %}
+
+                                                {% if order['o_negotiationStatus'] == 'none' %}
+                                                    {% set initial_shipping_cost = order['o_shippingPrice'] %}
+                                                {% else %}
+                                                    {% set initial_shipping_cost = get_base_price(order['o_shippingPriceBackup'], tax_value) %}
+                                                {% endif %}
+
+                                                {% if order['o_shipped_method'] == 'self_courier' %}
+                                                    <b>{{ get_parameter('shipped_method_options')['self_courier'] }}</b>
+                                                {% else %}
+                                                {{ 'label.courier'|trans }}
+                                                    <b>{{ order['o_shippingCourier'] }} [{{ order['o_shippingService'] }}]</b>
+                                                {% endif %}
+
+                                                <div style="float: right;">
+                                                    <table>
+                                                        <tr>
+                                                            <td>{{ 'label.initial_shipping_costs'|trans }}</td>
+                                                            <td>:&nbsp;</td>
+                                                            <td> Rp. {{ initial_shipping_cost|number_format }}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>{{ 'label.negotiation_shipping'|trans }}</td>
+                                                            <td>:&nbsp;</td>
+                                                            <td> Rp. {{ nego_shipping_price|number_format }}</td>
+                                                        </tr>
+                                                    </table>
+                                                </div>
+                                                <br>
+
+                                            {% else %}
+                                                {% if order['o_shipped_method'] == 'self_courier' %}
+                                                    <b>{{ get_parameter('shipped_method_options')['self_courier'] }}</b>
+                                                {% else %}
+                                                    {{ 'label.courier'|trans }}
+                                                    <b>{{ order['o_shippingCourier'] }} [{{ order['o_shippingService'] }}]</b>
+                                                {% endif %}
+                                                Rp. {{ order['o_shippingPrice']|number_format }}
+                                            {% endif %}
+
+                                        {% endif %}
+                                    </p>
+                                    {% if user_type == 'buyer' %}
+                                        {% set order_groups = order_related(order['o_sharedId'], order['o_id']) %}
+                                        {% if order_groups|length > 0 %}
+                                            <hr>
+                                            <p class="ccp__price">
+                                                {% for order_group in order_groups %}
+
+                                                    {% if is_pkp_order %}
+                                                        {% set order_group_total = order_group['o_total'] + generate_tax(order_group['o_total'], tax_value) + order_group['o_shippingPrice'] %}
+                                                    {% else %}
+                                                        {% set order_group_total = order_group['o_total'] + order_group['o_shippingPrice'] %}
+                                                    {% endif %}
+
+                                                    {% if shared_voucher %}
+                                                        {% set order_group_total = order_group_total - reduce_order_by_id[order_group['o_id']]|to_float %}
+
+                                                        {% if order_group_total < 0 %}
+                                                            {% set order_group_total = 0 %}
+                                                        {% endif %}
+
+                                                    {% endif %}
+
+                                                    {{ 'label.related_invoice_no'|trans }}
+                                                    <b><a href="{{ path('user_order_detail', {'id': order_group['o_id']}) }}"
+                                                          target="_blank">{{ order_group['o_invoice'] }}</a></b>
+                                                    Rp. {{ order_group_total|number_format }}
+                                                    <br>
+                                                {% endfor %}
+                                            </p>
+                                        {% endif %}
+                                        {% if order_vouchers_list|length > 0 %}
+                                            {% set total_order_amount = 0 %}
+                                            {% set total_voucher_amount = 0 %}
+                                            {% set o_lists = [] %}
+                                            {% set v_lists = [] %}
+                                            <hr>
+                                            <p class="ccp__price">
+                                                {% for voucher_list in order_vouchers_lists %}
+                                                    {% if voucher_list['vul_orderId'] not in o_lists %}
+                                                        {% set total_order_amount = total_order_amount + voucher_list['vul_orderAmount'] %}
+                                                        {% set o_lists = o_lists|merge([voucher_list['vul_orderId']]) %}
+                                                    {% endif %}
+                                                    {% if voucher_list['v_code'] not in v_lists %}
+                                                        {% set total_voucher_amount = total_voucher_amount + voucher_list['v_amount'] %}
+                                                        {{ 'menu.voucher'|trans }}
+                                                        <b>{{ voucher_list['v_code'] }}</b>
+                                                        Rp. {{ voucher_list['v_amount']|number_format }}<br>
+                                                        {% set v_lists = v_lists|merge([voucher_list['v_code']]) %}
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </p>
+                                            <hr>
+                                            {% if shared_voucher %}
+                                                <p class="ccp__price">
+                                                    {{ 'menu.voucher_used'|trans }}
+                                                    Rp. <b>{{ reduce_order_by_id[order['o_id']]|number_format }}</b>
+                                                </p>
+                                            {% endif %}
+                                            <hr>
+                                            <h4 class="ccp__price">
+                                                {# {% set grand_total = total_order_amount - total_voucher_amount %} #}
+                                                {% if shared_voucher %}
+                                                    {% set grand_total = (total + order['o_shippingPrice']) %}
+                                                    {% set grand_total = grand_total - reduce_order_by_id[order['o_id']|to_float] %}
+                                                {% else %}
+                                                    {% set grand_total = (total + order['o_shippingPrice']) - total_voucher_amount %}
+                                                {% endif %}
+
+                                                {% set grand_total_value = 'Rp. ' ~ grand_total|number_format %}
+                                                {% if grand_total < 0 %}
+                                                    {# {% set grand_total = (grand_total * -1) %} #}
+                                                    {# {% set grand_total_value = '(Rp. ' ~ grand_total|number_format ~ ')' %} #}
+                                                    {% set grand_total_value = 'Rp. 0' %}
+                                                {% endif %}
+                                                <span>{{ 'label.order_total'|trans }}</span>
+                                                <input type="text" class="detail-grand-total" title=""
+                                                       value="{{ grand_total_value }}" disabled>
+                                            </h4>
+                                        {% else %}
+                                            {% if order['u_role'] != 'ROLE_USER_GOVERNMENT' %}
+                                                <h4 class="ccp__price">
+                                                    {% set grand_total = order['o_total'] + order['o_shippingPrice'] %}
+                                                    {% for product in order['o_products'] %}
+                                                        {% set grand_total = grand_total + product['op_taxNominal'] %}
+                                                    {% endfor %}
+                                                    <span>{{ 'label.order_total'|trans }}</span>
+                                                    <input type="text" class="detail-grand-total" title=""
+                                                           value="Rp. {{ grand_total|number_format }}" disabled>
+                                                </h4>
+                                            {% else %}
+                                                {# Di isi ketika kedua belah pihak sepakat #}
+                                            {% endif %}
+                                        {% endif %}
+                                    {% elseif user_type == 'seller' %}
+                                        {% if order['u_role'] != 'ROLE_USER_GOVERNMENT' %}
+                                            <h4 class="ccp__price">
+                                                {% set grand_total = order['o_total'] + order['o_shippingPrice'] %}
+                                                {% for product in order['o_products'] %}
+                                                    {% set grand_total = grand_total + product['op_taxNominal'] %}
+                                                {% endfor %}
+                                                <span>{{ 'label.order_total'|trans }}</span>
+                                                <input type="text" class="detail-grand-total" title=""
+                                                       value="Rp. {{ grand_total|number_format }}" disabled>
+                                            </h4>
+                                        {% else %}
+                                            {# Di isi ketika kedua belah pihak sepakat #}
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                                {# {% if user_type == 'seller' and order_with_tax == true %}
+                                    <div class="ccp__section ccp__box">
+                                        <div class="ccp__confirm">
+                                            <h6>{{ 'label.tax_document'|trans }}</h6>
+                                            <figure>
+                                                <a class="cbox" href="{{ asset(order['o_taxDocumentFile']) }}" title="">
+                                                    <img src="{{ asset(order['o_taxDocumentFile']) }}" alt="">
+                                                </a>
+                                            </figure>
+                                            <div class="ccp__confirm__sender">
+                                                <h6><span>{{ 'label.email'|trans }}</span> {{ order['o_taxDocumentEmail'] }}</h6>
+                                                <h6><span>{{ 'label.phone'|trans }}</span> {{ order['o_taxDocumentPhone'] }}</h6>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %} #}
+
+                                {# {% if order['o_workUnit'] is defined and order['o_workUnit'] is not empty %} #}
+                                {# <div class="ccp__section ccp__box"> #}
+                                {# <div class="row"> #}
+                                {# <div class="dc6 tc12"> #}
+                                {# <h5>{{ 'label.work_unit'|trans }}</h5> #}
+                                {# <p>{{ order['o_workUnit']['fullname'] }} | {{ order['o_workUnit']['address'] }}</p> #}
+                                {# </div> #}
+                                {# </div> #}
+                                {# </div> #}
+                                {# {% endif %} #}
+
+                                {% if order['u_lkppWorkunitName'] is not empty %}
+                                    <div class="ccp__section ccp__box">
+                                        <div class="row">
+                                            <div class="dc6 tc12">
+                                                <h5>{{ 'label.work_unit'|trans }}</h5>
+                                                <p>{{ order['u_lkppWorkunitName'] }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+
+                                <div class="ccp__section ccp__box">
+                                    <div class="row">
+                                    <div class="dc12">
+                                        <h5>Data Komplain</h5>
+                                    </div>
+                                    <div class="dc12" style="overflow-x: scroll;">
+                                        <div class="table-wrapper">
+                                            <div class="inner">
+                                                {% if order['o_complaint']|length > 0 %}
+                                                    <table class="nego">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>{{ 'label.complaint'|trans }}</th>
+                                                                <th width="10%">Status</th>
+                                                                <th width="15%">{{ 'label.updated'|trans }}</th>
+                                                                {# <th width="10%">Action</th> #}
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                        {% for complaint in order['o_complaint'] %}
+                                                            {% if complaint['oc_id'] is not empty %}
+                                                                <tr>
+                                                                    <td>{{ complaint['oc_description'] }}</td>
+                                                                    <td>
+                                                                        {% if complaint['oc_isResolved'] %}
+                                                                            {{'label.resolved'|trans}}
+                                                                        {% else %}
+                                                                            {{'label.not_resolved'|trans}}
+                                                                        {% endif %}
+                                                                    </td>
+                                                                    <td>{{ complaint['oc_createdAt']|date('d-m-Y H:i:s') }}</td>
+                                                                    {# <td>
+                                                                        {% if complaint['oc_isResolved'] == false %}
+                                                                            <a type="button" href="{{ path('admin_order_resolved', {'complaint_id': complaint['oc_id']}) }}" class="btn btn-info btn-sm">{{'label.resolved'|trans}}</a>
+                                                                        {% endif %}
+                                                                    </td> #}
+                                                                </tr>
+                                                            {% else %}
+                                                                <tr>
+                                                                    <td colspan="2" class="text-center">Tidak Ada Komplain</td>
+                                                                </tr>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                        </tbody>
+                                                    </table>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                </div>
+
+                                <div class="ccp__section ccp__box">
+                                    <div class="row">
+                                        {% if app.user.getRole != 'ROLE_USER_SELLER' %}
+                                        <div class="dc12 tc12">
+                                            <h5>{{ 'label.store'|trans }}</h5>
+                                            <p>{{ order['s_name'] }}</p>
+                                        </div>
+                                        {% endif %}
+                                        <div class="dc6 tc12">
+                                            <h5>{{ 'label.delivery_address'|trans }}</h5>
+                                            <p>{{ order['o_address'] }}</p>
+                                            <p>{{ order['o_city'] ~ ', ' ~ order['o_province'] ~ ' - ' ~ order['o_postCode'] }}</p>
+                                            {% if order['o_note'] is not empty %}
+                                                <h5>{{ 'label.note'|trans }}</h5><p>{{ order['o_note'] }}</p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="dc6 tc12">
+                                            {# <div>
+                                                <h5>{{ 'label.ppk_payment_method'|trans }}</h5>
+                                                {% set ppk_payment_method = order['o_ppk_payment_method']|default('uang_persediaan') %}
+                                                <p>{{ 'label.ppk_payment_method'|trans }} : {{get_parameter('ppk_method_options')[ppk_payment_method]}}</p>
+                                            </div> #}
+                                            <h5>{{ 'label.order_status'|trans }}</h5>
+                                            <div id="order-content-status">
+                                                {% if order['o_status'] == 'pending' %}
+                                                    <p><span>{{ 'label.pending'|trans }}</span>
+                                                        ({{ order['o_createdAt']|date('d/m/Y - H:i') }})</p>
+                                                {% elseif order['o_status'] == 'pending_approve' %}
+                                                    <p><span>{{ 'label.pending_approve'|trans }}</span>
+                                                        ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                                                {% elseif order['o_status'] == 'pending_payment' %}
+                                                    <p><span>{{ 'label.pending_payment'|trans }}</span>
+                                                        ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                                                {% elseif order['o_status'] == 'paid' %}
+                                                    <p><span>{{ 'label.paid'|trans }}</span>
+                                                        ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                                                {% elseif order['o_status'] == 'payment_process' %}
+                                                    <p><span>{{ 'label.payment_process'|trans }}</span>
+                                                        ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                                                {% elseif order['o_status'] == 'confirmed' %}
+                                                    <p><span>{{ 'label.confirmed'|trans }}</span>
+                                                        ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                                                {% elseif order['o_status'] == 'confirm_order_ppk' %}
+                                                    <p><span>{{ 'label.confirm_order_ppk'|trans }}</span>
+                                                        ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                                                {% elseif order['o_status'] == 'approved_order' %}
+                                                    <p><span>{{ 'label.approved_order'|trans }} PPK</span>
+                                                        ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</p>                                                        
+                                                {% elseif order['o_status'] == 'processed' %}
+                                                    <p><span>{{ 'label.processed'|trans }}</span>
+                                                        ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                                                {% elseif order['o_status'] == 'partial_delivery' %}
+                                                    <p>
+                                                        <span>{{ 'label.partial_delivery'|trans }}</span>
+                                                        <span>({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</span>
+                                                    </p>
+
+                                                    {% if delivery_detail is not empty %}
+                                                        {% for item in delivery_detail %}
+                                                            <p>-
+                                                                <span>{{ ('label.batch'|trans) }} {{ item['batch'] }},</span>
+                                                                <span>{{ 'label.tracking_code'|trans }}: </span>
+                                                                <span>{{ item['tracking_code'] }}</span>
+                                                                <span>({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</span>
+                                                            </p>
+                                                        {% endfor %}
+                                                    {% endif %}
+                                                {% elseif order['o_status'] == 'shipped' %}
+                                                    <p>
+                                                        <span>{{ 'label.shipped'|trans }}</span>
+
+                                                        {% if delivery_detail is empty %}
+                                                            ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})
+                                                        {% endif %}
+                                                    </p>
+
+                                                    {% if delivery_detail is not empty %}
+                                                        {% for item in delivery_detail %}
+                                                            <p>-
+                                                                <span>{{ ('label.batch'|trans) }} {{ item['batch'] }},</span>
+                                                                <span>{{ 'label.tracking_code'|trans }}: </span>
+                                                                <span>{{ item['tracking_code'] }}</span>
+                                                                <span>({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</span>
+                                                            </p>
+                                                        {% endfor %}
+                                                    {% elseif order['o_shippingCourier'] != 'gosend' %}
+                                                        <h6>{{ 'label.tracking_code'|trans ~ ': ' ~ order['o_trackingCode'] }}</h6>
+                                                    {% endif %}
+                                                {% elseif order['o_status'] == 'received' %}
+                                                    <p><span>{{ 'label.received'|trans }}</span>
+                                                        ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                                                {% elseif order['o_status'] == 'cancel' %}
+                                                    <p><span>{{ 'label.cancelled'|trans }}</span>
+                                                        ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                                                {% elseif order['o_status'] == 'document' %}
+                                                    <p><span>{{ 'label.document'|trans }}</span>
+                                                        ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                                                {% elseif order['o_status'] == 'tax_invoice' %}
+                                                    <p><span>{{ 'label.tax_invoice'|trans }}</span>
+                                                        ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                                                {% elseif order['o_status'] == 'cancel_request' %}
+                                                    <p><span>{{ 'label.cancel_request'|trans }}</span></p>
+                                                {% elseif order['o_status'] == 'new_order' %}
+                                                    <p><span>{{ 'label.new_order'|trans }}</span>
+                                                        ({{ order['o_updatedAt']|date('d/m/Y - H:i') }})</p>
+                                                {% endif %}
+                                            </div>
+
+                                            {% set data_nego_detail_2 = null %}
+                                            {% set nego_batch_2 = 0 %}
+                                            {% set can_approve_negotiation_2 = false %}
+	                                        {% set allow_negotiation_2 = false %}
+                                            {% set is_nego_seller = false %}
+                                            {% set is_nego_buyer = false %}
+                                            {% if order['o_negotiatedProducts']|length > 0 %}
+                                                {% for temp_nego_data in order['o_negotiatedProducts'] %}
+                                                    {% set data_nego_detail_2 = temp_nego_data %}
+                                                    {% set nego_batch_2 = temp_nego_data['on_batch'] %}
+
+                                                    {% if user_type == 'buyer' and data_nego_detail_2['on_customerApproval'] == false %}
+                                                        {% set allow_negotiation_2 = true %}
+                                                    {% endif %}
+
+                                                    {% if user_type == 'seller' and data_nego_detail_2['on_merchantApproval'] == false %}
+                                                        {% set allow_negotiation_2 = true %}
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% endif %}
+
+                                            {% if user_type == 'seller' %}
+                                                {% set seller_attempt = 0 %}
+                                                {% set seller_batch = [] %}
+                                                {% for product in order['o_negotiatedProducts'] %}
+                                                    {% if product['on_submittedAs'] == 'seller' and product['on_batch'] not in seller_batch %}
+                                                        {% set seller_attempt = seller_attempt + 1 %}
+                                                        {% set seller_batch = seller_batch|merge([product['on_batch']]) %}
+                                                    {% endif %}
+                                                {% endfor %}
+
+                                                {% if data_nego_detail_2['on_merchantApproval'] == false %}
+                                                    {% set can_approve_negotiation_2 = true %}
+                                                    {% if (nego_batch_2 % 2) != 0 and allow_negotiation_2 == true %}
+                                                        {% set is_nego_seller = true %}
+                                                    {% endif %}
+                                                {% endif %}
+                                            {% elseif user_type == 'buyer' %}
+                                                {% set buyer_attempt = 0 %}
+                                                {% set buyer_batch = [] %}
+                                                {% for product in order['o_negotiatedProducts'] %}
+                                                    {% if product['on_submittedAs'] == 'buyer' and product['on_batch'] not in buyer_batch %}
+                                                        {% set buyer_attempt = buyer_attempt + 1 %}
+                                                        {% set buyer_batch = buyer_batch|merge([product['on_batch']]) %}
+                                                    {% endif %}
+                                                {% endfor %}
+                                                {% if data_nego_detail_2['on_customerApproval'] == false %}
+
+                                                    {% if nego_batch_2 == 1 and data_nego_detail_2['on_merchantApproval'] == false %}
+                                                        {% set can_approve_negotiation_2 = false %}
+                                                        {# No action needed #}
+                                                    {% else %}
+                                                        {% set can_approve_negotiation_2 = true %}
+                                                        {% if (nego_batch_2 % 2) != 0 and data_nego_detail_2['on_merchantApproval'] == false %}
+                                                        {% elseif nego_batch_2 >= 5 and data_nego_detail_2['on_merchantApproval'] == true %}
+                                                            {% set is_nego_buyer = true %}
+                                                        {% else %}
+                                                            {% set is_nego_buyer = true %}
+                                                        {% endif %}
+                                                    {% endif %}
+                                                {% endif %}
+                                            {% endif %}
+                                            <div>
+                                                <h5>Keterangan</h5>
+
+                                                {% if user_type == 'seller' %}
+                                                    {% if is_nego_buyer != true and is_nego_seller == true %}
+                                                        {% set nego_type = 'nego_on_seller' %}
+                                                    {% else %}
+                                                        {% set nego_type = 'nego_on_buyer' %}
+                                                    {% endif %}
+                                                {% else %}
+                                                    {% if is_nego_buyer == true and is_nego_seller != true %}
+                                                        {% if data_nego_detail_2['on_merchantApproval'] == true %}
+                                                            {% set nego_type = 'nego_on_buyer_approve_seller' %}
+                                                        {% else %}
+                                                            {% set nego_type = 'nego_on_buyer' %}
+                                                        {% endif %}
+                                                    {% else %}
+                                                        {% set nego_type = 'nego_on_seller' %}
+                                                    {% endif %}
+                                                {% endif %}
+                                                
+                                                
+                                                {% if order['o_status'] == 'confirmed' or order['o_status'] == 'new_order' %}
+                                                    <p>{{ get_parameter('ket_order_statuses')[nego_type][user_type] }}</p>
+                                                {% elseif order['o_status'] == 'paid' %}
+                                                    {% if disbursement_data is not empty and disbursement_data.getStatus() != 'pending' %}
+                                                        {% set status_disbursement = 'disbursement_' ~ disbursement_data.getStatus() %}
+                                                    {% else %}
+                                                        {% set status_disbursement = order['o_status'] %}
+                                                    {% endif %}
+                                                    <p>{{ get_parameter('ket_order_statuses')[status_disbursement][user_type] }} </p>
+                                                {% else %}
+                                                    <p>
+                                                        {{ get_parameter('ket_order_statuses')[order['o_status']][user_type] }} 
+                                                        {% if order['o_status'] == 'cancel' or order['o_status'] == 'cancel_request' %}
+                                                            {{ order['o_cancel_reason']|default()}}
+                                                        {% endif %}
+                                                    </p>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {# {% if user_type == 'seller' and order['op_id'] is not empty %}
+                                    <div class="ccp__section">
+                                        <div class="ccp__confirm">
+                                            <h6>{{ 'title.page.payment_confirmation'|trans }}</h6>
+                                            <figure>
+                                                {% if '.pdf' in order['op_attachment'] %}
+                                                    <a href="{{ asset(order['op_attachment']) }}" title="{{ 'button.download'|trans }}" target="_blank">
+                                                        <img src="{{ asset('dist/img/doc-placeholder.jpg') }}" alt="">
+                                                    </a>
+                                                {% else %}
+                                                    <a class="cbox" href="{{ asset(order['op_attachment']) }}" title="{{ 'button.view'|trans }}">
+                                                        <img src="{{ asset(order['op_attachment']) }}" alt="">
+                                                    </a>
+                                                {% endif %}
+                                            </figure>
+                                            <div class="ccp__confirm__sender">
+                                                <h6><span>{{ 'label.sender'|trans }}</span> {{ order['op_name'] }}</h6>
+                                                <h6><span>{{ 'label.bank_name'|trans }}</span> {{ order['op_bankName'] ~ ' / ' ~ order['op_bankAccountNumber'] }}</h6>
+                                                <h6><span>{{ 'label.date'|trans }}</span> {{ order['op_date']|date('d/m/Y') }}</h6>
+                                            </div>
+                                #}{# <a id="delete-order-payment" href="javascript:void(0);" class="gBtn red" data-oid="{{ order['o_id'] }}" data-pid="{{ order['op_id'] }}">
+                                                {{ 'button.delete'|trans }}
+                                            </a> #}{#
+                                </div>
+                            </div>
+                        {% endif %} #}
+
+                                {% if user_type == 'seller' and order['u_role'] != 'ROLE_USER_GOVERNMENT' and order['o_status'] == 'paid' %}
+                                    <a href="javascript:void(0);" id="btn-process-order" class="sBtn red"
+                                       style="cursor: default;">{{ 'label.process_order'|trans }}</a>
+                                {% endif %}
+
+                                {% if order['u_role'] != 'ROLE_USER_GOVERNMENT' and order['o_status'] == 'received' %}
+                                    {# {% include '@__main__/public/user/order/fragments/product_rating.html.twig' %} #}
+                                {% endif %}
+                                {% if order['u_role'] == 'ROLE_USER_GOVERNMENT' %}
+                                    {% if order['o_status'] == 'received' %}
+                                        {% include '@__main__/public/user/order/fragments/order_complaint.html.twig' %}
+                                    {% endif %}
+                                    {% if order['o_status'] in ['payment_process', 'paid'] %}
+                                        {# {% include '@__main__/public/user/order/fragments/product_rating.html.twig' %} #}
+                                    {% endif %}
+                                    {% include '@__main__/public/user/order/fragments/order_negotiation.html.twig' %}
+                                {% endif %}
+                                {% include '@__main__/public/user/order/fragments/order_action.html.twig' %}
+
+                                {% if is_able_to_cancel_order == true %}
+                                    <a href="javascript:void(0);" class="sBtn small red" id="cancel-order-by-user"
+                                       data-orderId="{{ order['o_sharedId'] }}"
+                                       data-submited-by="{{ type_user_submited }}">
+                                        {{ 'label.cancel_order_request'|trans }}
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    {% if user_type == 'buyer' %}
+        <template id="product-review-form-template">
+            <div class="input rating">
+                <a href="javascript:void(0);" id="star-1" class="star rate-star" data-value="1"><i
+                        class="fas fa-star"></i></a>
+                <a href="javascript:void(0);" id="star-2" class="star rate-star" data-value="2"><i
+                        class="fas fa-star"></i></a>
+                <a href="javascript:void(0);" id="star-3" class="star rate-star" data-value="3"><i
+                        class="fas fa-star"></i></a>
+                <a href="javascript:void(0);" id="star-4" class="star rate-star" data-value="4"><i
+                        class="fas fa-star"></i></a>
+                <a href="javascript:void(0);" id="star-5" class="star rate-star" data-value="5"><i
+                        class="fas fa-star"></i></a>
+                <p id="rating-error" class="error"></p>
+            </div>
+            <div class="input">
+                <textarea id="buyer-rate-review" class="no-resize" title=""
+                          placeholder="{{ 'label.write_review_alt'|trans }}"
+                          style="border: 1px solid black;"></textarea>
+                <p id="review-error" class="error"></p>
+            </div>
+            <div class="input">
+                <div class="pfl-pic">
+                    <a href="javascript:void(0);" class="mask product-review-attachment">
+                        <span class="fas fa-plus-circle product-review-attachment"></span>
+                    </a>
+                    <div class="pra-tools" style="display: none;">
+                        <a href="javascript:void(0);" class="fas fa-trash-alt delete-pra"></a>
+                    </div>
+                    <img id="product-review-attachment-src" class="product-review-attachment"
+                         src="{{ asset('dist/img/user.jpg') }}" alt="">
+                </div>
+                <p id="attachment-error" class="error"></p>
+            </div>
+            <div>
+                <input id="buyer-rate-rating" type="hidden">
+                <input id="buyer-rate-attachment" type="hidden">
+                <input id="buyer-rate-pid" type="hidden" value="**pid**">
+                <input id="buyer-rate-oid" type="hidden" value="**oid**">
+            </div>
+        </template>
+
+        <div><input id="dz-pra-uploader" type="file" style="display: none;"></div>
+
+        {% if order['oc_id'] is defined and order['oc_id'] is empty %}
+            <div id="popup-order-complain" class="popup general" title="complain">
+                <div class="wh100">
+                    <div class="popup-wrapper">
+                        <div class="inner">
+                            <form id="buyer-order-complain-form"
+                                  action="{{ path('user_order_complaint', {'id': order['o_id']}) }}" method="POST"
+                                  accept-charset="UTF-8">
+                                <a href="javascript:void(0);" class="close-btn"
+                                   onclick="$(this).parents('.popup').fadeOut();"></a>
+                                <h3 class="popup-order-complain-title">{{ 'label.order_complain'|trans }}</h3>
+                                <div class="input">
+                                    <textarea id="buyer-order-complain-description" name="description" class="no-resize"
+                                              title="" placeholder="{{ 'label.message'|trans }}"
+                                              style="border: 1px solid black;"></textarea>
+                                    <p id="buyer-order-complain-description-error" class="error"></p>
+                                </div>
+                                <div class="btn-wrapper">
+                                    {{ csrf_field('b2g_order_complain') }}
+                                    <input id="popup-order-complain-btn" type="submit" class="sBtn red"
+                                           value="{{ 'button.submit'|trans }}">
+                                    <a href="javascript:void(0);" class="gBtn red"
+                                       onclick="$(this).parents('.popup').fadeOut();">
+                                        {{ 'button.close'|trans }}
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    {% else %}
+        {# {% if order['op_id'] is not empty %}
+            <div id="popup-delete-payment" class="popup general" title="confirm">
+                <div class="wh100">
+                    <div class="popup-wrapper">
+                        <div class="inner">
+                            <a href="javascript:void(0);" class="close-btn" onclick="$(this).parents('.popup').fadeOut();"></a>
+                            <h3 class="popup-delete-payment-title"></h3>
+                            <div>
+                                <input id="delete-payment-oid" type="hidden" value="">
+                                <input id="delete-payment-pid" type="hidden" value="">
+                            </div>
+                            <div class="btn-wrapper">
+                                <a id="popup-delete-payment-btn" href="javascript:void(0);" class="sBtn red">
+                                    {{ 'button.delete'|trans }}
+                                </a>
+                                <a href="javascript:void(0);" class="gBtn red" onclick="$(this).parents('.popup').fadeOut();">
+                                    {{ 'button.close'|trans }}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %} #}
+    {% endif %}
+{% endblock %}
+
+{% block javascripts %}
+    <script type='text/javascript'
+            src="https://rawgit.com/RobinHerbots/jquery.inputmask/3.x/dist/jquery.inputmask.bundle.js"></script>
+    <script>
+        var umkm_category = parseFloat($("#store_umkm_category_percentage").val());
+        {% if user_type == 'seller' %}
+        $(function () {
+            $('.cbox').colorbox();
+
+            if ($('.pr-cbox').length) {
+                $(document).on('click', '.pr-cbox', function (e) {
+                    e.preventDefault();
+
+                    $.colorbox({
+                        href: $(this).attr('href'),
+                        maxWidth: '90%',
+                        initialWidth: '200px',
+                        initialHeight: '200px',
+                        speed: 700,
+                        overlayClose: false,
+                        rel: $(this).attr('rel')
+                    });
+                });
+            }
+        });
+        {% elseif user_type == 'buyer' %}
+        $('#approve-negotiation-budget-ceiling').inputmask('integer', {
+            radixPoint: ',',
+            groupSeparator: '.',
+            digits: 0,
+            autoGroup: true,
+            prefix: '',
+            rightAlign: false,
+        });
+        {% endif %}
+
+
+        function formatIdCurrency(x) {
+            return "Rp. " + x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        function sumArray(total, num) {
+            return total + num;
+        }
+
+        function getPPN(total_price, ppn = TAX_VALUE) {
+            // return parseInt(total_price - total_price / (ppn + 1));
+            return parseFloat(total_price - total_price / (ppn + 1)).toFixed(1);
+        }
+
+        function clean_value(masked_value, trig) {
+            var value_numeric = masked_value.replace(/[^0-9]/g, '');
+            return value_numeric.split(trig).join("");
+        }
+
+        function addPPN(total_price, ppn = TAX_VALUE, shipping = false) {
+            if (shipping) {
+                return parseFloat(total_price * (ppn + 1)).toFixed(1)
+            }
+
+            var check_pkp = '1';
+            return check_pkp === '1' ? parseFloat(total_price * (ppn + 1)).toFixed(1) : parseFloat(total_price).toFixed(1)
+        }
+
+        var ppn_products = $('.ppn-price-one');
+        var totalPpnProducts = $('#total-ppn-price');
+        var subTotalPriceNego = $('#sub-total-price');
+        var totalPriceNego = $('#total-price');
+        var negotiatedPrice = $('.negotiated-price');
+        var totalPriceOfGoods = $('#total-price-of-goods');
+        var shipingCost = $('#shipping-cost');
+        var shipingCostView = $('#shipping-cost-view');
+        var shippingNegoCost = $('.nego-shipping');
+
+        var sellerToNegotiate = $('#seller-to-negotiate');
+        var sellerToApprove = $('#seller-to-approve');
+        var buyerToNegotiate = $('#buyer-to-negotiate');
+        var buyerToApprove = $('#buyer-to-approve');
+        var negotiatedPriceOne = $('.negotiated-price-one');
+        var negotiatedTime = $('.negotiated-time');
+
+        function calculateTotalNegotiate(event) {
+            hideOrShowNegotiationButton();
+            calculateTotalPPN();
+            setTimeout(function () {
+                calculateTotalPriceNego();
+            }, 300);
+        }
+
+        function calculateShipping() {
+            setTimeout(function () {
+                calculateTotalPriceNego();
+            }, 100);
+            setTimeout(function () {
+                calculateTotalPPN();
+            }, 300);
+            setTimeout(function () {
+                hideOrShowNegotiationButton();
+            }, 500);
+        }
+
+        function calculateTotalPPN() {
+            if (ppn_products.length && totalPpnProducts.length) {
+                var totalProductPrice = 0;
+                var total_ppn = 0;
+
+                for (var i = 0; i < ppn_products.length; i++) {
+                    var productId = ppn_products[i].name.split('_')[1];
+                    var productSelector = document.getElementsByName('price_one_' + productId)[0];
+                    var qtySelector = document.getElementsByName('quantity_' + productId)[0]
+
+                    var quantity = parseInt(qtySelector.value);
+                    var price = parseInt(productSelector.value);
+
+                    totalProductPrice += (price * quantity);
+
+                    if (productSelector.getAttribute('data-free-tax') !== "1") {
+                        total_ppn += (price * quantity) * TAX_VALUE;
+                    }
+                }
+
+                var ppn_shipping = getPPN(document.getElementById('shipping-cost').value);
+
+                total_ppn += parseFloat(ppn_shipping);
+
+                total_ppn = parseFloat(total_ppn).toFixed(1).replace(/\.0+$/, '');
+
+                var check_pkp = $('#is-pkp-trx').val() || '0';
+
+                // if (check_pkp === '0') {
+                //     total_ppn = parseFloat('0').toFixed(1).replace(/\.0+$/, '');
+                // }
+
+                document.getElementById('total-ppn-price').value = total_ppn;
+
+                setTimeout(function () {
+                    var ppnPrice = document.getElementById('total-ppn-price').value;
+                    document.getElementById('total-price').value = parseFloat($('#total-price-of-goods').val()) +
+                        parseFloat(ppnPrice) + parseFloat($('#shipping-cost-view').val());
+                }, 300);
+            }
+        }
+
+        function getBasePrice(price, ppn = TAX_VALUE) {
+            return Math.round(price / (ppn + 1));
+        }
+
+        function calculateTotalPriceNego() {
+            // debugger
+            if (negotiatedPrice.length && totalPriceOfGoods.length && subTotalPriceNego.length && shipingCost.length && totalPpnProducts.length) {
+                var total_price_nego = 0;
+                var sub_total_without_tax = 0;
+                var shipping_input = parseInt(document.getElementById('shipping-cost-view').value);
+
+                /**
+                 * @TODO add ppn to shipping price
+                 */
+
+                var shipping_price = parseInt(addPPN(shipping_input))
+
+                var total_ppn = document.getElementById('total-ppn-price').value;
+                for (var i = 0; i < negotiatedPrice.length; i++) {
+                    var productId = negotiatedPrice[i].name.split('_')[1];
+                    var productSelector = document.getElementsByName('price_one_' + productId)[0];
+                    var quantity = parseInt(document.getElementsByName('quantity_' + productId)[0].value);
+                    var price = parseInt(productSelector.value);
+                    var ppn = (price * quantity) * umkm_category;
+                    var freeTax = false;
+
+                    if (productSelector.getAttribute('data-free-tax') === "1") {
+                        ppn = 0;
+                        freeTax = true;
+                    }
+
+                    var totalPrice = (price * quantity) + ppn;
+
+                    var check_pkp = $('#is-pkp-trx').val() || '0';
+
+                    sub_total_without_tax += (price * quantity)
+
+                    total_price_nego = total_price_nego + parseFloat(totalPrice)
+
+                    // if (check_pkp === '0') {
+                    //     ppn = 0;
+                    //     totalPrice = price * quantity;
+                    // }
+
+                    document.getElementsByName('ppn_' + productId)[0].value = ppn;
+                    document.getElementsByName('price_' + productId)[0].value = freeTax ? (price * quantity) : totalPrice;
+                    document.getElementsByName('price_show_' + productId)[0].value = price * quantity;
+                }
+
+                var sub_total_with_shipping = sub_total_without_tax + shipping_input;
+
+                document.getElementById('shipping-cost').value = shipping_price
+                document.getElementById('total-price-of-goods').value = sub_total_without_tax;
+                document.getElementById('sub-total-price').value = sub_total_with_shipping
+                document.getElementById('total-price').value = sub_total_with_shipping;
+
+                setTimeout(function () {
+                    document.getElementById('total-price').value = parseInt($('#total-price-of-goods').val()) + parseFloat(total_ppn) + parseFloat($('#shipping-cost-view').val());
+                }, 300);
+            }
+        }
+
+        if (sellerToNegotiate.length) {
+            console.log('SELLER NEGOTIATED');
+            sellerToNegotiate.hide();
+        }
+
+        if (buyerToNegotiate.length) {
+            console.log('BUYER NEGOTIATED');
+            buyerToNegotiate.hide();
+        }
+
+        // Untuk case ketika tidak mengubah form negosiasi (masih sama dgn data sblmnya).
+        // maka tombol negosiasi ulang di hide (mengatasi human error).
+        function hideOrShowNegotiationButton() {
+            calculateTotalPriceNego()
+
+            var array1 = negotiatedPriceOne.map(function () {
+                return $(this).attr('data-old-price');
+            }).get();
+
+            var array2 = negotiatedPriceOne.map(function () {
+                return $(this).val();
+            }).get();
+
+            var array3 = negotiatedTime.map(function () {
+                return $(this).attr('data-old-time');
+            }).get();
+
+            var array4 = negotiatedTime.map(function () {
+                return $(this).val();
+            }).get();
+
+            var array5 = shippingNegoCost.map(function () {
+                return parseFloat($(this).attr('data-old-shipping'));
+            }).get();
+
+            var array6 = shippingNegoCost.map(function () {
+                return parseFloat($(this).val());
+            }).get();
+
+            console.log('ARRAY 1: ', array1);
+            console.log('ARRAY 2: ', array2);
+            console.log('ARRAY 3: ', array3);
+            console.log('ARRAY 4: ', array4);
+            console.log('ARRAY 5: ', array5);
+            console.log('ARRAY 6: ', array6);
+            console.log('ARRAY SAME: ', (JSON.stringify(array1) === JSON.stringify(array2)) && (JSON.stringify(array3) === JSON.stringify(array4)) && (JSON.stringify(array5) === JSON.stringify(array6)));
+
+            if ((JSON.stringify(array1) === JSON.stringify(array2)) && (JSON.stringify(array3) === JSON.stringify(array4)) && (JSON.stringify(array5) === JSON.stringify(array6))) {
+                if (sellerToNegotiate.length) {
+                    sellerToNegotiate.hide();
+                }
+
+                if (buyerToNegotiate.length) {
+                    buyerToNegotiate.hide();
+                }
+
+                if (sellerToApprove.length) {
+                    sellerToApprove.show();
+                }
+
+                if (buyerToApprove.length) {
+                    buyerToApprove.show();
+                }
+            } else {
+                if (sellerToNegotiate.length) {
+                    sellerToNegotiate.show();
+                }
+
+                if (buyerToNegotiate.length) {
+                    buyerToNegotiate.show();
+                }
+
+                if (sellerToApprove.length) {
+                    sellerToApprove.hide();
+                }
+
+                if (buyerToApprove.length) {
+                    buyerToApprove.hide();
+                }
+            }
+        }
+    </script>
+
+    <script>
+        $('#btn-process-order').on('click', function () {
+
+            const orderId = parseInt($('.order-id').attr('data-id'))
+
+            const submit = {
+                origin: sellerOrigin,
+            };
+
+            elementLoading.show()
+
+            if (orderId > 0) {
+                $.post(`${BASE_URL}/user/order/${orderId}/process`, $.extend(true, submit, TOKEN), function (response) {
+                    if (response.status) {
+                        window.location.reload();
+                    } else {
+                        console.log(response)
+                        elementLoading.hide()
+                        showGeneralPopup('Terjadi kesalahan pada sistem')
+                    }
+                })
+            } else {
+                showGeneralPopup(MSG_ERROR_500);
+            }
+        })
+
+        $('.seller-pickup-order').on('click', function () {
+            elementLoading.show()
+
+            const orderId = parseInt($('.order-id').data('id'));
+
+            if (orderId > 0) {
+                $.get(`${BASE_URL}/user/order/pickup-order/${orderId}`)
+                    .done(function (res) {
+                        elementLoading.hide();
+                        if (res.data.order_id) {
+                            window.location.href = `${BASE_URL}/user/order/gosend/${res.data.order_id}`
+                        } else {
+                            console.log(res)
+                            showGeneralPopup(MSG_ERROR_500)
+                        }
+                    })
+            }
+        })
+    </script>
+{% endblock %}

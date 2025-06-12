@@ -1,0 +1,4 @@
+{% for rate in 1..5 %}
+    {% set class = rate <= rating ? 'star active' : 'star' %}
+    <a href="javascript:void(0);" class="{{ class }}" style="pointer-events: none;"><i class="fas fa-star"></i> {{ rate }}</a>
+{% endfor %}

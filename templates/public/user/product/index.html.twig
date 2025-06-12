@@ -1,0 +1,113 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% block content %}
+    <style>
+        .temp-btn {
+            min-width: 120px;
+            text-align: center;
+            height: 24px;
+            line-height: 24px;
+            border-radius: 8px;
+
+        }
+
+        .temp-btn :hover {
+            background-color: #000000;
+        }
+    </style>
+    <main class="pdl">
+        {% include '@__main__/public/base/partials/breadcrumb.html.twig' %}
+        <section>
+            <div class="container">
+                <div class="box">
+                    <div class="row">
+                        {% include '@__main__/public/user/fragments/menu.html.twig' %}
+                        <div class="dc9 tc12">
+                            <div class="sub-title">
+                                <div class="text">
+                                    <h3>{{ 'menu.product'|trans }}</h3>
+                                </div>
+                                <div class="clear"></div>
+                                <div class="btn-wrapper">
+                                    <a href="{{ path('user_product_new') }}" class="sBtn small blue">
+                                        {{ 'label.product_add'|trans }}
+                                    </a>
+                                    <a href="{{ path('user_product_excel_new') }}" class="sBtn small green">
+                                        {{ 'label.product_add_excel'|trans }}
+                                    </a>
+                                </div>
+                            </div>
+                            <div id="user-product-list" class="pr-card" data-id="{{ app.user.id }}">
+                                <form id="user-product-list-form" action="" method="GET" accept-charset="UTF-8">
+                                    <div class="input">
+                                        <input id="page" type="hidden" name="page" value="{{ parameters['page'] }}">
+                                        <input id="keywords" type="text" name="keywords" class="input__text" title="" placeholder="{{ 'message.info.product_search'|trans }}" value="{{ parameters['keywords']|default() }}">
+                                    </div>
+                                </form>
+                                <div class="row">
+                                    {% for product in products %}
+                                        {% set product_description = product['description'] %}
+                                        {% if product_description|length > 50 %}
+                                            {% set product_description = product_description|slice(0, 50) ~ '...' %}
+                                        {% endif %}
+                                        <div class="dc12">
+                                            <div class="box pr-card__1">
+                                                <div class="top">
+                                                    <figure>
+                                                        <img src="{{ path('sftp_show_file', {'path': product_main_image(product['id']|default(0))}) }}">
+                                                    </figure>
+                                                    <div class="text">
+                                                        <h6>{{ product['name'] }}</h6>
+                                                    </div>
+                                                    <span>
+                                                        <a class="sBtn blue temp-btn" href="{{ path('user_product_edit', {'id': product['id']}) }}">
+                                                            {{ 'button.edit'|trans }}
+                                                        </a>
+                                                    </span>
+                                                </div>
+                                                <div class="info">
+                                                    <div>
+                                                        <span>
+                                                            {{ product_description|raw }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="info">
+                                                    <div>
+                                                        <span>
+                                                            {{ 'label.status'|trans }}
+                                                            <b>{{ product['status'] }}</b>
+                                                        </span>
+                                                        <span>
+                                                            {{ 'label.qty'|trans }}
+                                                            <b>{{ product['quantity'] }}</b>
+                                                        </span>
+                                                        <span>
+                                                            <i class="fas fa-wallet"></i>&nbsp;
+                                                            <b>Rp. {{ product['price']|number_format }}</b>
+                                                        </span>
+                                                        {% if product['note'] is not empty %}
+                                                            <span>
+                                                                <b style="color: red">{{ 'label.publish_note'|trans }}</b>
+                                                                <b>{{ (product['note']|length) > 40 ? product['note']|slice(0,40) ~ '...' : product['note'] }}</b>
+                                                            </span>
+                                                        {% endif %}
+                                                    </div>
+
+                                                    <a href="{{ path('user_product_delete') }}" class="sBtn red act-delete" data-id="{{ product['id'] }}">
+                                                        {{ 'button.delete'|trans }}
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% if pagination is not empty and pagination.getNbResults > pagination.getMaxPerPage %}{{ html|raw }}{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends '@__main__/public/base/layouts/email.html.twig' %}
+
+{% block body %}
+    <div class="text">
+        <h1>Hi, {{ name }}!</h1>
+        <h3>Terima kasih telah melakukan pendaftaran toko baru.</h3>
+        <p>
+            Gunakan tautan berikut untuk melihat surat pernyataan : <a href="{{ file_links[0] }}" target="_blank">Surat Pernyataan</a>
+        </p>
+        <p>
+            Gunakan tautan berikut untuk melihat surat kesepakatan : <a href="{{ file_links[1] }}" target="_blank">Surat Kesepakatan</a>
+        </p>
+    </div>
+{% endblock %}

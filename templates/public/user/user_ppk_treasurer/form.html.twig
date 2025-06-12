@@ -1,0 +1,326 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% set image = form_data['image_temp']|default() %}
+{% set image_style = image is empty ? 'display: none;' : '' %}
+
+{% block stylesheets %}
+    <style>
+        .select2-selection--single{
+            padding: 10px 0px;
+            height: 48px !important;
+            border: 1px solid #dcdcdc !important;
+        }
+        .select2-selection__arrow{
+            margin-top: 8px;
+        }
+        .editor {
+            position: fixed;
+            width: 50%;
+            height: 50%;
+            margin: auto;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 9999;
+            background-color: #000;
+            visibility: hidden;
+        }
+
+        .wrapper-editor {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+            height: 100vmax !important;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 9998;
+        }
+
+        .upBtn {
+            position: absolute;
+            bottom: 5px;
+            z-index: 9999;
+            min-width: 20px;
+            min-height: 10px;
+        }
+
+        .left {
+            left: 10px;
+        }
+        .right-2 {
+            right: 120px;
+        }
+
+        .right {
+            right: 10px;
+        }
+
+        @media screen and (max-width: 450px) {
+            .tablinks {
+                font-size: 2vw !important;
+            }
+        }
+
+        @media screen and (max-width: 320px) {
+            .tablinks > i {
+                font-size: 2vw;
+            }
+
+            .tablinks {
+                display: block !important;
+                left: 0 !important;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .upBtn {
+                width: 15vw;
+                font-size: 2vw;
+                margin-bottom: 0;
+                text-align: center;
+            }
+
+            .left {
+                left: 1vw;
+            }
+
+            .right {
+                right: 1vw;
+
+            }
+        }
+
+        @media screen and (max-width: 400px) {
+            .right {
+                right: -5vw;
+            }
+        }
+
+        .sub-menu {
+            width: 100%;
+            left: -7vw;
+            padding-right: 1vw;
+        }
+
+        .sub-menu button {
+            left: 1vw;
+        }
+
+        .preview-file {
+            padding: 6px 12px;
+            border: 1px solid #ccc;
+            border-top: none;
+            height: 500px;
+            overflow-y: scroll;
+        }
+
+        td {
+            padding: 10px;
+        }
+
+        .error {
+            padding-top: 6px;
+        }
+
+        .hide {
+            display: none;
+        }
+
+        .input-bg-white > input {
+            background-color: #fff !important;
+            border: 1px solid #ddd !important;
+        }
+
+        @media screen and (max-width: 463px) {
+            .textTerm {
+                font-size: 10px;
+            }
+        }
+
+        #addressMap {
+            height: 350px;
+            z-index: 99;
+        }
+
+    </style>
+{% endblock %}
+{% block content %}
+    <main class="pdl">
+        {% include '@__main__/public/base/partials/breadcrumb.html.twig' %}
+        <section>
+            <div class="container">
+                <div class="box">
+                    <div class="row">
+                        {% include '@__main__/public/user/fragments/menu.html.twig' %}
+                        <div class="dc9 tc12">
+                            <div class="sub-title">
+                                <div class="text">
+                                    {% set label_menu = 'label.data_' ~ type %}
+                                    <h3>{{ label_menu|trans }}</h3>
+                                </div>
+                                <div class="clear"></div>
+                            </div>
+                            <div class="pr-card">
+                                <div class="row">
+                                    <div class="container fc">
+                                        {% set data_id = form_data['id']|default('') %}
+                                        <form id="user-ppk-treasurer-form" action="{{ data_id is not empty and data_id != '' ? path('user_ppk_update') : '' }}" method="post" accept-charset="UTF-8">
+
+                                            {# {% if type == 'ppk' %} #}
+                                                {% set error = errors['ppk_treasurer_kldi'] is defined ? 'error' : null %}
+                                                {% set form_kldi = form_data['kldi']|default() %}
+                                                <div class="input {{ error }}">
+                                                   {% if (kldi is not empty) %}
+                                                    <select id="ppk_treasurer_kldi" class="not-use-selectric use-select2" name="ppk_treasurer_kldi" style="width: 100%" disable="true">
+                                                        <option value="{{ kldi.getKldiName }}" selected>{{ kldi.getKldiName }}</option>
+                                                    </select>
+                                                   {% else %}
+                                                    <select id="ppk_treasurer_kldi" class="not-use-selectric use-select2" name="ppk_treasurer_kldi" style="width: 100%">
+                                                        <option value="">Pilih K/L/PD</option>
+                                                        {% for option in klpd %}
+                                                            <option value="{{ option.getKldiName }}" {% if form_kldi is not empty and form_kldi == option.getKldiName %} selected {% endif %}
+                                                            >{{ option.getKldiName }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                   {% endif %}
+                                                </div>
+                                            {# {% endif %} #}
+                                            {% set error = errors['ppk_treasurer_satker_select'] is defined ? 'error' : null %}
+                                                {% set form_satker = form_data['satker']|default() %}
+                                                <div class="input {{ error }}">
+                                                    <select id="ppk_treasurer_satker" class="not-use-selectric use-select2" name="ppk_treasurer_satker" style="width: 100%">
+                                                        {# <option value="">Pilih Satker</option> #}
+                                                        {# <option value="new_satker">Tambah Satker Baru</option> #}
+                                                        {% for option in satker %}
+                                                            <option value="{{ option.getSatkerName }}" {% if form_satker is not empty and form_satker == option.getId %} selected {% endif %}
+                                                            >{{ option.getSatkerName }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                                {# <div class="input {{ error }}" id="input-satker" style="display: none;">
+                                                    <input type="text" name="ppk_treasurer_satker" value="{{ form_data['satker']|default() }}" title="" placeholder="Satker Baru">
+                                                </div> #}
+                                            
+                                            {% set error = errors['ppk_treasurer_name'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                            {% set label_name = 'label.' ~ type ~ '_name' %}
+                                                {# <input list="ppkSuggest" id="input-ppk_treasurer_name" type="text" name="ppk_treasurer_name" value="{{ form_data['name']|default() }}" title="" placeholder="{{ label_name|trans }}" required>
+                                                <input id="input-ppk_treasurer_id" type="hidden" name="id" value="{{data_id}}"> #}
+                                                <input id="input-ppk_treasurer_type" type="hidden" name="type" value="{{type}}">
+                                                {# {% if type == 'ppk' %}
+                                                    <datalist id="ppkSuggest">
+                                                        {% for item in suggest %}
+                                                            <option value="{{item.getUsername}}">
+                                                        {% endfor %}
+                                                    </datalist>
+                                                {% endif %} #}
+                                                {% set form_ppk = form_data['name']|default() %}
+                                                {# {{ dump(form_ppk) }} #}
+                                                <select class="not-use-selectric" style="width: 100%;" id="input-ppk_treasurer_name" type="text" name="ppk_treasurer_name" title="" placeholder="Input Nama User" required>
+                                                    <option value="">Input Nama User</option>
+                                                    {% for option in suggest %}
+                                                        <option value="{{ option.getUsername }}" data-id="{{ option.getId }}" data-nip="{{ option.getNip }}" data-telp="{{ option.getPhoneNumber }}" data-email="{{ option.getEmail }}" {% if form_ppk is not empty and form_ppk == option.getPPName %} selected {% endif %}
+                                                        >{{ option.getPPName == null or option.getPPName == '' ? option.getUsername : option.getPPName }}</option>
+                                                    {% endfor %}
+                                                </select
+                                                {% if error %}<p class="{{ error }}">{{ errors['ppk_treasurer_name'] }}</p>{% endif %}
+                                            </div>
+                                            <br>
+                                            <br>
+                                            {% set error = errors['ppk_treasurer_nip'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                            {% set label_nip = 'label.' ~ type ~ '_nip' %}
+                                                <input id="input-nip" type="text" name="ppk_treasurer_nip" value="{{ form_data['nip']|default() }}" title="" placeholder="{{ label_nip|trans }}" required>
+                                                {% if error %}<p class="{{ error }}">{{ errors['ppk_treasurer_nip'] }}</p>{% endif %}
+                                            </div>
+                                            {% set error = errors['ppk_treasurer_telp'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                            {% set label_telp = 'label.' ~ type ~ '_telp' %}
+                                                <input id="input-phone" type="text" name="ppk_treasurer_telp" value="{{ form_data['telp']|default() }}" title="" placeholder="{{ label_telp|trans }}" required>
+                                                {% if error %}<p class="{{ error }}">{{ errors['ppk_treasurer_telp'] }}</p>{% endif %}
+                                            </div>
+                                            {% set error = errors['ppk_treasurer_email'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                            {% set label_email = 'label.' ~ type ~ '_email' %}
+                                                <input id="input-ppk_treasurer_email" type="text" name="ppk_treasurer_email" value="{{ form_data['email']|default() }}" title="" placeholder="{{ label_email|trans }}" required>
+                                                {% if error %}<p class="{{ error }}">{{ errors['ppk_treasurer_email'] }}</p>{% endif %}
+                                            </div>
+                                            {# {% set error = errors['ppk_treasurer_password'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                            {% set label_password = 'label.password' %}
+                                                <input id="input-ppk_treasurer_password" type="password" name="ppk_treasurer_password" value="" title="" placeholder="{{ label_password|trans }}" {% if data_id is empty %} required {% endif %}
+                                                >
+                                                {% if error %}<p class="{{ error }}">{{ errors['ppk_treasurer_password'] }}</p>{% endif %}
+                                            </div> #}
+                                            {% set error = errors['ppk_treasurer_type_account'] is defined ? 'error' : null %}
+                                            <div class="input {{ error }}">
+                                            {% set type_option = type ~ '_type_options' %}
+                                            {% set form_account = form_data['type_account']|default() %}
+                                                <select id="input-type-account" name="ppk_treasurer_type_account">
+                                                    {% for option in get_parameter(type_option) %}
+                                                        {% set label_option = 'label.' ~ option %}
+                                                        <option value="{{ option }}" {% if form_account is not empty and form_account == option %} selected {% endif %}
+                                                        >{{ label_option|trans }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                                {% if error %}<p class="{{ error }}">{{ errors['ppk_treasurer_type_account'] }}</p>{% endif %}
+                                            </div>
+                                            
+
+                                            <div class="input">
+                                                <input type="hidden" name="_csrf_token" value="{{ csrf_token(token_id) }}">
+                                                <input type="hidden" name="_csrf_token_id" value="{{ token_id }}">
+                                                <input id="user-slug" type="hidden" name="slug" value="{{ app.user.dirSlug }}">
+                                            </div>
+                                            <div class="input">
+                                                <input type="submit" value="{{ 'button.save'|trans }}" class="sBtn red">
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <script>
+        $(document).on('change', '#ppk_treasurer_satker_select', function(e) {
+            if (e.target.value == 'new_satker') {
+                $('#input-satker').show();
+                $('#input-satker input').val('');
+                $('#input-satker input').attr('required',true);
+            } else {
+                $('#input-satker').hide();
+                $('#input-satker input').removeAttr('required');
+            }
+        });
+
+        $(document).ready(function() {
+            $('#input-ppk_treasurer_name').select2({
+                tags: true,
+                placeholder: "Pilih Nama User",
+                allowClear: true
+            });
+
+            $('#input-ppk_treasurer_name').on('change', function (e) {
+                var selectedOption = $(this).find('option:selected');
+                
+                 if (selectedOption.val()) {
+                    // If an option is selected, update the input fields with data attributes
+                    $('#input-nip').val(selectedOption.data('nip')).prop('readonly', false);
+                    $('#input-phone').val(selectedOption.data('telp')).prop('readonly', false);
+                    $('#input-ppk_treasurer_email').val(selectedOption.data('email')).prop('readonly', false);
+                } else {
+                    // If no option is selected, allow the user to edit the fields
+                    $('#input-nip').val('').prop('readonly', false);
+                    $('#input-phone').val('').prop('readonly', false);
+                    $('#input-ppk_treasurer_email').val('').prop('readonly', false);
+                }
+            });
+        });
+    </script>
+{% endblock %}

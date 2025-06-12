@@ -1,0 +1,41 @@
+{% extends '@__main__/admin/base/layouts/default.html.twig' %}
+
+{% set selected_year = app.request.query.get('year', '') %}
+{% set plugin_parameters = {'year': selected_year, 'user': app.user} %}
+
+{% block content %}
+    <div class="box box-primary">
+        <form id="dashboard-filter" accept-charset="UTF-8" method="get" action="">
+            <div class="box-body with-border">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="f-year-dashboard">{{ 'label.year'|trans }}</label>
+                        <select id="f-year-dashboard" class="form-control" name="year">
+                            <option value="">{{ 'label.select_option'|trans }}</option>
+                            {% for year in 'now'|date('Y')..2020 %}
+                                {% set selected = year == selected_year ? 'selected' : '' %}
+                                <option value="{{ year }}" {{ selected }}>{{ year }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    {{ render(controller('App\\Plugins\\AdminPlugin::rekapDataTransaksi', plugin_parameters)) }}
+    {{ render(controller('App\\Plugins\\AdminPlugin::merchantDataByStateChart', plugin_parameters)) }}
+    {{ render(controller('App\\Plugins\\AdminPlugin::merchantTransactionDataChart', plugin_parameters)) }}
+    {{ render(controller('App\\Plugins\\AdminPlugin::productDataByCategoryChart', plugin_parameters)) }}
+    {{ render(controller('App\\Plugins\\AdminPlugin::transactionDataPerMonthChart', plugin_parameters)) }}
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        $(function() {
+            $('#f-year-dashboard').change(function() {
+                $('#dashboard-filter').submit();
+            });
+        });
+    </script>
+{% endblock %}

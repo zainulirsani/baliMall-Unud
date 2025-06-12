@@ -1,0 +1,357 @@
+{% extends '@__main__/admin/base/layouts/default.html.twig' %}
+
+{% set controller = app.request.get('_controller') %}
+{% set page_method = controller[1] is defined ? controller[1] : 'n/a' %}
+{% set index_route = 'admin_' ~ page_section ~ '_index' %}
+{% set roleParam = app.request.query.get('role') %}
+
+{% set status_options = get_parameter('disbursement_statuses') %}
+
+{% set id = form_data['id']|default() %}
+{% set invoice = form_data['order_invoice']|default() %}
+{% set buyer = form_data['buyer']|default() %}
+{% set store = form_data['store_name']|default() %}
+{% set store_owner = form_data['user_firstName']|default() ~ form_data['user_lastName']|default() %}
+{% set phone_number = form_data['user_phoneNumber']|default() %}
+{% set store_address = form_data['store_address']|default() %}
+{% set order_status = form_data['order_status'] %}
+{% set rekening_name = form_data['rekening_name']|default() %}
+{% set bank_name = form_data['bank_name']|default() %}
+{% set nomor_rekening = form_data['nomor_rekening']|default() %}
+
+{% set product_fee = form_data['product_fee']|default() %}
+{% set ppn = form_data['ppn']|default(0)|number_format(2, '.', ',') %}
+{% set pph = form_data['pph']|default(0)|number_format(2, '.', ',') %}
+{% set bank_fee = form_data['bank_fee']|default(0)|number_format(2, '.', ',') %}
+{% set management_fee = form_data['management_fee']|default(0)|number_format(2, '.', ',') %}
+{% set other_fee = form_data['other_fee']|default(0)|number_format(2, '.', ',') %}
+{% set status = form_data['status']|default() %}
+
+{% set store_pkp = form_data['store_pkp'] %}
+{% set persentase_pph = store_pkp ? (form_data['persentase_pph'] is not empty ? form_data['persentase_pph']|default(0.5) : form_data['treasurer_pph']|default(0.5)) : 0  %}
+{% set persentase_ppn = store_pkp ? (form_data['persentase_ppn'] is not empty ? form_data['persentase_ppn']|default(11) : form_data['treasurer_ppn']|default(11)) : 0  %}
+{% set persentase_bank_fee = form_data['persentase_bank_fee']|default(0) %}
+{% set persentase_management_fee = form_data['persentase_management_fee']|default(0) %}
+{% set persentase_other_fee = form_data['persentase_other_fee']|default(0) %}
+{% set order_shipping_price = form_data['order_shipping_price'] == null ? form_data['shipping_price']|to_int : form_data['order_shipping_price']|to_int %}
+
+{% set trans_parameter = {'%name%': invoice} %}
+{% set page_header = page_title|trans(trans_parameter) %}
+{% set update_route = 'admin_' ~ page_section ~ '_update' %}
+{% set page_action = path(update_route, {id: id, role: roleParam}) %}
+
+{% if status == 'pending' %}
+    {% set status_options = status_options|filter((v, k) => k == 'processed' ) %}
+{% elseif status == 'processed' or status == 'done'%}
+    {% set status_options = status_options|filter((v, k) => k == 'done' ) %}
+{% endif %}
+
+{% set disabled = '' %}
+
+{% if status == 'processed' or status == 'done' %}
+    {% set disabled = 'disabled' %}
+{% endif %}
+
+{#{% if errors is defined and formdata is not empty %}#}
+{#    {% set ppn = formdata['ppn'] %}#}
+{#{% endif %}#}
+
+{% block stylesheets %}
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            padding: 5px;
+        }
+
+        table {
+            width: 100%;
+            border-spacing: 1px 2px;
+        }
+
+        tr {
+            line-height: 30px;
+        }
+
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="box box-primary">
+                <form id="disbursement-form" accept-charset="UTF-8" method="post" action="{{ page_action }}">
+                    <input type="hidden" id="disbursement-id" value="{{ id }}">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">{{ page_header }}</h3>
+                    </div>
+                    <div class="box-body">
+                        {{ csrf_field(token_id) }}
+                        <div class="panel-body">
+                            <div class="nav-tabs-custom">
+                                <ul class="nav nav-tabs product-category-tabs">
+                                    <li class="active product-category-tab-data">
+                                        <a href="#tab-data" data-toggle="tab" data-tab="data">{{ 'label.data'|trans }}</a>
+                                    </li>
+                                </ul>
+                                <div class="tab-content tab-product-category-content">
+                                    <div id="tab-data" class="tab-pane fade in active">
+                                        <div class="m-top-15"></div>
+                                        <div class="form-group">
+                                            <label for="input-banner-name">{{ 'label.invoice'|trans }}</label>
+                                            <input id="input-banner-name" class="form-control" name="invoice" value="{{ invoice }}" disabled>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="input-store-name">{{ 'label.store'|trans }}</label>
+                                            <input id="input-store-name" class="form-control" name="store" value="{{ store }}" disabled>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="input-owner-name">{{ 'label.owner'|trans }}</label>
+                                            <input id="input-owner-name" class="form-control" name="owner" value="{{ store_owner }}" disabled>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="input-bank-account-name">{{ 'label.bank_account_name'|trans }}</label>
+                                            <input id="input-bank-account-name" class="form-control" name="bank_account_name" value="{{ rekening_name }}" disabled>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="input-bank-name">{{ 'label.bank_name'|trans }}</label>
+                                            <input id="input-bank-name" class="form-control" name="bank_name" value="{{ bank_name }}" disabled>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="input-bank-account-number">{{ 'label.bank_account_number'|trans }}</label>
+                                            <input id="input-bank-account-number" class="form-control" name="bank_account_number" value="{{ nomor_rekening }}" disabled>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="input-owner-pn">{{ 'label.phone'|trans }}</label>
+                                            <input id="input-owner-pn" class="form-control" name="phone" value="{{ phone_number }}" disabled>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="input-store-address">{{ 'label.address'|trans }}</label>
+                                            <input id="input-store-address" class="form-control" name="address" value="{{ store_address }}" disabled>
+                                        </div>
+                                        <hr>
+
+                                        <div class="form-group">
+                                            <table class="tb-order-products">
+                                                <thead>
+                                                    <tr>
+                                                        <th>{{ 'label.products'|trans }}</th>
+                                                        <th>{{ 'label.product_category'|trans }}</th>
+                                                        <th>{{ 'label.price_unit'|trans }}</th>
+                                                        <th>{{ 'label.qty'|trans }}</th>
+                                                        <th>{{ 'label.fee'|trans }}</th>
+                                                        <th>{{ 'label.fee_nominal'|trans }}</th>
+                                                        <th>{{ 'label.price'|trans }}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                {% set total_product_price = form_data['total_product_price'] %}
+                                                {% set product_fee = form_data['product_fee'] %}
+                                                {% set grand_total = (total_product_price - product_fee)|round %}
+                                                {% set total_ppn = 0 %}
+                                                {% set no = 0 %}
+                                                {% for product in form_data['o_products'] %}
+                                                    {% set order_shipping_price = product['op_priceShippingNegotiation'] %}
+                                                    {% set no = no + 1 %}
+                                                    {% set qty = product['op_quantity'] %}
+                                                    {% set product_price = product['op_price'] * qty %}
+                                                    {% set ppn_product = product['op_withTax'] == true ? product['op_taxNominal'] : 0 %}
+                                                    {% set total_ppn = total_ppn + (ppn_product) %}
+
+                                                    <tr>
+                                                        <td>{{ product['p_name'] }}</td>
+                                                        <td>{{ product['pc_name'] }}</td>
+                                                        <td>{{ product['op_price']|number_format }}</td>
+                                                        <td>{{ qty }}</td>
+                                                        <td>
+                                                            <input type="number" value="{{ product['op_fee']|default(0)}}" name="fee[]" data-urut="{{no}}" data-input="persentase" class="input-persentase-nominal input-persentase-fee" id="fee_persentase_{{no}}" step="any" /> %
+                                                        </td>
+                                                        <td>
+                                                            <input type="text" value="{{ product['op_fee_nominal']|default(0)}}" name="fee_nominal[]" data-urut="{{no}}" data-input="nominal" class="input-persentase-nominal input-nominal-fee" id="fee_nominal_{{no}}" step="any" />
+                                                            <input type="hidden" value="{{ product['op_id']}}" name="op_id[]" />
+                                                        </td>
+                                                        <td id="price_{{no}}" data-value="{{product_price}}">{{ product_price|number_format }}</td>
+                                                    </tr>
+                                                {% endfor %}
+
+                                                {% set sub_total_without_tax = total_product_price - total_ppn %}
+                                                {% set sub_total_with_shipping = sub_total_without_tax + order_shipping_price %}
+
+                                                <tr>
+                                                    <td colspan="6"><strong>{{ 'label.sub_total'|trans }}</strong></td>
+                                                    <td>{{ sub_total_without_tax|number_format }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="6"><strong>{{ 'label.shipping_price'|trans }}</strong></td>
+                                                    <td>{{ order_shipping_price|number_format }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="6"><strong>{{ 'label.sub_total_with_shipping'|trans }}</strong></td>
+                                                    <td>{{ sub_total_with_shipping|number_format }}</td>
+                                                </tr>
+                                                <tr>
+                                                    {% set ppn_shipping = order_shipping_price * (11 / 100) %}
+                                                    {% set total_ppn = total_ppn + ppn_shipping %}
+                                                    <td colspan="6"><strong>{{ 'label.tax'|trans }}</strong></td>
+                                                    <td>{{ total_ppn|number_format }}</td>
+                                                </tr>
+                                                <tr>
+                                                    {% set total_product_price = sub_total_with_shipping + total_ppn %}
+                                                    <td colspan="6"><strong>{{ 'label.sub_total_with_tax'|trans }}</strong></td>
+                                                    <td id="total_product_price" data-value="{{total_product_price}}">{{ total_product_price|number_format }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="6"><strong>{{ 'label.product_fee'|trans }}</strong></td>
+                                                    <td id="product-fee" data-value="{{product_fee}}">
+                                                        {{ product_fee|number_format}}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="6"><strong>{{ 'label.sub_total_after_product_fee'|trans }}</strong></td>
+                                                    <td id="grand-total" data-value="{{grand_total}}">{{ grand_total|round|number_format }}</td>
+                                                </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <hr>
+
+                                        <div class="form-group">
+                                            <input type="hidden" id="total-after-product-fee" class="form-control" value="{{ grand_total }}">
+                                            <input type="hidden" id="sub-total-without-tax" class="form-control" value="{{ sub_total_without_tax }}">
+                                            <input type="hidden" id="sub-total-with-shipping" class="form-control" value="{{ sub_total_with_shipping }}">
+                                            <input type="hidden" id="input-product-fee" name="total_product_fee" />
+                                        </div>
+
+                                        <div class="form-group {% if errors['persentase_ppn']|default() %}has-error{% endif %}">
+                                            <div class="col-lg-6">
+                                                <label for="input-persentase-ppn">{{ 'label.persentase_ppn'|trans }}</label>
+                                                {% if errors['persentase_ppn']|default() %}
+                                                    <span class="help-block custom-help-block">{{ errors['persentase_ppn'] }}</span>
+                                                {% endif %}
+                                                <input type="number" id="input-persentase-ppn" class="form-control disbursement-ctl" name="persentase_ppn" value="{{ persentase_ppn }}" {{ disabled }} data-idnominal="ppn" data-jenis="persentase" step="any">
+                                            </div>
+
+                                            <div class="col-lg-6">
+                                                <label for="input-ppn">{{ 'label.nominal_ppn'|trans }}</label>
+                                                {% if errors['ppn']|default() %}
+                                                    <span class="help-block custom-help-block">{{ errors['ppn'] }}</span>
+                                                {% endif %}
+                                                <input type="text" id="input-ppn" class="form-control disbursement-ctl" name="ppn" value="{{ ppn }}" {{ disabled }} data-idnominal="persentase-ppn" data-jenis="nominal" step="any">
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group {% if errors['persentase_pph']|default() %}has-error{% endif %}">
+                                            <div class="col-lg-6">
+                                                <label for="input-persentase-pph">{{ 'label.persentase_pph'|trans }}</label>
+                                                {% if errors['persentase_pph']|default() %}
+                                                    <span class="help-block custom-help-block">{{ errors['persentase_pph'] }}</span>
+                                                {% endif %}
+                                                <input type="number" id="input-persentase-pph" class="form-control disbursement-ctl" name="persentase_pph" value="{{ persentase_pph }}" {{ disabled }} data-idnominal="pph" data-jenis="persentase" step="any">
+                                            </div>
+
+                                            <div class="col-lg-6">
+                                                <label for="input-pph">{{ 'label.nominal_pph'|trans }}</label>
+                                                {% if errors['pph']|default() %}
+                                                    <span class="help-block custom-help-block">{{ errors['pph'] }}</span>
+                                                {% endif %}
+                                                <input type="text" id="input-pph" class="form-control disbursement-ctl" name="pph" value="{{ pph }}" {{ disabled }} data-idnominal="persentase-pph" data-jenis="nominal" step="any">
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group {% if errors['persentase_bank']|default() %}has-error{% endif %}">
+                                            <div class="col-lg-6">
+                                                <label for="input-persentase-bank-fee">{{ 'label.persentase_bank_fee'|trans }}</label>
+                                                {% if errors['persentase_bank']|default() %}
+                                                    <span class="help-block custom-help-block">{{ errors['persentase_bank'] }}</span>
+                                                {% endif %}
+                                                <input type="number" id="input-persentase-bank-fee" class="form-control disbursement-ctl" name="persentase_bank" value="{{ persentase_bank_fee }}" {{ disabled }} data-idnominal="bank-fee" data-jenis="persentase" step="any">
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <label for="input-bank-fee">{{ 'label.nominal_bank_fee'|trans }}</label>
+                                                {% if errors['bankFee']|default() %}
+                                                    <span class="help-block custom-help-block">{{ errors['bankFee'] }}</span>
+                                                {% endif %}
+                                                <input type="text" id="input-bank-fee" class="form-control disbursement-ctl" name="bank_fee" value="{{ bank_fee }}" {{ disabled }} data-idnominal="persentase-bank-fee" data-jenis="nominal" step="any">
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group {% if errors['persentase_management_fee']|default() %}has-error{% endif %}">
+                                            <div class="col-lg-6">
+                                                <label for="input-persentase-management-fee">{{ 'label.persentase_management_fee'|trans }}</label>
+                                                {% if errors['persentase_management_fee']|default() %}
+                                                    <span class="help-block custom-help-block">{{ errors['persentase_management_fee'] }}</span>
+                                                {% endif %}
+                                                <input type="number" id="input-persentase-management-fee" class="form-control disbursement-ctl" name="persentase_management_fee" value="{{ persentase_management_fee }}" {{ disabled }} data-idnominal="management-fee" data-jenis="persentase" step="any">
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <label for="input-management-fee">{{ 'label.nominal_management_fee'|trans }}</label>
+                                                {% if errors['managementFee']|default() %}
+                                                    <span class="help-block custom-help-block">{{ errors['managementFee'] }}</span>
+                                                {% endif %}
+                                                <input type="text" id="input-management-fee" class="form-control disbursement-ctl" name="management_fee" value="{{ management_fee }}" {{ disabled }} data-idnominal="persentase-management-fee" data-jenis="nominal" step="any">
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group {% if errors['persentase_other_fee']|default() %}has-error{% endif %}">
+                                            <div class="col-lg-6">
+                                                <label for="input-persentase-other-fee">{{ 'label.persentase_other_fee'|trans }}</label>
+                                                {% if errors['persentase_other_fee']|default() %}
+                                                    <span class="help-block custom-help-block">{{ errors['otherFee'] }}</span>
+                                                {% endif %}
+                                                <input type="number" id="input-persentase-other-fee" class="form-control disbursement-ctl" name="persentase_other_fee" value="{{ persentase_other_fee }}" {{ disabled }} data-idnominal="other-fee" data-jenis="persentase" step="any">
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <label for="input-other-fee">{{ 'label.nominal_other_fee'|trans }}</label>
+                                                {% if errors['otherFee']|default() %}
+                                                    <span class="help-block custom-help-block">{{ errors['otherFee'] }}</span>
+                                                {% endif %}
+                                                <input type="text" id="input-other-fee" class="form-control disbursement-ctl" name="other_fee" value="{{ other_fee }}" {{ disabled }} data-idnominal="persentase-other-fee" data-jenis="nominal" step="any">
+                                            </div>
+                                        </div>
+                                        <div class="form-group {% if errors['order_shipping_price']|default() %}has-error{% endif %}">
+                                            <div class="col-lg-12">
+                                                <label for="input-order-shipping-price">{{ 'label.shipping_price'|trans }}</label>
+                                                {% if errors['order_shipping_price']|default() %}
+                                                    <span class="help-block custom-help-block">{{ errors['order_shipping_price'] }}</span>
+                                                {% endif %}
+                                                <input id="input-order-shipping-price" class="form-control" name="order_shipping_price" value="{{order_shipping_price|number_format(2, ',', ',')|default(0)}}">
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group {% if errors['total_disbursement']|default() %}has-error{% endif %}">
+                                            <div class="col-lg-12">
+                                                <label for="input-total-disbursement">{{ 'label.grand_total'|trans }}</label>
+                                                {% if errors['total_disbursement']|default() %}
+                                                    <span class="help-block custom-help-block">{{ errors['total_disbursement'] }}</span>
+                                                {% endif %}
+                                                <input id="input-total-disbursement" class="form-control" name="total_disbursement" readonly>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box-footer">
+                        <div id="button-tab-data" class="button-tabs-product-category" style="display: inline;">
+                            <div style="display: inline;">
+                                <a href="{{ path(index_route, {'role': roleParam}) }}" class="btn btn-default">{{ 'button.cancel'|trans }}</a>
+                            </div>
+                            <button type="submit" class="btn btn-primary" name="btn_action" id="btn-submit-disbursement" value="save_exit">
+                                Proses Disbursement
+                            </button>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+

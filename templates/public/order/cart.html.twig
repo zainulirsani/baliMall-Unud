@@ -1,0 +1,101 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% set cart_items = user_cart is not empty ? user_cart.getItems : [] %}
+
+{% block content %}
+    <main class="cr-page">
+        {% include '@__main__/public/base/partials/breadcrumb.html.twig' %}
+        <section>
+            <div class="container">
+                <div class="row">
+                    <div class="dc8 tc12 auto">
+                        <div id="box-cart" class="box">
+                            <h2 class="ct">{{ 'title.cart_list'|trans|upper }}</h2>
+                            {% if cart_items|length < 1 %}
+                                <h5 class="sgd-text-center">{{ 'message.info.no_product'|trans }}</h5>
+                            {% else %}
+                                <form id="cart-form" action="{{ path('cart_checkout') }}" method="POST" accept-charset="UTF-8">
+                                    {{ csrf_field('checkout_cart') }}
+                                    <div class="cr-item-list">
+                                        <ul>
+                                            {% for item in cart_items %}
+                                                {# add `on-edit` class on `li` element to show edit form #}
+                                                {% set hash = item[0]['id'] %}
+                                                {% set attr = item[0]['attributes'] %}
+                                                {% set thumb = product_main_image(attr['image']|default(0)) %}
+                                                {% set price = attr['price'] %}
+                                                {% set max_qty = attr['max_qty']|default(1) %}
+                                                {% set quantity = item[0]['quantity'] %}
+                                                {% set sub_total = price * quantity %}
+                                                {% set store_url = path('store_page', {'store': attr['vendor_slug']}) %}
+                                                {% set product_url = path('store_product_page', {
+                                                    'store': attr['vendor_slug'],
+                                                    'product': attr['slug']
+                                                }) %}
+                                                <li id="cart-item-detail-{{ hash }}" class="">
+                                                    <div class="top">
+                                                        <figure>
+                                                            <img src="{{ path('sftp_show_file', {'path': thumb}) }}" alt="">
+                                                        </figure>
+                                                        <div class="item-title">
+                                                            <h5><a href="{{ product_url }}" target="_blank">{{ attr['name'] }}</a></h5>
+                                                            <h6><a href="{{ store_url }}">{{ attr['vendor']|default('N/A')|raw }}</a></h6>
+                                                        </div>
+                                                        <div class="info">
+                                                            <div class="default">
+                                                                <a href="javascript:void(0);" class="toggle-edit-cart" data-hash="{{ hash }}">
+                                                                    {{ 'button.edit'|trans }} <i class="fas fa-sliders-h"></i>
+                                                                </a>
+                                                                <span id="cart-item-qty2-{{ hash }}" class="qty">
+                                                                    {{ 'label.qty'|trans|upper }} <b>{{ quantity }}</b>
+                                                                </span>
+                                                                <span><i class="fas fa-wallet"></i> Rp. {{ price|number_format }}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form">
+                                                        <label>{{ 'label.qty'|trans|upper }}</label>
+                                                        <div class="input input--mm">
+                                                            <input id="cart-item-qty-{{ hash }}" type="text" value="{{ quantity }}" title="">
+                                                            <button class="min cart-minus-qty" data-min="1" data-hash="{{ hash }}">-</button>
+                                                            <button class="max cart-plus-qty" data-max="{{ max_qty }}" data-hash="{{ hash }}">+</button>
+                                                        </div>
+                                                        <a href="javascript:void(0);" class="sBtn red btn-update-cart-item" data-hash="{{ hash }}">Save</a>
+                                                    </div>
+                                                    <div class="summary">
+                                                        <a href="javascript:void(0);" class="btn-gtm-bm-rfc btn-remove-cart-item" data-hash="{{ hash }}">
+                                                            <i class="fas fa-times"></i> {{ 'button.remove'|trans }}
+                                                        </a>
+                                                        <h4 id="cart-item-total-{{ hash }}">Rp. {{ sub_total|number_format }}</h4>
+                                                    </div>
+                                                    <div>
+                                                        <input id="gtm-bm-name-{{ hash }}" type="hidden" value="{{ attr['name'] }}">
+                                                        <input id="gtm-bm-id-{{ hash }}" type="hidden" value="{{ attr['image']|default(0) }}">
+                                                        <input id="gtm-bm-price-{{ hash }}" type="hidden" value="{{ price|number_format(2, '.', '') }}">
+                                                        <input id="gtm-bm-brand-{{ hash }}" type="hidden" value="{{ attr['vendor']|default('N/A') }}">
+                                                        <input id="gtm-bm-category-{{ hash }}" type="hidden" value="{{ attr['category']|default() }}">
+                                                        <input id="gtm-bm-quantity-{{ hash }}" type="hidden" value="{{ quantity }}">
+                                                    </div>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                        <div class="total-price">
+                                            <h4 class="left-side">{{ 'label.total'|trans }}</h4>
+                                            <h2 id="input-grand-total" class="right-side rt">Rp. {{ user_cart.getAttributeTotal|number_format }}</h2>
+                                            <div class="clear"></div>
+                                        </div>
+                                    </div>
+                                    <div class="btn-wrapper">
+                                        <input type="submit" class="sBtn red right-side" value="{{ 'button.checkout'|trans|upper }}">
+                                        <a href="{{ path('search') }}" class="gBtn">{{ 'button.return'|trans }}</a>
+                                        <div class="clear"></div>
+                                    </div>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}

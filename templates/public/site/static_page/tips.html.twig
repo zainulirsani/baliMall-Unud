@@ -1,0 +1,49 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% block content %}
+    <main class="global-page">
+        <section>
+            <div class="container">
+                <h2>Nikmati Kenyamanan Berbelanja di Balimall.id</h2>
+                <p class="sgd-text-center">
+                    <a href="{{ path('register') }}" target="_blank">Daftar Sekarang</a>
+                </p>
+                <p>
+                    Balimall.id menghadirkan produk unggulan UMKM Bali dengan jaminan kualitas, harga, keaslian produk, jaminan layanan purna jual.
+                </p>
+                <ul class="">
+                    <li>
+                        <strong>Merchant terverifikasi</strong>
+                        <p>
+                            Merchant atau penjual adalah UMKM yang telah terverifikasi
+                        </p>
+                    </li>
+                    <li>
+                        <strong>Jaminan kualitas, harga, keaslian produk</strong>
+                        <p>
+                            Balimall.id menjamin kualitas produk, keaslian produk, dan harga yang pasti
+                        </p>
+                    </li>
+                    <li>
+                        <strong>Jaminan Keamanan Transaksi</strong>
+                        <p>
+                            Jaminan keamanan transaksi dengan aplikasi yang aman dan terlindungi, bekerjasama dengan Bank Pemerintah Daerah dan BUMN, jaminan layanan purna jual dari balimall.id
+                        </p>
+                    </li>
+                </ul>
+                <hr>
+                <h2>Cara Berbelanja di Balimall.id</h2>
+                <div class="sgd-text-center">
+                    <video controls="controls">
+                        <source src="{{ asset('assets/video/tips-to-buy.mp4') }}" type="video/mp4">
+                        Your browser does not support the HTML5 Video element.
+                    </video>
+                    <video controls="controls" style="object-fit: initial; width: 640px; height: auto; margin-top: 10px;">
+                        <source src="{{ asset('assets/video/tips-to-use-voucher.mp4') }}" type="video/mp4">
+                        Your browser does not support the HTML5 Video element.
+                    </video>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% if region == 'top' %}
+    <div class="new-banner">
+        {% if banner is not empty %}
+            {% if banner.route == 'external' %}
+                <a href="{{ banner.getExternalUrl }}">
+                    <img src="{{ path('sftp_show_file', {'path': banner.image}) }}" alt="">
+                </a>
+            {% elseif banner.route == 'search' %}
+                <a href="{{ banner.route is not empty ? path(banner.getRoute(), banner.getParameters()) : 'javascript:void(0);' }}">
+                    <img src="{{ path('sftp_show_file', {'path': banner.image}) }}" alt="">
+                </a>
+            {% else %}
+                <a href="javascript:void(0);">
+                    <img src="{{ path('sftp_show_file', {'path': banner.image}) }}" alt="">
+                </a>
+            {% endif %}
+        {% else %}
+            <img src="{{ asset('dist/img/main-banner.png') }}" alt="">
+        {% endif %}
+    </div>
+{% elseif region == 'bottom' %}
+    <div class="register-banner">
+        <img src="{{ asset('dist/img/balimall.png') }}" class="logo" alt="" style="width: 30%">
+        <p>
+            {{ 'message.info.bottom_banner_1'|trans }}<br>
+            {{ 'message.info.bottom_banner_2'|trans }}<br>
+            {{ 'message.info.bottom_banner_3'|trans|raw }}
+        </p>
+        <div class="btn-wrapper">
+            <a href="{{ path('register', {'as': 'vendor'}) }}" class="sBtn red">{{ 'label.reg_as_vendor'|trans }}</a>
+        </div>
+    </div>
+{% endif %}

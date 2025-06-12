@@ -1,0 +1,188 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% set attachment = form_data['attachment']|default() %}
+{% set attachment_style = attachment is empty ? 'display: none;' : '' %}
+{% set invoice_value = form_data['invoice']|default() %}
+{% set order_payment_accounts = get_parameter('order_payment_accounts') %}
+
+{% if invoice_query is not empty %}
+    {% set invoice_value = invoice_query %}
+{% endif %}
+
+{% block content %}
+    <style>
+        .selectric-scroll ul li.disabled {
+            display: none;
+        }
+    </style>
+    <main class="pdl">
+        {% include '@__main__/public/base/partials/breadcrumb.html.twig' %}
+        <section>
+            <div class="container">
+                <div class="box">
+                    <div class="row">
+                        {% include '@__main__/public/user/fragments/menu.html.twig' %}
+                        <div class="dc9 tc12">
+                            <div class="sub-title">
+                                <div class="text">
+                                    <h3>{{ 'title.page.payment_confirmation'|trans }}</h3>
+                                </div>
+                                <div class="clear"></div>
+                            </div>
+                            {% if confirmation_payment_info == 'show' %}
+                                <hr>
+                                <p>
+                                    {{ 'message.info.payment_info'|trans }}<br>
+                                    <code>
+                                        {% if show_pay_account_1 == 'yes' %}{{ order_payment_accounts['all_1']|join('<br>')|raw }}{% endif %}
+                                        {% if show_pay_account_2 == 'yes' %}<br><br>{{ order_payment_accounts['all_2']|join('<br>')|raw }}{% endif %}
+                                    </code>
+                                </p>
+                                <div class="inner-box">
+                                    <img src="{{ asset(asset_qris_pay) }}" height="400px" alt="">
+                                    <br><br>
+                                    <a href="{{ asset(asset_qris_pay) }}" class="sBtn small red" download>
+                                        {{ 'button.download'|trans ~ ' QRIS' }}
+                                    </a>
+                                    <br><br>
+                                </div>
+                            {% endif %}
+                            <form id="payment-confirmation-form" action="" method="post" accept-charset="UTF-8">
+
+                                {% set error = errors['bankMethod'] is defined ? 'error' : null %}
+                                <div class="input {{ error }}">
+                                    <label for="input-bank-method">{{ 'label.payment_type'|trans }}</label>
+                                    {% if error %}<p class="{{ error }}">{{ errors['bankMethod']|trans({}, 'validators') }}</p>{% endif %}
+                                    {# <select id="input-bank-method" name="bank_method">
+                                        {% set bank_method = 'label.payment_type'|trans %}
+                                        <option value="">{{ 'label.select_label'|trans({'%label%': bank_method}) }}</option>
+                                        {% for key, bank in get_parameter('bank_method_options') %}
+                                            <option value="{{ key }}" {{ key == 'bank_transfer' ? 'selected' : '' }}>{{ bank }}</option>
+                                        {% endfor %}
+                                    </select> #}
+                                    <input type="hidden" name="bank_method" value="bank_transfer" readonly>
+                                    <input  type="text" value="Transfer" readonly>
+                                </div>
+
+                                {% set error = errors['bankName'] is defined ? 'error' : null %}
+                                <div class="input {{ error }}">
+                                    <label for="input-bank-name">{{ 'label.bank_name'|trans }}</label>
+                                    {% if error %}<p class="{{ error }}">{{ errors['bankName']|trans({}, 'validators') }}</p>{% endif %}
+                                    <select id="input-bank-name" name="bank_name">
+                                        {% set bank = 'label.bank'|trans %}
+                                        <option class="bank_bank_transfer bank_virtual_account" value="">{{ 'label.select_label'|trans({'%label%': bank}) }}</option>
+                                        {% for key, bank in banks %}
+                                            {% set is_bank_tf = bank.getIsAcceptTransfer ? 'bank_bank_transfer' : '' %}
+                                            {% set is_bank_va = bank.getIsAcceptVa ? 'bank_virtual_account' : '' %}
+                                            <option class="{{is_bank_tf ~ ' ' ~ is_bank_va }}" value="{{ bank.getBankSlug }}">{{ bank.getName}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                {#{% set error = errors['name'] is defined ? 'error' : null %}
+                                <div class="input {{ error }}">
+                                    <label for="input-name">{{ 'label.name'|trans }}</label>
+                                    <input id="input-name" type="text" name="name" value="{{ form_data['name']|default() }}">
+                                    {% if error %}<p class="{{ error }}">{{ errors['name']|trans({}, 'validators') }}</p>{% endif %}
+                                </div>
+                                {% set error = errors['email'] is defined ? 'error' : null %}
+                                <div class="input {{ error }}">
+                                    <label for="input-email">{{ 'label.email'|trans }}</label>
+                                    <input id="input-email" type="email" name="email" value="{{ form_data['email']|default() }}">
+                                    {% if error %}<p class="{{ error }}">{{ errors['email']|trans({}, 'validators') }}</p>{% endif %}
+                                </div>#}
+
+                                {% set error = errors['invoice'] is defined ? 'error' : null %}
+                                <div class="input {{ error }}">
+                                    <label for="input-invoice">{{ 'label.invoice_no'|trans }}</label>
+                                    {% if error %}<p class="{{ error }}">{{ errors['invoice']|trans({'%limit%': max_length}, 'validators') }}</p>{% endif %}
+                                    {% if access_query is defined and access_query is not empty %}
+                                        <input id="input-invoice" type="text" name="invoice" value="{{ invoice_value }}" readonly>
+                                    {% else %}
+                                        <select id="input-invoice" name="invoice">
+                                            {% set inv = 'label.invoice'|trans %}
+                                            <option value="">{{ 'label.select_label'|trans({'%label%': inv}) }}</option>
+                                            {% for key, invoice in nominal %}
+                                                {% set selected = invoice_value == key ? 'selected' : '' %}
+                                                <option value="{{ key }}" {{ selected }}>{{ key }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    {% endif %}
+                                </div>
+
+                                {% set error = errors['nominal'] is defined ? 'error' : null %}
+                                <div class="input {{ error }}">
+                                    <label for="input-nominal">{{ 'label.nominal'|trans }}</label>
+                                    {% if error %}<p class="{{ error }}">{{ errors['nominal']|trans({}, 'validators') }}</p>{% endif %}
+                                    <input id="input-nominal" type="text" name="nominal" value="{{ form_data['nominal']|default() }}">
+                                </div>
+                                {% set error = errors['date'] is defined ? 'error' : null %}
+                                <div class="input {{ error }}">
+                                    <label for="input-date">{{ 'label.payment_date'|trans }}</label>
+                                    {% if error %}<p class="{{ error }}">{{ errors['date']|trans({}, 'validators') }}</p>{% endif %}
+                                    <input id="input-date" type="text" name="date" value="{{ form_data['date']|default() }}">
+                                </div>
+                                {#{% set error = errors['bankAccountName'] is defined ? 'error' : null %}
+                                <div class="input {{ error }}">
+                                    <label for="input-bank-account-name">{{ 'label.bank_account_name'|trans }}</label>
+                                    {% if error %}<p class="{{ error }}">{{ errors['bankAccountName']|trans({}, 'validators') }}</p>{% endif %}
+                                    <input id="input-bank-account-name" type="text" name="bank_account_name" value="{{ form_data['bank_account_name']|default() }}">
+                                </div>
+                                {% set error = errors['bankAccountNumber'] is defined ? 'error' : null %}
+                                <div class="input {{ error }}">
+                                    <label for="input-bank-account-number">{{ 'label.bank_account_number'|trans }}</label>
+                                    {% if error %}<p class="{{ error }}">{{ errors['bankAccountNumber']|trans({}, 'validators') }}</p>{% endif %}
+                                    <input id="input-bank-account-number" type="text" name="bank_account_number" value="{{ form_data['bank_account_number']|default() }}">
+                                </div>#}
+                                {% set error = errors['attachment'] is defined ? 'error' : null %}
+                                <div class="input {{ error }}">
+                                    <div class="row">
+                                        <div class="dc3 tc6 img-id">
+                                            <p>{{ 'label.payment_date_image_alt'|trans }}</p>
+                                            <div class="inner">
+                                                <div id="input-attachment-tools" style="{{ attachment_style }}">
+                                                    <a href="javascript:void(0);" class="fas fa-trash-alt delete-attachment"></a>
+                                                </div>
+                                                <a id="input-attachment" href="javascript:void(0);" class="mask add-img upload-attachment">
+                                                    <span class="upload-attachment">+</span>
+                                                </a>
+                                                <img id="img-attachment" src="{{ asset(attachment) }}" alt="" style="{{ attachment_style }}">
+                                                <input id="input-attachment-temp" type="hidden" name="attachment" value="{{ attachment }}">
+                                            </div>
+                                            {% if error %}<p class="{{ error }}">{{ errors['attachment']|trans({}, 'validators') }}</p>{% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% set error = errors['message'] is defined ? 'error' : null %}
+                                <div class="input">
+                                    <label for="input-message">{{ 'label.messages'|trans }}</label>
+                                    {% if error %}<p class="{{ error }}">{{ errors['message']|trans({}, 'validators') }}</p>{% endif %}
+                                    <textarea id="input-message" name="message" class="no-resize">{{ form_data['message']|default() }}</textarea>
+                                </div>
+                                <div class="input">
+                                    <input type="hidden" id="input-attachment-slug" value="{{ 'now'|date('Y-m-d') }}">
+                                    <input type="hidden" name="_csrf_token" value="{{ csrf_token(token_id) }}">
+                                    <input type="hidden" name="_csrf_token_id" value="{{ token_id }}">
+                                </div>
+                                <div class="input">
+                                    <button id="btn-payment-confirmation-submit" class="sBtn red">{{ 'button.submit'|trans }}</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        INVOICE_NOMINAL = {{ nominal|json_encode|raw }};
+
+        $('#btn-payment-confirmation-submit').on('click', function (e) {
+            e.preventDefault();
+            showLoading()
+            $('#payment-confirmation-form').submit();
+        })
+    </script>
+{% endblock %}

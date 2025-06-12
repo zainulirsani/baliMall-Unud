@@ -1,0 +1,59 @@
+.far, .fas{
+    vertical-align: middle;
+}
+input.radio, input.check{
+	float: left;
+	opacity: 0;
+	height: 18px;
+	width: 18px;
+	display: inline-block;
+    clear: left;
+    float: left;
+    position: relative;
+    z-index: 100;
+
+    &:hover{
+    	cursor:pointer;
+    }
+}
+
+input.radio+label{
+	background: url("../img/radio.png") no-repeat scroll 0 0;
+    clear: none;
+    display: block;
+    height: 18px;
+    position: absolute;
+    width: 18px;
+}
+
+input.check+label{
+	background: url("../img/check.png") no-repeat scroll 0 0;
+    clear: none;
+    display: block;
+    height: 18px;
+    margin: 0px;
+    position: absolute;
+    width: 18px;
+}
+
+input.radio:hover+label, input.check:hover+label{
+	background-position: -18px 0;
+}
+
+input.radio:checked+label, input.check:checked+label{
+	background-position: -36px 0;
+}
+
+input.radio:disabled+label, input.check:disabled+label{
+	background-position: -56px 0;
+} 
+
+.user-icon{
+    .img-url('user.png', 22px, 24px);
+    .block;
+}
+.fa-star{
+    &.wl{
+        color: @red;
+    }
+}

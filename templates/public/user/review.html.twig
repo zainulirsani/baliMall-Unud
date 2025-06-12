@@ -1,0 +1,58 @@
+{% extends '@__main__/base/public/layouts/default.html.twig' %}
+
+{% block content %}
+    <main class="profile-page">
+        <section>
+            {% include '@__main__/public/user/fragments/banner.html.twig' %}
+            <div class="ctr">
+                {% include '@__main__/public/user/fragments/header.html.twig' %}
+                <div class="rctr">
+                    {% include '@__main__/public/user/fragments/header_menu.html.twig' %}
+                    <div class="dc10 r-content">
+                        <div class="rvw-list">
+                            <h3 class="scat">{{ 'label.goods_reviews'|trans }}</h3>
+                            <div class="rctr">
+                                {% for review in review_data %}
+                                    <div class="dc12 rvw">
+                                        <figure>
+                                            {% set avatar = 'dist/img/user.jpg' %}
+                                            {% if review['p_photoProfile'] is not empty %}
+                                                {% set avatar = review['p_photoProfile'] %}
+                                            {% endif %}
+                                            <img src="{{ asset(avatar) }}">
+                                        </figure>
+                                        <div class="user">
+                                            <h3>
+                                                <a href="javascript:void(0);">{{ review['p_firstName'] ~ ' ' ~ review['p_lastName'] }}</a>
+                                            </h3>
+                                            <small>
+                                                {{ review['gr_createdAt']|date('d/m/Y') }}
+                                                {#<a href="{{ path('goods_view', {'slug': review['g_slug']}) }}" target="_blank">{{ review['g_name'] }}</a>#}
+                                            </small>
+                                        </div>
+                                        <div class="fb">
+                                            {% set remaining = 5 - review['gr_rate'] %}
+                                            {% for i in 1..review['gr_rate'] %}
+                                                <i class="fas fa-star"></i>
+                                            {% endfor %}
+                                            {% if remaining > 0 %}
+                                                {% for j in 1..remaining %}
+                                                    <i class="far fa-star"></i>
+                                                {% endfor %}
+                                            {% endif %}
+                                        </div>
+                                        <div class="clear"></div>
+                                        <div class="rvw-body">
+                                            <p>{{ review['gr_review'] }}</p>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            {{ pagination(pagination.pages) }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}

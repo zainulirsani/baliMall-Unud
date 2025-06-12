@@ -1,0 +1,76 @@
+<div class="row">
+    <div class="col-md-12">
+        <div class="box box-warning collapsed-box">
+            <div class="box-header with-border">
+                <h3 class="box-title">{{ 'label.filter'|trans }}</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                        <i class="fa fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="row">
+                    {% set filter_length = data_table.getFilters|length %}
+
+                    {% if filter_length > 0 %}
+                        {% if filter_length > 3 %}{% set filter_length = 4 %}{% endif %}
+
+                        {% set columns = [0, 12, 6, 4, 3] %}
+                        {% set column = columns[filter_length] %}
+
+                        {% for key, filter in data_table.getFilters %}
+                            {% if filter['type'] == 'hidden' %}
+                                <input id="f-{{ key }}" type="hidden" value="{{ filter['value']|default('') }}">
+                            {% else %}
+                                {% set filter_label = 'label.' ~ key %}
+                                {% set filter_class = '' %}
+
+                                {% if filter['type'] == 'date' %}
+                                    {% set filter_class = 'f-date-only' %}
+                                {% endif %}
+
+                                <div class="col-md-{{ column }}">
+                                    <div class="form-group">
+                                        <label for="f-{{ key }}">{{ 'title.filter_by'|trans({'%name%': filter_label|trans}) }}</label>
+                                        {% if filter['type'] == 'select' %}
+                                            <select id="f-{{ key }}" class="form-control" {% if filter['multiple'] is defined and filter['multiple'] == true %} multiple="multiple" {% endif %}
+                                            >
+                                                <option value="">{{ 'label.select_option'|trans }}</option>
+                                                {% if filter['choices'] is defined %}
+                                                    {% for option in filter['choices'] %}
+                                                        {% set option_label = 'label.' ~ option %}
+                                                        <option value="{{ option }}">{{ option_label|trans }}</option>
+                                                    {% endfor %}
+                                                {% elseif filter['selections'] is defined %}
+                                                    {% for key, option in filter['selections'] %}
+                                                        <option value="{{ key }}">{{ option|trans }}</option>
+                                                    {% endfor %}
+                                                {% elseif filter['collections'] is defined %}
+                                                    {% for key, option in filter['collections'] %}
+                                                        <option value="{{ key }}">{{ option }}</option>
+                                                    {% endfor %}
+                                                {% endif %}
+                                            </select>
+                                        {% elseif filter['type'] == 'hidden' %}
+                                            <input id="f-{{ key }}" type="hidden" value="{{ filter['value']|default('') }}">
+                                        {% elseif filter['type'] == 'checkbox' %}
+                                            <div class="checkbox">
+                                                <label><input id="f-{{ key }}" type="checkbox" value="0" class="filter-checkbox"></label>
+                                            </div>
+                                        {% else %}
+                                            <input id="f-{{ key }}" class="form-control {{ filter_class }}">
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="box-footer clearfix">
+                <button id="data-table-filter" type="button" class="btn btn-primary">{{ 'button.submit'|trans }}</button>
+            </div>
+        </div>
+    </div>
+</div>

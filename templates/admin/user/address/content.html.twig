@@ -1,0 +1,6 @@
+{% if address %}
+    {% set type = type|default('view') %}
+    <div id="address-detail-{{ address.getId }}" class="col-md-3">
+        {% include '@__main__/admin/user/address/content_detail.html.twig' %}
+    </div>
+{% endif %}

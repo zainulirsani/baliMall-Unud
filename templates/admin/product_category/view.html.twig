@@ -1,0 +1,123 @@
+{% extends '@__main__/admin/base/layouts/default.html.twig' %}
+
+{% set trans_parameter = {'%name%': form_data['pc_name']} %}
+{% set page_header = page_title|trans(trans_parameter) %}
+{% set index_route = 'admin_' ~ page_section ~ '_index' %}
+{% set edit_route = 'admin_' ~ page_section ~ '_edit' %}
+{% set product_category_id = form_data['pc_id']|default(0) %}
+{% set product_category_status = form_data['pc_status']|default()|to_bool %}
+{% set product_category_status_value = '' %}
+{% set product_category_featured = form_data['pc_featured']|default()|to_bool %}
+{% set product_category_featured_value = '' %}
+{% set product_category_with_tax = form_data['pc_withTax']|default()|to_bool %}
+{% set product_category_with_tax_value = '' %}
+{% set product_category_desktop_image = form_data['pc_desktopImage']|default('dist/img/no-image.png') %}
+{% set product_category_mobile_image = form_data['pc_mobileImage']|default('dist/img/no-image.png') %}
+{% set product_category_parent_id = form_data['pc_parentId']|default(0) %}
+{% set product_category_parent_id_value = '' %}
+
+{% for parent_data in product_category_data %}
+    {% if parent_data['id'] == product_category_parent_id %}
+        {% set product_category_parent_id_value = parent_data['text'] %}
+    {% endif %}
+{% endfor %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">{{ page_header }}</h3>
+                </div>
+                <div id="product-category-form" class="box-body">
+                    <div class="panel-body">
+                        <div class="nav-tabs-custom">
+                            <ul class="nav nav-tabs product-category-tabs">
+                                <li class="active product-category-tab-data">
+                                    <a href="#tab-data" data-toggle="tab" data-tab="data">{{ 'label.data'|trans }}</a>
+                                </li>
+                            </ul>
+                            <div class="tab-content tab-product-category-content">
+                                <div id="tab-data" class="tab-pane fade in active">
+                                    <div class="m-top-15"></div>
+                                    <div class="form-group">
+                                        <label for="input-parent-id">{{ 'label.parent_category'|trans }}</label>
+                                        <input id="input-parent-id" class="form-control" value="{{ product_category_parent_id_value }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-name">{{ 'label.name'|trans }}</label>
+                                        <input id="input-name" class="form-control slug-input" value="{{ form_data['pc_name']|default() }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-slug">{{ 'label.slug'|trans }}</label>
+                                        <input id="input-slug" class="form-control slug-output" value="{{ form_data['pc_slug']|default() }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-heading">{{ 'label.heading'|trans }}</label>
+                                        <input id="input-heading" class="form-control" value="{{ form_data['pc_heading']|default() }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-description">{{ 'label.description'|trans }}</label>
+                                        <textarea id="input-description" class="form-control" rows="3" readonly>{{ form_data['pc_description']|default() }}</textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        {% if product_category_status is defined %}
+                                            {% set product_category_status = product_category_status == true ? 'label.active' : 'label.inactive' %}
+                                            {% set product_category_status_value = product_category_status|trans %}
+                                        {% endif %}
+                                        <label for="input-status">{{ 'label.status'|trans }}</label>
+                                        <input id="input-featured" class="form-control" value="{{ product_category_status_value }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        {% if product_category_featured is defined %}
+                                            {% set product_category_featured = product_category_featured == true ? 'label.yes' : 'label.no' %}
+                                            {% set product_category_featured_value = product_category_featured|trans %}
+                                        {% endif %}
+                                        <label for="input-featured">{{ 'label.featured'|trans }}</label>
+                                        <input id="input-featured" class="form-control" value="{{ product_category_featured_value }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        {% if product_category_with_tax is defined %}
+                                            {% set product_category_with_tax = product_category_with_tax == true ? 'label.yes' : 'label.no' %}
+                                            {% set product_category_with_tax_value = product_category_with_tax|trans %}
+                                        {% endif %}
+                                        <label for="input-with-tax">{{ 'label.with_tax'|trans }}</label>
+                                        <input id="input-with-tax" class="form-control" value="{{ product_category_with_tax_value }}" readonly>
+                                    </div>
+                                    <div class="form-group ">
+                                        <label for="input-heading">{{ 'label.fee'|trans }}</label>
+                                        <input id="input-fee" class="form-control" name="pc_fee" value="{{ form_data['pc_fee']|default() }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-sort">{{ 'label.sort'|trans }}</label>
+                                        <input id="input-sort" class="form-control" value="{{ form_data['pc_sort']|default() }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-class-name">{{ 'label.icon_name'|trans }}</label>
+                                        <input id="input-class-name" class="form-control" value="{{ form_data['pc_className']|default() }}" readonly>
+                                    </div>
+                                    <div class="col-md-6 form-group" style="padding-left: 0;">
+                                        <label for="input-desktop-image">{{ 'label.desktop_image'|trans }}</label>
+                                        <img src="{{ path('sftp_show_file', {'path': product_category_desktop_image}) }}" class="desktop-img img-responsive" alt="" style="width: 250px;">
+                                    </div>
+                                    <div class="col-md-6 form-group" style="padding-left: 0;">
+                                        <label for="input-desktop-image">{{ 'label.mobile_image'|trans }}</label>
+                                        <img src="{{ path('sftp_show_file', {'path': product_category_mobile_image}) }}" class="mobile-img img-responsive" alt="" style="width: 250px;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="box-footer">
+                    <div id="button-tab-data" class="button-tabs-product-category" style="display: inline;">
+                        <a href="{{ path(edit_route, {'id': product_category_id}) }}" class="btn btn-primary">{{ 'button.edit'|trans }}</a>
+                    </div>
+                    <div style="display: inline;">
+                        <a href="{{ path(index_route) }}" class="btn btn-default">{{ 'button.cancel'|trans }}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

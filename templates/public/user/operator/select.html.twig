@@ -1,0 +1,66 @@
+{% extends '@__main__/public/base/layouts/default.html.twig' %}
+
+{% block stylesheets %}
+    <style>
+        .admin-profile-box {
+            margin: auto;
+            width: 200px;
+            height: 200px;
+            border: 1px solid black;
+            border-radius: 50%;
+            text-align: center;
+            overflow: hidden;
+        }
+
+    </style>
+{% endblock %}
+
+{% block content %}
+    <main class="pdl">
+        <section>
+            <div class="container">
+                <div class="box">
+                    <div style="text-align: center">
+                        <h3>Login Sebagai</h3>
+                    </div>
+                    <hr>
+                    <div class="row" style="text-align: center">
+                        {% for user in admin %}
+                            <div class="dc3 mc12 text-center">
+                                <div class="admin-profile-box">
+                                    <a href="#" class="profile-selector" data-id="{{ user.getId }}" data-uid="{{ app.user.id }}">
+                                        <i class="fa fa-user" style="font-size: 100px; padding-top: 25%"></i>
+                                    </a>
+                                </div>
+                                <h3>{{ user.getFullname }}</h3>
+                                <span><strong>{{ ('label.'~(user.getRole|lower))|trans }}</strong></span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        $('.profile-selector').on('click', function () {
+            const me = $(this);
+            const id = me.attr('data-id');
+            const uid = me.attr('data-uid');
+
+            elementLoading.show()
+
+            $.post('', $.extend(true, {id: id, uid: uid}, TOKEN), function (response) {
+                elementLoading.hide()
+
+                if (response.error === false) {
+                    window.location = '/user/dashboard';
+                }else {
+                    showGeneralPopup('Invalid Operator')
+                }
+            });
+        });
+    </script>
+{% endblock %}

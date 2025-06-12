@@ -1,0 +1,9 @@
+<style id="antiClickJack">body{display:none !important;}</style>
+<script type="text/javascript">
+    if (self === top) {
+        let antiClickJack = document.getElementById('antiClickJack');
+        antiClickJack.parentNode.removeChild(antiClickJack);
+    } else {
+        top.location = self.location;
+    }
+</script>

@@ -1,0 +1,69 @@
+{% set province_id = form_data['province_id']|default(0) %}
+{% set city_data_select = province_id > 0 ? city_data[province_id] : []  %}
+{% set store_district = form_data['district']|default() %}
+
+{% set error = errors['address'] is defined ? 'error' : null %}
+<div class="input form-group">
+	<label for="">Alamat
+		<span>*</span>
+	</label>
+	<textarea id="address" name="address" class="no-resize input-toko" title="" placeholder="{{ 'label.address'|trans }}">{{ form_data['address']|default() }}</textarea>
+	{% if error %}
+		<p class="{{ error }}">{{ errors['address'] }}</p>
+	{% endif %}
+</div>
+{% set error = errors['province'] is defined ? 'error' : null %}
+<div class="input form-group{{ error }}">
+	<label for="">Provinsi
+		<span>*</span>
+	</label>
+	<select id="input-province" name="province_id" title="" class="input-toko">
+		<option value="">{{ 'label.select_option'|trans }}</option>
+		{% for province in province_data %}
+			{% set selected = province_id == province['province_id'] ? 'selected' : '' %}
+			<option value="{{ province['province_id'] }}" {{ selected }}>{{ province['province'] }}</option>
+		{% endfor %}
+	</select>
+	<input id="input-province-name" type="hidden" name="province" value="{{ form_data['province']|default() }}">
+	{% if error %}
+		<p class="{{ error }}">{{ errors['province'] }}</p>
+	{% endif %}
+</div>
+{% set error = errors['city'] is defined ? 'error' : null %}
+<div class="input form-group{{ error }}">
+	<label for="">Kabupaten
+		<span>*</span>
+	</label>
+	<select id="input-city" name="city_id" title="" class="input-toko">
+		<option value="">{{ 'label.select_option'|trans }}</option>
+		{% for city in city_data_select %}
+			{% set selected = form_data['city_id']|default(0) == city['city_id'] ? 'selected' : '' %}
+			<option value="{{ city['city_id'] }}" {{ selected }}>{{ city['city_name'] }}</option>
+		{% endfor %}
+	</select>
+	<input id="input-city-name" type="hidden" name="city" value="{{ form_data['city']|default() }}">
+	{% if error %}
+		<p class="{{ error }}">{{ errors['city'] }}</p>
+	{% endif %}
+</div>
+{% set error = errors['district'] is defined ? 'error' : null %}
+<div class="input form-group{{ error }} input-bg-white">
+	<label for="">Kecamatan
+		<span>*</span>
+	</label>
+	<input list="kecamatan_lists" class="input-toko" id="input-district" type="text" name="district" value="{{ store_district }}" title="" placeholder="{{ 'label.district'|trans }}">
+    <datalist id="kecamatan_lists"></datalist>
+	{% if error %}
+		<p class="{{ error }}">{{ errors['district'] }}</p>
+	{% endif %}
+</div>
+{% set error = errors['postCode'] is defined ? 'error' : null %}
+<div class="input form-group{{ error }} input-bg-white">
+	<label for="">Kode Pos
+		<span>*</span>
+	</label>
+	<input maxlength="5" class="input-toko" id="input-post-code" type="text" name="post_code" value="{{ form_data['post_code']|default() }}" title="" placeholder="{{ 'label.post_code'|trans }}">
+	{% if error %}
+		<p class="{{ error }}">{{ errors['postCode'] }}</p>
+	{% endif %}
+</div>

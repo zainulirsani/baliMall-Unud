@@ -1,0 +1,132 @@
+{% extends '@__main__/admin/base/layouts/default.html.twig' %}
+
+{% set page_method = app.request.get('_controller') %}
+{% set page_header = page_title|trans %}
+{% set index_route = 'admin_' ~ page_section ~ '_index' %}
+{% set save_route = 'admin_' ~ page_section ~ '_save' %}
+{% set page_action = path(save_route) %}
+{% set voucher_id = form_data['v_id']|default(0) %}
+{% set voucher_start_at = form_data['v_startAt']|default() %}
+{% set voucher_end_at = form_data['v_endAt']|default() %}
+{% set voucher_qr_image = '' %}
+{% set voucher_multiply = 'yes' %}
+
+{% if page_method[1] is defined and page_method[1] == 'edit' %}
+    {% set trans_parameter = {'%name%': form_data['v_code']} %}
+    {% set page_header = page_title|trans(trans_parameter) %}
+    {% set update_route = 'admin_' ~ page_section ~ '_update' %}
+    {% set page_action = path(update_route, {id: voucher_id}) %}
+    {% set voucher_qr_image = form_data['v_qrImage']|default() %}
+    {% set voucher_multiply = 'no' %}
+{% endif %}
+
+{% if voucher_start_at is not empty %}
+    {% set voucher_start_at = voucher_start_at is datetime ? voucher_start_at.modify('+1 day') : voucher_start_at %}
+    {% set voucher_start_at = voucher_start_at|date('Y-m-d') %}
+{% endif %}
+
+{% if voucher_end_at is not empty %}
+    {% set voucher_end_at = voucher_end_at|date('Y-m-d') %}
+{% endif %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="box box-primary">
+                <form id="voucher-form" accept-charset="UTF-8" method="post" action="{{ page_action }}">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">{{ page_header }}</h3>
+                    </div>
+                    <div class="box-body">
+                        {{ csrf_field(token_id) }}
+                        <div class="panel-body">
+                            <div class="nav-tabs-custom">
+                                <ul class="nav nav-tabs voucher-tabs">
+                                    <li class="active voucher-tab-data">
+                                        <a href="#tab-data" data-toggle="tab" data-tab="data">{{ 'label.data'|trans }}</a>
+                                    </li>
+                                </ul>
+                                <div class="tab-content tab-voucher-content">
+                                    <div id="tab-data" class="tab-pane fade in active">
+                                        <div class="m-top-15"></div>
+                                        <div class="form-group {% if errors['v_name']|default() %}has-error{% endif %}">
+                                            <label for="input-name">{{ 'label.name'|trans }}</label>
+                                            {% if errors['v_name']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['v_name'] }}</span>
+                                            {% endif %}
+                                            <input id="input-name" class="form-control" name="v_name" value="{{ form_data['v_name']|default() }}">
+                                        </div>
+                                        <div class="form-group {% if errors['v_description']|default() %}has-error{% endif %}">
+                                            <label for="input-description">{{ 'label.description'|trans }}</label>
+                                            {% if errors['v_description']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['v_description'] }}</span>
+                                            {% endif %}
+                                            <textarea id="input-description" class="form-control" rows="3" name="v_description">{{ form_data['v_description']|default() }}</textarea>
+                                        </div>
+                                        <div class="form-group {% if errors['v_amount']|default() %}has-error{% endif %}">
+                                            <label for="input-amount">{{ 'label.amount'|trans }}</label>
+                                            {% if errors['v_amount']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['v_amount'] }}</span>
+                                            {% endif %}
+                                            <select id="input-amount" class="form-control" name="v_amount">
+                                                <option value="">{{ 'label.select_option'|trans }}</option>
+                                                {% for key, choice in get_parameter('predefined_voucher_amount') %}
+                                                    {% set selected = form_data['v_amount']|default() == key ? 'selected' : '' %}
+                                                    <option value="{{ key }}" {{ selected }}>{{ choice }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="form-group {% if errors['v_startAt']|default() %}has-error{% endif %}">
+                                            <label for="input-start-at">{{ 'label.start_at'|trans }}</label>
+                                            {% if errors['v_startAt']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['v_startAt'] }}</span>
+                                            {% endif %}
+                                            <input id="input-start-at" class="form-control date-only" name="v_startAt" value="{{ voucher_start_at }}">
+                                        </div>
+                                        <div class="form-group {% if errors['v_endAt']|default() %}has-error{% endif %}">
+                                            <label for="input-end-at">{{ 'label.end_at'|trans }}</label>
+                                            {% if errors['v_endAt']|default() %}
+                                                <span class="help-block custom-help-block">{{ errors['v_endAt'] }}</span>
+                                            {% endif %}
+                                            <input id="input-end-at" class="form-control date-only" name="v_endAt" value="{{ voucher_end_at }}">
+                                        </div>
+                                        {#{% if voucher_qr_image is not empty %}
+                                            <div class="form-group">
+                                                <label for="input-qr-image">{{ 'label.qr_image'|trans }}</label>
+                                                <figure>
+                                                    <img class="img-responsive" src="{{ site_url(voucher_qr_image) }}" alt="">
+                                                </figure>
+                                            </div>
+                                        {% endif %}#}
+                                        {% if voucher_multiply == 'yes' %}
+                                            <div class="form-group">
+                                                <label for="input-multiply">{{ 'label.multiply_voucher'|trans }}</label>
+                                                <input id="input-multiply" type="number" class="form-control" name="v_multiply" value="{{ form_data['v_multiply']|default(1) }}" min="1" max="100" step="1">
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div>
+                                    <input id="input-id" type="hidden" name="v_id" value="{{ voucher_id }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box-footer">
+                        <div id="button-tab-data" class="button-tabs-store" style="display: inline;">
+                            <button type="submit" class="btn btn-primary" name="btn_action" value="save">
+                                {{ 'button.save'|trans }}
+                            </button>
+                            <button type="submit" class="btn btn-primary" name="btn_action" value="save_exit">
+                                {{ 'button.save_exit'|trans }}
+                            </button>
+                        </div>
+                        <div style="display: inline;">
+                            <a href="{{ path(index_route) }}" class="btn btn-default">{{ 'button.cancel'|trans }}</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

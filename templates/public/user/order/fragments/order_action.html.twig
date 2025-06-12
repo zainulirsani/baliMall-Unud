@@ -1,0 +1,1308 @@
+{% set order_payment_accounts = get_parameter('order_payment_accounts') %}
+{% set data_nego_detail = null %}
+
+{% if order['o_negotiatedProducts']|length > 0 %}
+	{% for temp_nego_data in order['o_negotiatedProducts'] %}
+		{% set data_nego_detail = temp_nego_data %}
+	{% endfor %}
+{% endif %}
+
+<div id="order-content-buttons" class="ccp__section">
+	{% if user_type == 'buyer' %}
+        {% if order['o_status'] == 'pending_approve' %}
+            {# <a href="{{ path('user_order_approve', {'id': order['o_id']}) }}" class="sBtn red">
+                {{ 'label.approve_order'|trans }}
+            </a> #}
+
+            <div class="badges yellow2">
+                <span>
+                    <i class="fas fa-exclamation-circle"></i>
+                    {{ 'label.pending_approve'|trans }}
+                </span>
+            </div>
+        {% elseif order['o_status'] == 'approve_order_ppk' %}
+            {% if order['u_role'] == 'ROLE_USER_GOVERNMENT' and order['u_subRole'] == 'PPK' %}
+            
+            {% endif %}
+            
+            <div class="badges yellow2">
+                <span>
+                    <i class="fas fa-exclamation-circle"></i>
+                    {{ 'label.approve_order_ppk'|trans }}
+                </span>
+            </div>
+		{% elseif order['o_status'] == 'pending' %}
+			{% if order['u_role'] != 'ROLE_USER_GOVERNMENT' and order['op_id'] is empty %}
+				<p>
+					{{ 'message.info.payment_info'|trans }}<br>
+					{% if order_with_tax == true %}
+						<code>
+							{% if show_pay_account_1 == 'yes' %}
+								{{ order_payment_accounts['all_1']|join('<br>')|raw }}
+							{% endif %}
+							{% if show_pay_account_2 == 'yes' %}<br><br>{{ order_payment_accounts['all_2']|join('<br>')|raw }}
+							{% endif %}
+						</code>
+					{% else %}
+						<code>
+							{% if show_pay_account_1 == 'yes' %}
+								{{ order_payment_accounts['all_1']|join('<br>')|raw }}
+							{% endif %}
+							{% if show_pay_account_2 == 'yes' %}<br><br>{{ order_payment_accounts['all_2']|join('<br>')|raw }}
+							{% endif %}
+						</code>
+					{% endif %}
+				</p>
+				{% if show_qris_pay == 'yes' %}
+					<div class="inner-box">
+						<img src="{{ asset(asset_qris_pay) }}" height="400px" alt="">
+						<br><br>
+						<a href="{{ asset(asset_qris_pay) }}" class="sBtn small red" download>
+							{{ 'button.download'|trans ~ ' QRIS' }}
+						</a>
+						<br><br>
+					</div>
+				{% endif %}
+				<p>*{{ 'message.notification.pending_order'|trans }}</p>
+				<a href="{{ path('user_payment_confirmation', {'invoice': order['o_sharedId']}) }}" class="sBtn red">
+					{{ 'title.page.payment_confirmation'|trans }}
+				</a>
+			{% endif %}
+		{% elseif order['o_status'] == 'payment_process' %}
+            {# {% include '@__main__/public/user/order/fragments/partial_delivery.html.twig' %} #}
+            <hr>
+
+            {% if order['u_role'] != 'ROLE_USER_GOVERNMENT' %}
+            	{% include '@__main__/public/user/order/fragments/customer_files.html.twig' %}
+				<span class="sBtn red" style="cursor: default;">{{ 'label.waiting_confirmation'|trans }}</span>
+			{% elseif order['u_role'] == 'ROLE_USER_GOVERNMENT' %}
+
+					{% include '@__main__/public/user/order/fragments/document_new.html.twig' %}
+
+            {% include '@__main__/public/user/order/fragments/government_files.html.twig' %}
+			{% set grand_total_value = order['o_total'] + order['o_shippingPrice'] %}
+            {% if order['o_withholdingTaxSlipFile'] is empty and grand_total_value >= get_parameter('b2gLimitAmountForNonPkpStore') and order['o_ppk_payment_method'] == 'pembayaran_langsung' and order['u_subRole'] == 'PPK' %}
+                    <form id="withholding-tax-slip-file" action="{{ path('user_order_document', {'id': order['o_id']}) }}" method="POST" enctype="multipart/form-data" accept-charset="UTF-8">
+                        {% set error = errors['[withholding_tax_slip_file][required]'] is defined or errors['[withholding_tax_slip_file][file]'] is defined ? 'error' : null %}
+                        <div class="input {{ error }}">
+                            <label>{{ 'label.withholding_tax'|trans }}</label>
+                            <input type="file" name="withholding-tax-slip-file">
+                            {% if errors['[withholding_tax_slip_file][required]'] is defined %}
+                                <p class="error">{{ errors['[withholding_tax_slip_file][required]'] }}</p>
+                            {% endif %}
+                            {% if errors['[withholding_tax_slip_file][file]'] is defined %}
+                                <p class="error">{{ errors['[withholding_tax_slip_file][file]'] }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="input">
+                            {{ csrf_field('b2g_withholding_tax') }}
+                            <input type="hidden" name="origin" value="4b5771">
+                            <input type="hidden" name="section" value="withholding-tax-file">
+                            <input type="submit" class="sBtn red" value="{{ 'label.upload_withholding_tax'|trans }}">
+                        </div>
+                    </form>
+                {% else %}
+                    <div class="badges yellow2">
+                        <span>
+                            <i class="fas fa-exclamation-circle"></i>
+                            {{ 'label.payment_process'|trans }}
+                        </span>
+                    </div>
+                {% endif %}
+        {% endif %}
+		{% elseif order['o_status'] == 'paid' %}
+			{% if order['u_role'] != 'ROLE_USER_GOVERNMENT' %}
+            	{% include '@__main__/public/user/order/fragments/customer_files.html.twig' %}
+			{% elseif order['u_role'] == 'ROLE_USER_GOVERNMENT' %}
+                {# {% include '@__main__/public/user/order/fragments/partial_delivery.html.twig' %} #}
+
+                {% include '@__main__/public/user/order/fragments/government_files.html.twig' %}
+					{% include '@__main__/public/user/order/fragments/document_new.html.twig' %}
+                    <br><br>
+				{# {% if order['o_bastFile'] is empty %}
+					<form id="bast-delivery" action="{{ path('user_order_document', {'id': order['o_id']}) }}" method="POST" enctype="multipart/form-data" accept-charset="UTF-8">
+						{% set error = errors['[bast][required]'] is defined or errors['[bast][file]'] is defined ? 'error' : null %}
+						<div class="input {{ error }}">
+							<label>{{ 'label.bast'|trans }}</label>
+							<input type="file" name="bast">
+							{% if errors['[bast][required]'] is defined %}
+								<p class="error">{{ errors['[bast][required]'] }}</p>
+							{% endif %}
+							{% if errors['[bast][file]'] is defined %}
+								<p class="error">{{ errors['[bast][file]'] }}</p>
+							{% endif %}
+						</div>
+						<div class="input">
+							{{ csrf_field('b2g_bast_delivery') }}
+							<input type="hidden" name="origin" value="4b5771">
+							<input type="hidden" name="section" value="bast-delivery">
+							<input type="submit" class="sBtn red" value="{{ 'label.upload_bast'|trans }}">
+						</div>
+					</form>
+					<hr>
+				{% endif %}#}
+                <div class="badges green">
+                    <span>
+                        <i class="fas fa-check-circle"></i>
+                        {{ 'label.finished'|trans }}
+                    </span>
+                </div>
+			{% endif %}
+        {% elseif order['o_status'] == 'new_order' %}
+			<a href="javascript:void(0);" class="gBtn red seller-act-cancel" data-state="cancel" data-user="{{user_type}}" data-order-id="{{ order['o_id'] }}">
+				{{ 'label.cancel_order'|trans }}
+			</a>
+		{% elseif order['o_status'] == 'confirmed' %}
+            {% if order['u_role'] == 'ROLE_USER_GOVERNMENT' %}
+{#                {% if app.user and order['o_negotiationStatus'] == 'pending' %}#}
+{#                    <div class="badges blue">#}
+{#                        <span>#}
+{#                            <i class="fas fa-clock"></i>#}
+{#                            {{ 'label.on_negotiation'|trans }}#}
+{#                        </span>#}
+{#                    </div>#}
+{#                {% endif %}#}
+                {# {% if order['u_subRole'] == 'PPK' %} #}
+                    {# <a href="javascript:void(0);" class="gBtn red seller-act-cancel" data-state="cancel" data-user="{{user_type}}" data-order-id="{{ order['o_id'] }}">
+                        {{ 'label.cancel_order'|trans }}
+                    </a> #}
+                {# {% endif %} #}
+            {% else %}
+                <div class="badges blue">
+                    <span>
+                        <i class="fas fa-clock"></i>
+                        {{ 'label.order_confirmed'|trans }}
+                    </span>
+                </div>
+            {% endif %}
+		{% elseif order['o_status'] == 'cancel_request' %}
+			{% include '@__main__/public/user/order/fragments/document_new.html.twig' %}
+            <br><br>
+            <div class="badges yellow2">
+                <span>
+                    <i class="fas fa-exclamation-circle"></i>
+                    {{ 'message.info.waiting_cancel_approve'|trans }}
+                </span>
+            </div>
+		{% elseif order['o_status'] == 'processed' %}
+            {% if order['u_role'] != 'ROLE_USER_GOVERNMENT' %}
+                {% if is_tax_invoice_requested == true %}
+                    {% include '@__main__/public/user/order/fragments/government_files.html.twig' %}
+                {% endif %}
+				{% if order['o_invoiceFile'] is empty %}
+					{% include '@__main__/public/user/order/fragments/customer_files.html.twig' %}
+				{% endif %}
+            {% endif %}
+			{# {% include '@__main__/public/user/order/fragments/document_new.html.twig' %} #}
+            <br>
+            <br>
+			<div class="badges green">
+				<span>
+					<i class="fas fa-check-circle"></i>
+					{{ 'label.order_processed'|trans }}
+				</span>
+			</div>
+            <br>
+            <br>
+            {# {% if order['u_role'] == 'ROLE_USER_GOVERNMENT' and order['u_subRole'] == 'PPK' %}
+                <a href="javascript:void(0);" class="gBtn red seller-act-cancel" data-state="cancel" data-user="{{user_type}}" data-order-id="{{ order['o_id'] }}">
+                    {{ 'label.cancel_order'|trans }}
+                </a>
+            {% endif %} #}
+            
+            
+            
+        {# {% elseif order['o_status'] == 'partial_delivery' %}
+            {% include '@__main__/public/user/order/fragments/partial_delivery.html.twig' %} #}
+		{% elseif order['o_status'] == 'shipped' %}
+			{% if order['u_role'] != 'ROLE_USER_GOVERNMENT' %}
+                {% if is_tax_invoice_requested == true %}
+                    {% include '@__main__/public/user/order/fragments/government_files.html.twig' %}
+                {% endif %}
+				{% if order['o_invoiceFile'] is empty %}
+					{% include '@__main__/public/user/order/fragments/customer_files.html.twig' %}
+				{% endif %}
+                <h5>{{ 'message.info.shipped'|trans }}</h5>
+				<a href="javascript:void(0);" class="sBtn red buyer-act-order" data-state="received">
+					{{ 'label.finish_order'|trans }}
+				</a>
+			{% elseif order['u_role'] == 'ROLE_USER_GOVERNMENT' %}
+                {# {% include '@__main__/public/user/order/fragments/partial_delivery.html.twig' %} #}
+				{% include '@__main__/public/user/order/fragments/document_new.html.twig' %}
+                <br><br>
+
+                {% if order['u_subRole'] == 'PPK'  %}
+                    {% if order['oc_id'] is empty or (order['oc_id'] is not empty and order['oc_isResolved'] == true) %}
+
+                        <h5>{{ 'message.info.shipped'|trans }}</h5>
+                    {% set on_click = "$(this).parents('.popup').fadeOut();" %}
+                    <div id="popup-received-komplain" class="popup general" title="received-komplain">
+                        <div class="wh100">
+                            <div class="popup-wrapper">
+                                <div class="inner">
+                                    <a href="javascript:void(0);" class="close-btn" onclick="{{ on_click|raw }}"></a>
+
+                                    {% if order['o_ppk_payment_method'] == 'pembayaran_langsung' %}
+                                        <h3 class="popup-received-komplain-title"></h3>
+                                    {% endif %}
+                                    <div class="popup-received-komplain-content">
+                                        {% if order['o_ppk_payment_method'] != 'pembayaran_langsung' %}
+                                        <div style="width: 100%;text-align: left;">
+                                            <img src="{{ site_url('dist/img/balimall.png') }}" style="width: 120px;" alt="Logo">
+                                        </div>
+                                        <p><h4>TANDA TERIMA</h4><p><b>Nomor : TT/{{order['o_invoice']}}</b></p></p>
+                                        <div class="row" style="text-align: center;">
+                                            <div class="col-md-12">
+                                                <br>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <table style="width: 100%">
+                                                <colgroup>
+                                                    <col span="1" style="width: 25%;">
+                                                    <col span="1" style="width: 5%;">
+                                                    <col span="1" style="width: 70%;">
+                                                </colgroup>
+                                                <tbody>
+                                                    <tr style="text-align: left; font-size: 14px;">
+                                                        <td style="text-align: left; width: 25%;">No Order</td>
+                                                        <td style="text-align: left; width: 5%;">:</td>
+                                                        <td style="text-align: left; width: 70%;">{{ order['o_id']|default() }}</td>
+                                                    </tr>
+                                                    <tr style="text-align: left; font-size: 14px;">
+                                                        <td style="text-align: left; width: 25%;">No Invoice</td>
+                                                        <td style="text-align: left; width: 5%;">:</td>
+                                                        <td style="text-align: left; width: 70%;">{{ order['o_invoice']|default() }}</td>
+                                                    </tr>
+                                                    <tr style="text-align: left; font-size: 14px;">
+                                                        <td style="text-align: left; width: 25%;">Tanggal</td>
+                                                        <td style="text-align: left; width: 5%;">:</td>
+                                                        <td style="text-align: left; width: 70%;">{{ order['o_shipped_at']|date('d F Y')  }}</td>
+                                                    </tr>
+                                                    <tr style="text-align: left; font-size: 14px;">
+                                                        <td style="text-align: left; width: 25%;">Nama Pengadaan</td>
+                                                        <td style="text-align: left; width: 5%;">:</td>
+                                                        <td style="text-align: left; width: 70%;">{{ order['o_jobPackageName']|default() }}</td>
+                                                    </tr>
+                                                    <tr style="text-align: left; font-size: 14px;">
+                                                        <td style="text-align: left; width: 25%;">Satuan Kerja</td>
+                                                        <td style="text-align: left; width: 5%;">:</td>
+                                                        {% if order['o_work_unit_name'] is empty %}
+                                                            <td style="text-align: left; width: 70%;">-</td>
+                                                        {% else %}
+                                                            <td style="text-align: left; width: 70%;">{{ order['o_work_unit_name']|default() }}</td>
+                                                        {% endif %}
+                                                    </tr>
+                                                    <tr style="text-align: left; font-size: 14px;">
+                                                        <td style="text-align: left; width: 25%;"></td>
+                                                        <td style="text-align: left; width: 5%;"></td>
+                                                        {% if order['o_institution_name'] is empty  %}
+                                                            <td style="text-align: left; width: 70%;">-</td>
+                                                        {% else %}
+                                                            <td style="text-align: left; width: 70%;">{{ order['o_institution_name']|default() }}</td>
+                                                        {% endif %}
+                                                    </tr>
+                                                    <tr style="text-align: left; font-size: 14px;">
+                                                        <td style="text-align: left; width: 25%;">PIC</td>
+                                                        <td style="text-align: left; width: 5%;">:</td>
+                                                        <td style="text-align: left; width: 70%;">{{ order['o_unit_name']|default() }}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <br>
+                                        <br>
+                                        <div class="row">
+                                        <div class="table-wrapper">
+                                            <table style="width: 100%;font-size: 14px;" class="nego">
+                                                <thead class="text-center">
+                                                    <tr>
+                                                        <th>No</th>
+                                                        <th>Nama Barang / Jasa</th>
+                                                        <th>Jumlah Dikirim</th>
+                                                        <th>Satuan</th>
+                                                        <th>Kondisi</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                {% set initial_with_shipping = true %}
+                                                    {% for index, product in order['o_products'] %}
+                                                        {% for product_nego in order['o_negotiatedProducts'] %}
+                                                            {% if (product_nego['p_id'] == product['p_id']) and (product_nego['on_batch'] == nego_batch) %}
+                                                                {% set nego_price = (product_nego['on_negotiatedPrice'] * product['op_quantity'])|number_format %}
+                                                                {% set sub_total_nego_price = sub_total_nego_price + (product_nego['on_negotiatedPrice'] * product['op_quantity']) %}
+
+                                                                {% if initial_with_shipping == true %}
+                                                                    {% set sub_total_ppn_price = sub_total_ppn_price + ((product_nego['on_negotiatedPrice'] * (product_nego['on_taxValue']/100)) * product['op_quantity']) + product_nego['on_taxNominalShipping'] %}
+                                                                {% else %}
+                                                                    {% set sub_total_ppn_price = sub_total_ppn_price + ((product_nego['on_negotiatedPrice'] * (product_nego['on_taxValue']/100)) * product['op_quantity']) %}
+                                                                {% endif %}
+                                                                {% set initial_with_shipping = false %}
+                                                                {% set nego_shipping = product_nego['on_negotiatedShippingPrice'] %}
+                                                                <tr class="border">
+                                                                    <td >{{ index+1 }}</td>
+                                                                    <td>{{ product['p_name'] }}</td>
+                                                                    <td style="text-align: center;">{{ product['op_quantity'] }}</td>
+                                                                    <td style="text-align: center;">{{ product['p_unit']|default('Unit') }}</td>
+                                                                    <td style="text-align: center;">Baik</td>
+                                                                </tr>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                            {# </div> #}
+                                            </div>
+                                        </div>
+
+                                        <p style="font-size: 14px; margin-top: 20px;text-align: left;">Catatan Pembeli : {{ order['o_note'] }}</p>
+                                        <p style="font-size: 14px;text-align: left;">Tanda Terima ini berfungsi sebagai bukti serah terima.</p>
+                                        <p style="font-size: 14px;text-align: left;">Demikian Tanda Terima ini dibuat dengan sebenarnya untuk dipergunakan sebagaimana seharusnya.</p>
+                                        <br>
+                                        <div class="row" style="margin-top: 20px;">
+
+                                            {% set url_global = get_parameter('app_url') %}
+                                            <table style="width:100%;font-size: 14px;">
+                                                <tr>
+                                                    <th style="width: 40%; float: center; text-align: center;vertical-align: text-top;">Yang Menyerahkan <br> {{order['s_name']}}</th>
+                                                    <th style="width: 20%;"></th>
+                                                    <th style="width: 40%; float: center; text-align: center;vertical-align: text-top;">Penerima</th>
+                                                </tr>
+                                                <tr>
+                                                    <td style="text-align: center;">
+                                                        {% if order['ow_user_signature'] is not empty %}
+                                                            {% set user_seller_signature = asset(order['ow_user_signature'])  %}
+                                                            <img src="{{ url_global ~ user_seller_signature }}" style="max-width: 120px;" />
+                                                            {% if order['ow_user_stamp'] is not empty %}
+                                                            {% set user_seller_stamp = asset(order['ow_user_stamp'])  %}
+                                                                <img src="{{ url_global ~ user_seller_stamp }}" style="max-width: 120px;z-index: 99;position:absolute;margin-left: -140px;" />
+                                                            {% endif %}
+                                                            
+                                                        {% else %}
+                                                            <br><br><br>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td></td>
+                                                    <td style="text-align: center;vertical-align: top;">
+                                                        {% if order['o_shipped_method'] == 'self_courier' %}
+                                                        <span>Pengiriman dilakukan oleh merchant</span><br>
+                                                        <table style="width: 100%;font-size: 14px;" class="">
+                                                            <tr>
+                                                                <td width="50%">Nama Penerima</td>
+                                                                <td width="1%">:</td>
+                                                                <td>{{order['o_self_courier_name']}}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Posisi/Jabatan</td>
+                                                                <td>:</td>
+                                                                <td>{{order['o_self_courier_position']}}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>No HP</td>
+                                                                <td>:</td>
+                                                                <td>{{order['o_self_courier_telp']}}</td>
+                                                            </tr>
+                                                        </table>
+                                                        {% else %}
+                                                        <span>Pengiriman dilakukan oleh kurir</span><br>
+                                                        <table style="width: 100%;font-size: 14px;" class="">
+                                                            <tr>
+                                                                <td width="50%">No Resi</td>
+                                                                <td width="1%">:</td>
+                                                                <td>{{order['o_trackingCode']}}</td>
+                                                            </tr>
+                                                        </table>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td></td>
+                                                    <td></td>
+                                                    <td></td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="text-align: center;">
+                                                        {{ seller['user'].getFirstName|default() ~ ' ' ~ seller['user'].getLastName|default() }}<br>Pemilik
+                                                    </td>
+                                                    <td></td>
+                                                    <td></td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                        <br>
+                                        <br>
+                                        <table style="width:100%;font-size: 14px;text-align:center;">
+                                                <tr>
+                                                    <td>Mengetahui,</td>
+                                                </tr>
+                                                {% set mengetahui =  'label.' ~ order['o_ppk_type'] %}
+                                                <tr>
+                                                    <td>{{mengetahui|trans}}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>{{order['o_work_unit_name']}}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>{{order['o_institution_name']}}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        {# <p>TTD</p> #}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>{{order['o_ppk_name']}}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>{{order['o_ppk_nip']}}</td>
+                                                </tr>
+                                            </table>
+                                            <br>
+                                            <br>
+                                            <br>
+                                            <div style="text-align: left">
+                                                {% if order['o_shipped_method'] == 'self_courier' %}
+                                                    <p><b>Foto Penerimaan Produk</b></p>
+                                                    {% for item in order['o_shippedFiles'] %}
+                                                        <img src="{{ url_global ~ '/uploads' ~ asset(item['os_filepath']) }}" style="max-width: 150px;margin-top:10px;" /><br>
+                                                    {% endfor %}
+                                                {% endif %}
+                                            </tbody>
+                                        </table>
+                                        {# </div> #}
+                                        </div>
+                                    </div>
+
+                                    <p style="font-size: 14px; margin-top: 20px;text-align: left;">Catatan Pembeli : {{ order['o_note'] }}</p>
+                                    <p style="font-size: 14px;text-align: left;">Tanda Terima ini berfungsi sebagai bukti serah terima.</p>
+                                    <p style="font-size: 14px;text-align: left;">Demikian Tanda Terima ini dibuat dengan sebenarnya untuk dipergunakan sebagaimana seharusnya.</p>
+                                    <br>
+                                    <div class="row" style="margin-top: 20px;">
+
+                                        {# {% set url_global = 'http://127.0.0.1:8000' %} #}
+                                        {% set url_global = 'https://bmall.bithouse.id' %}
+                                        {# {% set url_global = 'https://tokodaring.balimall.id' %} #}
+                                        <table style="width:100%;font-size: 14px;">
+                                            <tr>
+                                                <th style="width: 40%; float: center; text-align: center;vertical-align: text-top;">Yang Menyerahkan <br> {{order['s_name']}}</th>
+                                                <th style="width: 20%;"></th>
+                                                <th style="width: 40%; float: center; text-align: center;vertical-align: text-top;">Penerima</th>
+                                            </tr>
+                                            <tr>
+                                                <td style="text-align: center;">
+                                                    {% if order['ow_user_signature'] is not empty %}
+                                                        {% set user_seller_signature = asset(order['ow_user_signature'])  %}
+                                                        <img src="{{ url_global ~ user_seller_signature }}" style="max-width: 120px;" />
+                                                        {% if order['ow_user_stamp'] is not empty %}
+                                                        {% set user_seller_stamp = asset(order['ow_user_stamp'])  %}
+                                                            <img src="{{ url_global ~ user_seller_stamp }}" style="max-width: 120px;z-index: 99;position:absolute;margin-left: -140px;" />
+                                                        {% endif %}
+                                                        
+                                                    {% else %}
+                                                        <br><br><br>
+                                                    {% endif %}
+                                                </td>
+                                                <td></td>
+                                                <td style="text-align: center;vertical-align: top;">
+                                                {% if order['o_shipped_method'] == 'self_courier' %}
+                                                    <span>Pengiriman dilakukan oleh merchant</span><br>
+                                                    <table style="width: 100%;font-size: 14px;" class="">
+                                                        <tr>
+                                                            <td width="50%">Nama Penerima</td>
+                                                            <td width="1%">:</td>
+                                                            <td>{{order['o_self_courier_name']}}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Posisi/Jabatan</td>
+                                                            <td>:</td>
+                                                            <td>{{order['o_self_courier_position']}}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>No HP</td>
+                                                            <td>:</td>
+                                                            <td>{{order['o_self_courier_telp']}}</td>
+                                                        </tr>
+                                                    </table>
+                                                {% else %}
+                                                    <span>Pengiriman dilakukan oleh kurir</span><br>
+                                                    <table style="width: 100%;font-size: 14px;" class="">
+                                                        <tr>
+                                                            <td width="50%">No Resi</td>
+                                                            <td width="1%">:</td>
+                                                            <td>{{order['o_trackingCode']}}</td>
+                                                        </tr>
+                                                    </table>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="btn-wrapper">
+                                        <input id="buyer-order-id" type="hidden" value="{{order['o_id']}}">
+                                        <input id="buyer-order-state" type="hidden" value="received">
+                                        <button id="popup-form-btn" type="submit" class="sBtn red">
+                                            {{ 'button.approve_received'|trans }}
+                                        </button>
+                                        <a href="javascript:void(0);" class="gBtn grey b2g-act-complain">
+                                            {{ 'label.order_complain'|trans }}
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                        {# <a href="javascript:void(0);" class="sBtn red b2g-act-order" data-state="received">
+                            {{ 'label.order_received_confirm'|trans }}
+                        </a> #}
+
+                    {% else %}
+                        <div class="badges yellow2">
+                            <span>
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ 'message.info.komplain'|trans }}
+                            </span>
+                        </div>
+                    {% endif %}
+                {% endif %}
+			{% endif %}
+            {% if order['oc_id'] is empty %}
+                <a href="javascript:void(0);" class="gBtn grey b2g-act-complain">
+                    {{ 'label.order_complain'|trans }}
+                </a>
+            
+            {% endif %}
+		{% elseif order['o_status'] == 'received' %}
+			{% if order['u_role'] == 'ROLE_USER_GOVERNMENT'%}
+                    {# {% include '@__main__/public/user/order/fragments/partial_delivery.html.twig' %} #}
+					{% include '@__main__/public/user/order/fragments/document_new.html.twig' %}
+                    <br><br>
+                {% if order['o_isApprovedPPK'] == true and order['u_subRole'] == 'PPK' %}
+                    <form id="receipt-spk" action="{{ path('user_order_document', {'id': order['o_id']}) }}" method="POST" enctype="multipart/form-data" accept-charset="UTF-8">
+                        {% if order['o_negotiationStatus'] == 'finish' %}
+                            {% set error = errors['[invoice][required]'] is defined or errors['[invoice][file]'] is defined ? 'error' : null %}
+                            <div class="input {{ error }}">
+                                <label>{{ 'label.invoice'|trans }}</label>
+                                <input type="file" name="invoice">
+                                {% if errors['[invoice][required]'] is defined %}
+                                    <p class="error">{{ errors['[invoice][required]'] }}</p>
+                                {% endif %}
+                                {% if errors['[invoice][file]'] is defined %}
+                                    <p class="error">{{ errors['[invoice][file]'] }}</p>
+                                {% endif %}
+                            </div>
+                            {% set error = errors['[bast][required]'] is defined or errors['[bast][file]'] is defined ? 'error' : null %}
+                            <div class="input {{ error }}">
+                                <label>{{ 'label.bast'|trans }}</label>
+                                <input type="file" name="bast">
+                                {% if errors['[bast][required]'] is defined %}
+                                    <p class="error">{{ errors['[bast][required]'] }}</p>
+                                {% endif %}
+                                {% if errors['[bast][file]'] is defined %}
+                                    <p class="error">{{ errors['[bast][file]'] }}</p>
+                                {% endif %}
+                            </div>
+                            {% set error = errors['[receipt][required]'] is defined or errors['[receipt][file]'] is defined ? 'error' : null %}
+                            <div class="input {{ error }}">
+                                <label>{{ 'label.receipt'|trans }}</label>
+                                <input type="file" name="receipt">
+                                {% if errors['[receipt][required]'] is defined %}
+                                    <p class="error">{{ errors['[receipt][required]'] }}</p>
+                                {% endif %}
+                                {% if errors['[receipt][file]'] is defined %}
+                                    <p class="error">{{ errors['[receipt][file]'] }}</p>
+                                {% endif %}
+                            </div>
+                            {% set error = errors['[work_order_letter][required]'] is defined or errors['[work_order_letter][file]'] is defined ? 'error' : null %}
+                            <div class="input {{ error }}">
+                                <label>{{ 'label.work_order_letter'|trans }}</label>
+                                <input type="file" name="work_order_letter">
+                                {% if errors['[work_order_letter][required]'] is defined %}
+                                    <p class="error">{{ errors['[work_order_letter][required]'] }}</p>
+                                {% endif %}
+                                {% if errors['[work_order_letter][file]'] is defined %}
+                                    <p class="error">{{ errors['[work_order_letter][file]'] }}</p>
+                                {% endif %}
+                            </div>
+                            {% set error = errors['[bapd][required]'] is defined or errors['[bapd][file]'] is defined ? 'error' : null %}
+                            <div class="input {{ error }}">
+                                <label>BAPD</label>
+                                <input type="file" name="bapd">
+                                {% if errors['[bapd][required]'] is defined %}
+                                    <p class="error">{{ errors['[bapd][required]'] }}</p>
+                                {% endif %}
+                                {% if errors['[bapd][file]'] is defined %}
+                                    <p class="error">{{ errors['[bapd][file]'] }}</p>
+                                {% endif %}
+                            </div>
+                            {% set error = errors['[spk][required]'] is defined or errors['[spk][file]'] is defined ? 'error' : null %}
+                            <div class="input {{ error }}">
+                                <label>SPK</label>
+                                <input type="file" name="spk">
+                                {% if errors['[spk][required]'] is defined %}
+                                    <p class="error">{{ errors['[spk][required]'] }}</p>
+                                {% endif %}
+                                {% if errors['[spk][file]'] is defined %}
+                                    <p class="error">{{ errors['[spk][file]'] }}</p>
+                                {% endif %}
+                            </div>
+{#                            {% if order['o_total'] > get_parameter('additionalDocumentsTransaction') %}#}
+{#                                {% set error = errors['[spk_letter][required]'] is defined or errors['[spk_letter][file]'] is defined ? 'error' : null %}#}
+{#                                <div class="input {{ error }}">#}
+{#                                    <label>{{ 'label.spk_letter'|trans }}</label>#}
+{#                                    <input type="file" name="spk_letter">#}
+{#                                    {% if errors['[spk_letter][required]'] is defined %}#}
+{#                                        <p class="error">{{ errors['[spk_letter][required]'] }}</p>#}
+{#                                    {% endif %}#}
+{#                                    {% if errors['[spk_letter][file]'] is defined %}#}
+{#                                        <p class="error">{{ errors['[spk_letter][file]'] }}</p>#}
+{#                                    {% endif %}#}
+{#                                </div>#}
+
+{#                                {% set error = errors['[handover_letter][required]'] is defined or errors['[handover_letter][file]'] is defined ? 'error' : null %}#}
+{#                                <div class="input {{ error }}">#}
+{#                                    <label>{{ 'label.handover_letter'|trans }}</label>#}
+{#                                    <input type="file" name="handover_letter">#}
+{#                                    {% if errors['[handover_letter][required]'] is defined %}#}
+{#                                        <p class="error">{{ errors['[handover_letter][required]'] }}</p>#}
+{#                                    {% endif %}#}
+{#                                    {% if errors['[handover_letter][file]'] is defined %}#}
+{#                                        <p class="error">{{ errors['[handover_letter][file]'] }}</p>#}
+{#                                    {% endif %}#}
+{#                                </div>#}
+
+{#                                {% set error = errors['[handover_certificate][required]'] is defined or errors['[handover_certificate][file]'] is defined ? 'error' : null %}#}
+{#                                <div class="input {{ error }}">#}
+{#                                    <label>{{ 'label.handover_certificate'|trans }}</label>#}
+{#                                    <input type="file" name="handover_certificate">#}
+{#                                    {% if errors['[handover_certificate][required]'] is defined %}#}
+{#                                        <p class="error">{{ errors['[handover_certificate][required]'] }}</p>#}
+{#                                    {% endif %}#}
+{#                                    {% if errors['[handover_certificate][file]'] is defined %}#}
+{#                                        <p class="error">{{ errors['[handover_certificate][file]'] }}</p>#}
+{#                                    {% endif %}#}
+{#                                </div>#}
+{#                            {% endif %}#}
+                            <div class="input">
+                                {{ csrf_field('b2g_negotiation') }}
+                                <input type="hidden" name="origin" value="4b5771">
+                                <input type="hidden" name="section" value="receipt-spk">
+                                <input type="submit" class="sBtn red" value="{{ 'label.upload_file'|trans }}">
+                            </div>
+                        {% endif %}
+
+                        {# Tidak perlu lagi karena file (hardcopy) sudah di dapatkan bersamaan dengan barang #}
+
+                    </form>
+                    <hr>
+                    {% else %}
+                        <br>
+                        <div class="badges yellow2">
+                            <span>
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ 'label.pending_approve'|trans }}
+                            </span>
+                        </div>
+                    {% endif %}
+
+                    {% if order['oc_id'] is defined %}
+                        {% include '@__main__/public/user/order/fragments/government_files.html.twig' %}
+
+                        {% if order['oc_id'] is empty or order['oc_isResolved'] == true %}
+                            {% set b2g_order_state = 'pending_payment' %}
+                            {% if order['o_bastFile'] is empty %}
+                                {% set b2g_order_state = 'missing_bast' %}
+                            {% elseif order['o_taxInvoiceFile'] is empty %}
+                                {% set b2g_order_state = 'missing_tax_invoice' %}
+                            {% endif %}
+                            {% if order['o_taxInvoiceFile'] is not empty %}
+                                {# Jika Faktur pajak sudah di kirim penjual, goverment bisa melanjutkan transaksi #}
+                                <a href="javascript:void(0);" class="sBtn red b2g-act-order" data-state="{{ b2g_order_state }}" data-id="{{ order['o_id'] }}" style="float: right;">
+                                    {{ 'title.page.payment_confirmation'|trans }}
+                                </a>
+                            {% endif %}
+                        {% endif %}
+                        {# {% if order['oc_id'] is empty and order['o_bastFile'] is empty %}
+                            <a href="javascript:void(0);" class="gBtn grey b2g-act-complain">
+                                {{ 'label.order_complain'|trans }}
+                            </a>
+                        {% endif %} #}
+
+                {% endif %}
+			{% else %}
+                {% if is_tax_invoice_requested == true %}
+                    {% include '@__main__/public/user/order/fragments/government_files.html.twig' %}
+                {% endif %}
+				{% if order['o_invoiceFile'] is empty %}
+					{% include '@__main__/public/user/order/fragments/customer_files.html.twig' %}
+				{% endif %}
+			{% endif %}
+            
+            {% if order['o_isApprovedPPK'] == true  %}
+                <div class="badges green">
+                    <span>
+                        <i class="fas fa-check-circle"></i>
+                        {{ 'label.order_received'|trans }}
+                    </span>
+                </div>
+            {% endif %}
+            
+
+        {% elseif order['o_status'] == 'document' and order['u_role'] == 'ROLE_USER_GOVERNMENT' %}
+            {% include '@__main__/public/user/order/fragments/government_files.html.twig' %}
+            {# {% include '@__main__/public/user/order/fragments/partial_delivery.html.twig' %} #}
+			{% include '@__main__/public/user/order/fragments/document_new.html.twig' %}
+            <br><br>
+
+        {% elseif order['o_status'] == 'tax_invoice' and order['u_role'] == 'ROLE_USER_GOVERNMENT' %}
+
+            {# {% include '@__main__/public/user/order/fragments/partial_delivery.html.twig' %} #}
+
+            {% include '@__main__/public/user/order/fragments/government_files.html.twig' %}
+			{% include '@__main__/public/user/order/fragments/document_new.html.twig' %}
+            <br><br>
+            {% if order['oc_id'] is empty or order['oc_isResolved'] == true and order['u_subRole'] == 'PPK' %}
+                {% set b2g_order_state = 'tax_invoice' %}
+
+                {% if order['o_taxInvoiceFile'] is not empty or order['o_total'] < get_parameter('b2gLimitAmountForNonPkpStore') or order['o_ppk_payment_method'] == 'uang_persediaan' %}
+                    {# Jika Faktur pajak sudah di kirim penjual, goverment bisa melanjutkan transaksi #}
+                    {# {% if order['o_isApprovedPPK'] == true %} #}
+                        <a href="javascript:void(0);" class="sBtn red b2g-act-order" data-state="{{ b2g_order_state }}" data-id="{{ order['o_id'] }}" style="float: right;">
+                            {{ 'title.page.payment_confirmation'|trans }}
+                        </a>
+                    {# {% else %}
+                        <br>
+                        <div class="badges yellow2">
+                            <span>
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ 'label.pending_approve'|trans }}
+                            </span>
+                        </div>
+                    {% endif %} #}
+                {% endif %}
+            {% endif %}
+        {% elseif order['o_status'] == 'cancel' %}
+			<span class="gBtn red" style="cursor: default;">{{ 'message.info.cancelled'|trans }}</span>
+		{% elseif order['o_status'] == 'pending_payment' %}
+			{% if order['u_role'] == 'ROLE_USER_GOVERNMENT' %}
+				{% include '@__main__/public/user/order/fragments/government_files.html.twig' %}
+                <br><br>
+                {% if order['o_invoiceFile'] is empty and order['o_bastFile'] is empty and order['o_receiptFile'] is empty and order['o_workOrderLetterFile'] is empty %}
+                <form id="receipt-spk" action="{{ path('user_order_document', {'id': order['o_id']}) }}" method="POST" enctype="multipart/form-data" accept-charset="UTF-8">
+                        {% if order['o_negotiationStatus'] == 'finish' %}
+                            {% set error = errors['[invoice][required]'] is defined or errors['[invoice][file]'] is defined ? 'error' : null %}
+                            <div class="input {{ error }}">
+                                <label>{{ 'label.invoice'|trans }}</label>
+                                <input type="file" name="invoice">
+                                {% if errors['[invoice][required]'] is defined %}
+                                    <p class="error">{{ errors['[invoice][required]'] }}</p>
+                                {% endif %}
+                                {% if errors['[invoice][file]'] is defined %}
+                                    <p class="error">{{ errors['[invoice][file]'] }}</p>
+                                {% endif %}
+                            </div>
+                            {% set error = errors['[bast][required]'] is defined or errors['[bast][file]'] is defined ? 'error' : null %}
+                            <div class="input {{ error }}">
+                                <label>{{ 'label.bast'|trans }}</label>
+                                <input type="file" name="bast">
+                                {% if errors['[bast][required]'] is defined %}
+                                    <p class="error">{{ errors['[bast][required]'] }}</p>
+                                {% endif %}
+                                {% if errors['[bast][file]'] is defined %}
+                                    <p class="error">{{ errors['[bast][file]'] }}</p>
+                                {% endif %}
+                            </div>
+                            {% set error = errors['[receipt][required]'] is defined or errors['[receipt][file]'] is defined ? 'error' : null %}
+                            <div class="input {{ error }}">
+                                <label>{{ 'label.receipt'|trans }}</label>
+                                <input type="file" name="receipt">
+                                {% if errors['[receipt][required]'] is defined %}
+                                    <p class="error">{{ errors['[receipt][required]'] }}</p>
+                                {% endif %}
+                                {% if errors['[receipt][file]'] is defined %}
+                                    <p class="error">{{ errors['[receipt][file]'] }}</p>
+                                {% endif %}
+                            </div>
+                            {% set error = errors['[work_order_letter][required]'] is defined or errors['[work_order_letter][file]'] is defined ? 'error' : null %}
+                            <div class="input {{ error }}">
+                                <label>{{ 'label.work_order_letter'|trans }}</label>
+                                <input type="file" name="work_order_letter">
+                                {% if errors['[work_order_letter][required]'] is defined %}
+                                    <p class="error">{{ errors['[work_order_letter][required]'] }}</p>
+                                {% endif %}
+                                {% if errors['[work_order_letter][file]'] is defined %}
+                                    <p class="error">{{ errors['[work_order_letter][file]'] }}</p>
+                                {% endif %}
+                            </div>
+                            {% set error = errors['[bapd][required]'] is defined or errors['[bapd][file]'] is defined ? 'error' : null %}
+                            <div class="input {{ error }}">
+                                <label>BAPD</label>
+                                <input type="file" name="bapd">
+                                {% if errors['[bapd][required]'] is defined %}
+                                    <p class="error">{{ errors['[bapd][required]'] }}</p>
+                                {% endif %}
+                                {% if errors['[bapd][file]'] is defined %}
+                                    <p class="error">{{ errors['[bapd][file]'] }}</p>
+                                {% endif %}
+                            </div>
+                            {% set error = errors['[spk][required]'] is defined or errors['[spk][file]'] is defined ? 'error' : null %}
+                            <div class="input {{ error }}">
+                                <label>SPK</label>
+                                <input type="file" name="spk">
+                                {% if errors['[spk][required]'] is defined %}
+                                    <p class="error">{{ errors['[spk][required]'] }}</p>
+                                {% endif %}
+                                {% if errors['[spk][file]'] is defined %}
+                                    <p class="error">{{ errors['[spk][file]'] }}</p>
+                                {% endif %}
+                            </div>
+{#                            {% if order['o_total'] > get_parameter('additionalDocumentsTransaction') %}#}
+{#                                {% set error = errors['[spk_letter][required]'] is defined or errors['[spk_letter][file]'] is defined ? 'error' : null %}#}
+{#                                <div class="input {{ error }}">#}
+{#                                    <label>{{ 'label.spk_letter'|trans }}</label>#}
+{#                                    <input type="file" name="spk_letter">#}
+{#                                    {% if errors['[spk_letter][required]'] is defined %}#}
+{#                                        <p class="error">{{ errors['[spk_letter][required]'] }}</p>#}
+{#                                    {% endif %}#}
+{#                                    {% if errors['[spk_letter][file]'] is defined %}#}
+{#                                        <p class="error">{{ errors['[spk_letter][file]'] }}</p>#}
+{#                                    {% endif %}#}
+{#                                </div>#}
+
+{#                                {% set error = errors['[handover_letter][required]'] is defined or errors['[handover_letter][file]'] is defined ? 'error' : null %}#}
+{#                                <div class="input {{ error }}">#}
+{#                                    <label>{{ 'label.handover_letter'|trans }}</label>#}
+{#                                    <input type="file" name="handover_letter">#}
+{#                                    {% if errors['[handover_letter][required]'] is defined %}#}
+{#                                        <p class="error">{{ errors['[handover_letter][required]'] }}</p>#}
+{#                                    {% endif %}#}
+{#                                    {% if errors['[handover_letter][file]'] is defined %}#}
+{#                                        <p class="error">{{ errors['[handover_letter][file]'] }}</p>#}
+{#                                    {% endif %}#}
+{#                                </div>#}
+
+{#                                {% set error = errors['[handover_certificate][required]'] is defined or errors['[handover_certificate][file]'] is defined ? 'error' : null %}#}
+{#                                <div class="input {{ error }}">#}
+{#                                    <label>{{ 'label.handover_certificate'|trans }}</label>#}
+{#                                    <input type="file" name="handover_certificate">#}
+{#                                    {% if errors['[handover_certificate][required]'] is defined %}#}
+{#                                        <p class="error">{{ errors['[handover_certificate][required]'] }}</p>#}
+{#                                    {% endif %}#}
+{#                                    {% if errors['[handover_certificate][file]'] is defined %}#}
+{#                                        <p class="error">{{ errors['[handover_certificate][file]'] }}</p>#}
+{#                                    {% endif %}#}
+{#                                </div>#}
+{#                            {% endif %}#}
+                            <div class="input">
+                                {{ csrf_field('b2g_negotiation') }}
+                                <input type="hidden" name="origin" value="4b5771">
+                                <input type="hidden" name="section" value="receipt-spk">
+                                <input type="submit" class="sBtn red" value="{{ 'label.upload_file'|trans }}">
+                            </div>
+                        {% endif %}
+
+                        {# Tidak perlu lagi karena file (hardcopy) sudah di dapatkan bersamaan dengan barang #}
+
+                    </form>
+                {% endif %}
+				{% if order['op_id'] is empty %}
+					{# <p>
+						{{ 'message.info.payment_info'|trans }}<br>
+						<code>
+							{% if show_pay_account_1 == 'yes' %}
+								{{ order_payment_accounts['all_1']|join('<br>')|raw }}
+							{% endif %}
+							{% if show_pay_account_2 == 'yes' %}<br><br>{{ order_payment_accounts['all_2']|join('<br>')|raw }}
+							{% endif %}
+						</code>
+					</p>
+					{% if show_qris_pay == 'yes' %}
+						<div class="inner-box">
+							<img src="{{ asset(asset_qris_pay) }}" height="400px" alt="">
+						</div>
+					{% endif %}
+					<a href="{{ path('user_payment_confirmation', {'invoice': order['o_sharedId']}) }}" class="sBtn red">
+						{{ 'title.page.payment_confirmation'|trans }}
+					</a> #}
+                {% else %}
+                    {% if order['u_subRole'] == 'PPK' %}
+                        <span class="gBtn red" style="cursor: default;">{{ 'message.info.waiting_payment'|trans }}</span>
+                    {% endif %}
+                {% endif %}
+			{% else %}
+				{% include '@__main__/public/user/order/fragments/customer_files.html.twig' %}
+			{% endif %}
+		{% endif %}
+	{% elseif user_type == 'seller' %}
+		{% if order['o_status'] == 'pending' %}
+			<a href="javascript:void(0);" class="gBtn red seller-act-order" data-state="cancel">
+				{{ 'label.cancel_order'|trans }}
+			</a>
+        {% elseif order['o_status'] == 'approve_order_ppk' %}
+            
+            <div class="badges yellow2">
+                <span>
+                    <i class="fas fa-exclamation-circle"></i>
+                    {{ 'label.approve_order_ppk'|trans }}
+                </span>
+            </div>
+            <br><br>
+			<a href="javascript:void(0);" class="gBtn red seller-act-order" data-state="cancel">
+				{{ 'label.cancel_order'|trans }}
+			</a>
+        {% elseif order['o_status'] == 'new_order' %}
+			<a href="javascript:void(0);" class="gBtn red seller-act-cancel" data-state="cancel" data-user="{{user_type}}" data-order-id="{{ order['o_id'] }}">
+				{{ 'label.cancel_order'|trans }}
+			</a>
+		{% elseif order['o_status'] == 'payment_process' %}
+            {# {% include '@__main__/public/user/order/fragments/partial_delivery.html.twig' %} #}
+            <hr>
+
+            {% if order['u_role'] != 'ROLE_USER_GOVERNMENT' %}
+            	{% include '@__main__/public/user/order/fragments/customer_files.html.twig' %}
+			{% else %}
+				{% include '@__main__/public/user/order/fragments/government_files.html.twig' %}
+				{% include '@__main__/public/user/order/fragments/document_new.html.twig' %}
+                <br><br>
+                <div class="badges yellow2">
+                    <span>
+                        <i class="fas fa-exclamation-circle"></i>
+                        {{ 'label.payment_process'|trans }}
+                    </span>
+                </div>
+			{% endif %}
+
+            {# {% if order['o_taxInvoiceFile'] is empty and order['o_isRequestFakturPajak'] == true %}
+                <form id="tax-invoice" action="{{ path('user_order_document', {'id': order['o_id']}) }}" method="POST" enctype="multipart/form-data" accept-charset="UTF-8">
+                    {% set error = errors['[tax_invoice][required]'] is defined or errors['[tax_invoice][file]'] is defined ? 'error' : null %}
+                    <div class="input {{ error }}">
+                        <label>{{ 'label.tax_invoice'|trans }}</label>
+                        <input type="file" name="tax_invoice">
+                        {% if errors['[tax_invoice][required]'] is defined %}
+                            <p class="error">{{ errors['[tax_invoice][required]'] }}</p>
+                        {% endif %}
+                        {% if errors['[tax_invoice][file]'] is defined %}
+                            <p class="error">{{ errors['[tax_invoice][file]'] }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="input">
+                        {{ csrf_field('b2g_tax_invoice') }}
+                        <input type="hidden" name="origin" value="48fcb8">
+                        <input type="hidden" name="section" value="tax-invoice">
+                        <span class="sBtn red" style="cursor: default;">{{ 'message.info.received'|trans }}</span>
+                        <input type="submit" class="sBtn red" value="{{ 'label.upload_tax_invoice'|trans }}">
+                    </div>
+                </form>
+            {% endif %} #}
+            
+		{% elseif order['o_status'] == 'paid' %}
+			{% if order['u_role'] != 'ROLE_USER_GOVERNMENT' %}
+
+            	{% include '@__main__/public/user/order/fragments/customer_files.html.twig' %}
+
+				{% if data_nego_detail['on_customerApproval'] == true %}
+					<a href="javascript:void(0);" class="sBtn red seller-act-order" data-state="processed">
+						{{ 'message.info.confirmed'|trans }}
+					</a>
+				{% endif %}
+			{% else %}
+                {# {% include '@__main__/public/user/order/fragments/partial_delivery.html.twig' %} #}
+
+                {% include '@__main__/public/user/order/fragments/government_files.html.twig' %}
+
+				{% include '@__main__/public/user/order/fragments/document_new.html.twig' %}
+                <br><br>
+                <div class="badges green">
+                    <span>
+                        <i class="fas fa-check-circle"></i>
+                        {{ 'label.finished'|trans }}
+                    </span>
+                </div>
+                
+			{% endif %}
+            {# {% if order['o_taxInvoiceFile'] is empty and order['o_isRequestFakturPajak'] == true %}
+                <form id="tax-invoice" action="{{ path('user_order_document', {'id': order['o_id']}) }}" method="POST" enctype="multipart/form-data" accept-charset="UTF-8">
+                    {% set error = errors['[tax_invoice][required]'] is defined or errors['[tax_invoice][file]'] is defined ? 'error' : null %}
+                    <div class="input {{ error }}">
+                        <label>{{ 'label.tax_invoice'|trans }}</label>
+                        <input type="file" name="tax_invoice">
+                        {% if errors['[tax_invoice][required]'] is defined %}
+                            <p class="error">{{ errors['[tax_invoice][required]'] }}</p>
+                        {% endif %}
+                        {% if errors['[tax_invoice][file]'] is defined %}
+                            <p class="error">{{ errors['[tax_invoice][file]'] }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="input">
+                        {{ csrf_field('b2g_tax_invoice') }}
+                        <input type="hidden" name="origin" value="48fcb8">
+                        <input type="hidden" name="section" value="tax-invoice">
+                        <span class="sBtn red" style="cursor: default;">{{ 'message.info.received'|trans }}</span>
+                        <input type="submit" class="sBtn red" value="{{ 'label.upload_tax_invoice'|trans }}">
+                    </div>
+                </form>
+            {% endif %} #}
+		{% elseif order['o_status'] == 'received' %}
+                {% if is_tax_invoice_requested == true %}
+                    {% include '@__main__/public/user/order/fragments/government_files.html.twig' %}
+                {% endif %}
+				{% if order['o_invoiceFile'] is empty %}
+					{% include '@__main__/public/user/order/fragments/customer_files.html.twig' %}
+				{% endif %}
+				{% include '@__main__/public/user/order/fragments/document_new.html.twig' %}
+                <br><br>
+				{% if order['o_total'] >= get_parameter('b2gLimitAmountForNonPkpStore') and order['o_ppk_payment_method'] == 'pembayaran_langsung' %}
+					<form id="tax-invoice" action="{{ path('user_order_document', {'id': order['o_id']}) }}" method="POST" enctype="multipart/form-data" accept-charset="UTF-8">
+						{% set error = errors['[tax_invoice][required]'] is defined or errors['[tax_invoice][file]'] is defined ? 'error' : null %}
+						<div class="input {{ error }}">
+							<label>{{ 'label.tax_invoice'|trans }}</label>
+							<input type="file" name="tax_invoice">
+							{% if errors['[tax_invoice][required]'] is defined %}
+								<p class="error">{{ errors['[tax_invoice][required]'] }}</p>
+							{% endif %}
+							{% if errors['[tax_invoice][file]'] is defined %}
+								<p class="error">{{ errors['[tax_invoice][file]'] }}</p>
+							{% endif %}
+						</div>
+						<div class="input">
+							{{ csrf_field('b2g_tax_invoice') }}
+							<input type="hidden" name="origin" value="48fcb8">
+							<input type="hidden" name="section" value="tax-invoice">
+							<span class="sBtn red" style="cursor: default;">{{ 'message.info.received'|trans }}</span>
+							<input type="submit" class="sBtn red" value="{{ 'label.upload_tax_invoice'|trans }}">
+						</div>
+					</form>
+				{% endif %}
+                <div class="badges green">
+                    <span>
+                        <i class="fas fa-check-circle"></i>
+                        {{ 'label.order_received'|trans }}
+                    </span>
+                </div>
+		{% elseif order['o_status'] == 'cancel_request' %}
+			{% include '@__main__/public/user/order/fragments/document_new.html.twig' %}
+            <br><br>
+            <div class="badges yellow2">
+                <span>
+                    <i class="fas fa-exclamation-circle"></i>
+                    {{ 'message.info.waiting_cancel_approve'|trans }}
+                </span>
+            </div>
+		{% elseif order['o_status'] == 'processed' %}
+			{% if order['u_role'] == 'ROLE_USER_GOVERNMENT' %}
+				{% if data_nego_detail['on_isApproved'] == true %}
+                {# <h4>TEMPLATE DOKUMEN</h4>
+				{% include '@__main__/public/user/order/fragments/document_new.html.twig' %}
+                <br><br> #}
+				{% include '@__main__/public/user/order/fragments/shipped_information.html.twig' %}
+                <br><br>
+                {# {% if order['o_cancel_status'] is empty %}
+                    <a href="javascript:void(0);" class="gBtn red seller-act-cancel" data-state="cancel" data-user="{{user_type}}" data-order-id="{{ order['o_id'] }}">
+                        {{ 'label.cancel_order'|trans }}
+                    </a>
+                {% elseif order['o_cancel_status'] == 'request' %}
+                    <div class="badges yellow2">
+                        <span>
+                            <i class="fas fa-exclamation-circle"></i>
+                            {{ 'message.info.waiting_cancel_approve'|trans }}
+                        </span>
+                    </div>
+                {% endif %} #}
+            {# {% include '@__main__/public/user/order/fragments/partial_delivery.html.twig' %} #}
+        {% endif %}
+			{% else %}
+                {% if is_tax_invoice_requested == true %}
+                    {% include '@__main__/public/user/order/fragments/government_files.html.twig' %}
+                {% endif %}
+				{% if order['o_invoiceFile'] is empty %}
+					{% include '@__main__/public/user/order/fragments/customer_files.html.twig' %}
+				{% endif %}
+                {% if order['o_taxInvoiceFile'] is empty and is_tax_invoice_requested == true %}
+                    <form id="tax-invoice" action="{{ path('user_order_document', {'id': order['o_id']}) }}" method="POST" enctype="multipart/form-data" accept-charset="UTF-8">
+                        {% set error = errors['[tax_invoice][required]'] is defined or errors['[tax_invoice][file]'] is defined ? 'error' : null %}
+                        <div class="input {{ error }}">
+                            <label>{{ 'label.tax_invoice'|trans }}</label>
+                            <input type="file" name="tax_invoice" id="tax-invoice-file">
+                            {% if errors['[tax_invoice][required]'] is defined %}
+                                <p class="error">{{ errors['[tax_invoice][required]'] }}</p>
+                            {% endif %}
+                            {% if errors['[tax_invoice][file]'] is defined %}
+                                <p class="error">{{ errors['[tax_invoice][file]'] }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="input">
+                            {{ csrf_field('b2g_tax_invoice') }}
+                            <input type="hidden" name="origin" value="48fcb8">
+                            <input type="hidden" name="section" value="tax-invoice">
+                            <input type="submit" class="sBtn red" value="{{ 'label.upload_tax_invoice'|trans }}">
+                            <a href="{{ path('user_order_print', {'id': order['o_id'], 'type': 'label'}) }}" class="sBtn red" style="">
+                                {{ 'button.print.label'|trans }}
+                            </a>
+                        </div>
+                    </form>
+                {% else %}
+                    <a href="{{ path('user_order_print', {'id': order['o_id'], 'type': 'label'}) }}" class="sBtn red" style="" id="tax-invoice-state" data-state="{{ order['o_taxInvoiceFile'] is not empty }}">
+                        {{ 'button.print.label'|trans }}
+                    </a>
+                {% endif %}
+			{% endif %}
+
+			<hr>
+			{% set data_delivery = order['o_shippingCourier'] == 'free_delivery' ? 'free' : 'pay' %}
+
+                {% if order['o_shippingCourier'] == 'gosend' %}
+                    {% if order['o_gosendBookingId'] is not empty %}
+                        <a href="{{ path('user_order_gosend_booking_details', {'orderId' : order['o_id']}) }}" class="sBtn red">
+                            {{ 'button.check_gosend_detail'|trans }}
+                        </a>
+                    {% else %}
+
+                        {% if order['o_taxInvoiceFile'] is not empty and is_tax_invoice_requested == true %}
+                            <p>
+                                <i class="fas fa-exclamation-circle yellow"></i>
+                                <span>{{ 'message.info.send_item_requirements'|trans }}</span>
+                            </p>
+                            <a href="javascript:void(0);" class="sBtn red seller-pickup-order">
+                                {{ 'button.pickup_order'|trans }}
+                            </a>
+                        {% elseif is_tax_invoice_requested == false %}
+                            <p>
+                                <i class="fas fa-exclamation-circle yellow"></i>
+                                <span>{{ 'message.info.send_item_requirements'|trans }}</span>
+                            </p>
+                            <a href="javascript:void(0);" class="sBtn red seller-pickup-order">
+                                {{ 'button.pickup_order'|trans }}
+                            </a>
+                        {% endif %}
+
+                    {% endif %}
+                {% else %}
+                
+                <form action="{{ path('user_order_detail', {'id': order['o_id']}) }}" id="form-shipped-order" method="post" enctype="multipart/form-data">
+                    {{ csrf_field('shipped_data') }}
+                    <input id="seller-order-state" name="state" type="hidden" value="shipped">
+                    <input id="seller-order-origin" name="origin" type="hidden" value="">
+                    <div class="input">
+                        <select id="shipped-method" name="shipped-method" required>
+                            <option value="">{{ 'label.shipped_method_choose'|trans }}</option>
+                            {% for key, option in get_parameter('shipped_method_options') %}
+                                <option value="{{key}}">{{option}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="input normal_shipped" style="display: none;">
+                        <input id="seller-waybill" name="waybill" type="text" placeholder="{{ "label.input_waybill"|trans }}">
+                    </div>
+                    <div class="input normal_shipped" style="display: none;">
+                        <label style="float:left">Foto Resi</label><br>
+                        <input id="state-img" type="file" name="state-img" style="heigth: 48px;width: 100%;padding: 16px;border-radius: 8px;background: #EDEDED;color: #000;">
+                    </div>
+                    <div class="input self_shipped" style="display: none;">
+                        <input id="self-courier-name" type="text" name="self-courier-name" placeholder="Nama Penerima">
+                    </div>
+                    <div class="input self_shipped" style="display: none;">
+                        <input id="self-courier-position" type="text" name="self-courier-position" placeholder="Jabatan Penerima">
+                    </div>
+                    <div class="input self_shipped" style="display: none;">
+                        <input id="self-courier-telp" type="text" name="self-courier-telp" placeholder="No Telp">
+                    </div>
+                    <div class="input self_shipped" style="display: none;">
+                        <label style="float:left">Foto Pengiriman Produk</label><br>
+                        <input class="shipped-product-img" type="file" name="shipped-product-img[]" id="shipped_product_img_1" style="heigth: 48px;width: 100%;padding: 16px;border-radius: 8px;background: #EDEDED;color: #000;">
+                    </div>
+                    <div class="input self_shipped" style="display: none;">
+                        <input class="shipped-product-img" type="file" name="shipped-product-img[]" id="shipped_product_img_2" style="heigth: 48px;width: 100%;padding: 16px;border-radius: 8px;background: #EDEDED;color: #000;">
+                    </div>
+                    <div class="input self_shipped" style="display: none;">
+                        <input class="shipped-product-img" type="file" name="shipped-product-img[]" id="shipped_product_img_3" style="heigth: 48px;width: 100%;padding: 16px;border-radius: 8px;background: #EDEDED;color: #000;">
+                    </div>
+                    <a href="javascript:void(0);" class="sBtn red seller-act-order" data-state="shipped" data-delivery="{{ data_delivery }}" data-ppkpayment="{{order['o_ppk_payment_method']}}">
+                        {{ 'message.info.processed'|trans }}
+                    </a>
+                </form>
+                {% endif %}
+		{% elseif order['o_status'] == 'shipped' %}
+            {% if is_tax_invoice_requested == true %}
+                {% include '@__main__/public/user/order/fragments/government_files.html.twig' %}
+            {% endif %}
+
+            {# {% include '@__main__/public/user/order/fragments/partial_delivery.html.twig' %} #}
+			{% include '@__main__/public/user/order/fragments/document_new.html.twig' %}
+            <br><br>
+            <div class="badges green">
+				<span>
+					<i class="fas fa-check-circle"></i>
+					{{ 'message.info.shipped'|trans }}
+				</span>
+			</div>
+			{# <span class="sBtn red" style="cursor: default;">{{ 'message.info.shipped'|trans }}</span> #}
+        {% elseif order['o_status'] == 'document' %}
+			{% if order['u_role'] == 'ROLE_USER_GOVERNMENT' %}
+				{% include '@__main__/public/user/order/fragments/government_files.html.twig' %}
+				{% include '@__main__/public/user/order/fragments/document_new.html.twig' %}
+                <br><br>
+				{% if order['o_taxInvoiceFile'] is empty or order['o_bastFile'] is not empty %}
+                    <br><br>
+					<form id="tax-invoice" action="{{ path('user_order_document', {'id': order['o_id']}) }}" method="POST" enctype="multipart/form-data" accept-charset="UTF-8">
+						{% set error = errors['[tax_invoice][required]'] is defined or errors['[tax_invoice][file]'] is defined ? 'error' : null %}
+						<div class="input {{ error }}">
+							<label>{{ 'label.tax_invoice'|trans }}</label>
+							<input type="file" name="tax_invoice">
+							{% if errors['[tax_invoice][required]'] is defined %}
+								<p class="error">{{ errors['[tax_invoice][required]'] }}</p>
+							{% endif %}
+							{% if errors['[tax_invoice][file]'] is defined %}
+								<p class="error">{{ errors['[tax_invoice][file]'] }}</p>
+							{% endif %}
+						</div>
+						<div class="input">
+							{{ csrf_field('b2g_tax_invoice') }}
+							<input type="hidden" name="origin" value="48fcb8">
+							<input type="hidden" name="section" value="tax-invoice">
+							<span class="sBtn red" style="cursor: default;">{{ 'message.info.received'|trans }}</span>
+							<input type="submit" class="sBtn red" value="{{ 'label.upload_tax_invoice'|trans }}">
+						</div>
+					</form>
+				{% endif %}
+                <div class="badges green">
+                    <span>
+                        <i class="fas fa-check-circle"></i>
+                        {{ 'label.order_received'|trans }}
+                    </span>
+                </div>
+			{% else %}
+                {% if is_tax_invoice_requested == true %}
+                    {% include '@__main__/public/user/order/fragments/government_files.html.twig' %}
+                {% endif %}
+				{% if order['o_invoiceFile'] is empty %}
+					{% include '@__main__/public/user/order/fragments/customer_files.html.twig' %}
+				{% endif %}
+				<span class="sBtn red" style="cursor: default;">{{ 'message.info.received'|trans }}</span>
+			{% endif %}
+		{% elseif order['o_status'] == 'cancel' %}
+			<span class="gBtn red" style="cursor: default;">{{ 'message.info.cancelled'|trans }}</span>
+		{% elseif order['o_status'] == 'pending_payment' %}
+            {# {% include '@__main__/public/user/order/fragments/partial_delivery.html.twig' %} #}
+            <hr>
+
+            {% include '@__main__/public/user/order/fragments/government_files.html.twig' %}
+            <br><br>
+			<span class="gBtn red" style="cursor: default;">{{ 'message.info.waiting_for_payment'|trans }}</span>
+        {% elseif order['o_status'] == 'tax_invoice' and order['u_role'] == 'ROLE_USER_GOVERNMENT' %}
+            {# {% include '@__main__/public/user/order/fragments/partial_delivery.html.twig' %} #}
+			{% include '@__main__/public/user/order/fragments/document_new.html.twig' %}
+            <br><br>
+            <hr>
+            <br><br>
+
+            {% include '@__main__/public/user/order/fragments/government_files.html.twig' %}
+        {% elseif order['o_status'] == 'partial_delivery' %}
+            {# {% include '@__main__/public/user/order/fragments/partial_delivery.html.twig' %} #}
+
+            <a href="javascript:void(0);" class="sBtn red seller-act-order" data-state="shipped" data-delivery="partial_delivery">
+                {{ 'message.info.processed'|trans }}
+            </a>
+        {% endif %}
+    {% endif %}
+</div>
+
+

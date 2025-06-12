@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <title>Surat Pernyataan</title>
+
+    <style>
+        html, body {
+            margin: 30px 30px 40px 30px;
+        }
+        .table-footer-pernyataan td {
+            padding: 0.75rem;
+            vertical-align: top;
+            text-align: center;
+            width: 30%;
+        }
+
+        table {
+            width: 100%;
+        }
+
+        .font-italic {
+            font-style: italic;
+        }
+
+        h2 {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div style="font-family: 'Times New Roman'; text-align: justify">
+    <div>
+        <h2>Surat Pernyataan</h2>
+    </div>
+    <div>
+        <p>Yang bertanda tangan dibawah ini :</p>
+        <p>
+            <span>Nama</span>&nbsp;&nbsp;&nbsp;
+            <span style="padding-left: 3em">:</span>
+            <span>{{ nama }}</span>
+        </p>
+        <p>
+            <span>NIK</span>&nbsp;&nbsp;
+            <span  style="padding-left: 4em">:</span>
+            <span>{{ nik }}</span>
+        </p>
+        <p>
+            <span>Alamat</span>&nbsp;
+            <span style="padding-left: 3em">:</span>
+            <span>{{ alamat }}</span>
+        </p>
+        <p>
+            <span>No HP</span>&nbsp;&nbsp;
+            <span style="padding-left: 3em">: {{ phone_number }}</span>
+        </p>
+        <p>
+            <span>dalam hal ini bertindak untuk dan atas nama pelaku usaha</span>
+            <span></span>
+        </p>
+    </div>
+    <div>
+        <p>dengan ini menyatakan bahwa :</p>
+        <p>1. Secara hukum mempunyai kapasitas untuk mengikatkan diri dalam kontrak/ perjanjian tertulis</p>
+        <p>2. Tidak masuk dalam daftar hitam dan tidak dalam pengawasan pengadilan.</p>
+        <p>3. Sanggup memenuhi standar produk (kualitas, kuantitas, waktu dan keaslian produk) dan Syarat & Ketentuan Umum <span class="font-italic">Merchant</span> yang ditetapkan  oleh PT. Bali Unggul Sejahtera (Balimall.id).</p>
+        <p>4. Sanggup memenuhi pesanan melalui Balimall.id sesuai dengan jumlah persediaan yang ditayangkan dan bertanggungjawab penuh atas pemenuhan kesesuaian produk dengan pesanan.</p>
+        <p>5. Tidak akan menjual produk yang dikerjasamakan dengan PT. Bali Unggul Sejahtera (Balimall.id) kepada pihak lain (bukan <span class="font-italic">reseller</span>) dengan harga yang lebih rendah.</p>
+        <p>6. Data <span class="font-italic">Merchant</span> yang diterbitkan melalui Balimall.id atas dasar data yang diinput merchant. Kebenaran dan keabsahan atas data yang ditampilkan dan data yang tersimpan dalam Sistem Balimall.id menjadi tanggung jawab merchant sepenuhnya.</p>
+        <p>7. Merchant bertanggungjawab penuh atas jaminan kualitas dan harga produk. Apabila dikemudian hari ditemukan kemahalan harga dan ketidaksesuaian kualitas produk akan menjadi tanggung jawab Merchant.</p>
+        <p>Demikian surat pernyataan ini saya buat agar dapat dipergunakan sebagaimana mestinya.</p>
+        <br>
+        <table class="table text-center table-footer-pernyataan">
+            <tr>
+                <td></td>
+                <td></td>
+                <td>{{ city }}, {{ pernyataan_date }}</td>
+            </tr>
+            <tr>
+                <td>
+                    <br><br><br>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td>{{ nama }}</td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+</body>
+</html>
