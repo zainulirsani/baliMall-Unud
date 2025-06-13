@@ -2696,29 +2696,9 @@
                                                     {% endif %}
                                                 {% endif %}
                                                 {% if bolehTrx %}
-                                                    <div class="dc12">
                                                         {# {{ dump(order|json_encode(constant('JSON_PRETTY_PRINT'))) }} #}
-                                                        <h6 style="margin-bottom: 30px;">Metode Pembayaran</h6>
-                                                        {% if order_grand_total >= get_parameter('dokuMinimumTransactionAmount') %}
-                                                            <a href="{{ path('treasurer_pay_with_channel', {'id': order['o_sharedId'], 'invoice': order['o_invoice'], 'channel': 'doku'}) }}" type="button"><button class="btn-ppk-red-border" type="button">Virtual Account Dinamic</button></a>
-                                                        {% endif %}
-                                                        {% if haveTrx == false %}
-                                                            <a href="{{ path('user_order_bni_payment_single', {'orderSharedId': order['o_sharedId'] }) }}" type="button"><button class="btn-ppk-red-border" type="button">Virtual Account Static</button></a>
-                                                        {% endif %}
-                                                        <a href="{{ path('treasurer_pay_with_channel', {'id': order['o_sharedId'], 'invoice': order['o_invoice'], 'channel': 'doku'}) }}" type="button"><button class="btn-ppk-red-border" type="button">Kartu Kredit</button></a>
-                                                        <a href="{{ path('user_order_cc_payment', {'id': order['o_sharedId']}) }}" type="button"><button class="btn-ppk-red-border" type="button">Kartu Kredit Indonesia</button></a>
-                                                        
-                                                        
-                                                        {% if order['o_taxType'] == '59' %}
-                                                            <a href="{{ path('user_payment_confirmation', {'invoice': order['o_sharedId'], 'access': 'treasurer'}) }}" type="button"><button class="btn-ppk-red-border" type="button">Transfer</button></a>
-                                                        {% endif %}
-
-                                                        {% if qris_pay['enable'] == 'yes' and order_grand_total <= qris_pay['amount_limit'] %}
-                                                            <a href="{{ path('user_order_pay_with_channel', {'channel': 'qris', 'id': order['o_sharedId']}) }}">
-                                                                <button class="btn-ppk-red-border" type="button">{{ 'label.pay_with_qris'|trans }}</button>
-                                                            </a>
-                                                        {% endif %}
-
+                                                    <div style="display: flex; flex-direction: column;" class="dc12">
+                                                        <a href="#" type="button"><button style="width: 100%;" class="btn-ppk-red-border" type="button">Sinkronisasi SI-AKU</button></a>
                                                     </div>
                                                 {% else %}
                                                     <div class="badges yellow2">
