@@ -2696,32 +2696,12 @@
                                                     {% endif %}
                                                 {% endif %}
                                                 {% if bolehTrx %}
-                                                    <div class="dc12">
                                                         {# {{ dump(order|json_encode(constant('JSON_PRETTY_PRINT'))) }} #}
-                                                        <h6 style="margin-bottom: 30px;">Metode Pembayaran</h6>
-                                                        {% if order_grand_total >= get_parameter('dokuMinimumTransactionAmount') %}
-                                                            <a href="{{ path('treasurer_pay_with_channel', {'id': order['o_sharedId'], 'invoice': order['o_invoice'], 'channel': 'doku'}) }}" type="button"><button class="btn-ppk-red-border" type="button">Virtual Account Dinamic</button></a>
-                                                        {% endif %}
-                                                        {% if haveTrx == false %}
-                                                            <a href="{{ path('user_order_bni_payment_single', {'orderSharedId': order['o_sharedId'] }) }}" type="button"><button class="btn-ppk-red-border" type="button">Virtual Account Static</button></a>
-                                                        {% endif %}
-                                                        <a href="{{ path('treasurer_pay_with_channel', {'id': order['o_sharedId'], 'invoice': order['o_invoice'], 'channel': 'doku'}) }}" type="button"><button class="btn-ppk-red-border" type="button">Kartu Kredit</button></a>
-                                                        <a href="{{ path('user_order_cc_payment', {'id': order['o_sharedId']}) }}" type="button"><button class="btn-ppk-red-border" type="button">Kartu Kredit Indonesia</button></a>
-                                                        
-                                                        
-                                                        {% if order['o_taxType'] == '59' %}
-                                                            <a href="{{ path('user_payment_confirmation', {'invoice': order['o_sharedId'], 'access': 'treasurer'}) }}" type="button"><button class="btn-ppk-red-border" type="button">Transfer</button></a>
-                                                        {% endif %}
-
-                                                        {% if qris_pay['enable'] == 'yes' and order_grand_total <= qris_pay['amount_limit'] %}
-                                                            <a href="{{ path('user_order_pay_with_channel', {'channel': 'qris', 'id': order['o_sharedId']}) }}">
-                                                                <button class="btn-ppk-red-border" type="button">{{ 'label.pay_with_qris'|trans }}</button>
-                                                            </a>
-                                                        {% endif %}
-
+                                                    <div style="display: flex; flex-direction: column;" class="dc12">
+                                                        <a href="#" type="button"><button style="width: 100%;" id="pop-up-si-aku" class="btn-ppk-red-border" type="button">Sinkronisasi SI-AKU</button></a>
                                                     </div>
                                                 {% else %}
-                                                    <div class="badges yellow2">
+                                                    {# <div class="badges yellow2">
                                                         <span>
                                                             <i class="fas fa-clock"></i>
                                                             Mohon untuk selesaikan pembayaran pada Kartu Kredit Indonesia
@@ -2729,7 +2709,7 @@
                                                     </div>
                                                     <div class="dc12" style="margin-top: 15px">
                                                         <a href="{{ path('user_order_cc_payment', {'id': order['o_sharedId']}) }}" type="button"><button class="btn-ppk-red-border" type="button">Kartu Kredit Indonesia</button></a>
-                                                    </div>
+                                                    </div> #}
                                                 {% endif %}
                                                 
                                             {% endif %}
@@ -3365,6 +3345,30 @@
         </div>
     </div>
 
+    <div id="pop" class="popup general" title="cancel-order-ppk">
+        <div class="wh100">
+            <div class="popup-wrapper">
+                <div class="inner">
+                    <h3>Pengiriman Langsung</h3>
+                    <a href="javascript:void(0);" class="close-btn" onclick="$(this).parents('.popup').fadeOut();"></a>
+                    <p>Apakah anda yakin ingin membuat pengiriman langsung?</p>
+                    <div class="row">
+                        <div class="btn-wrapper">
+                            <input id="confirm-direct-order-id" type="hidden" value="{{ data_order['o_id'] }}">
+                            <input id="confirm-direct-order-state" type="hidden" value="direct">
+                            <button id="confirm-direct-btn" type="submit" class="sBtn red">
+                                Ya, Saya Yakin
+                            </button>
+                            <a href="javascript:void(0);" onclick="$(this).parents('.popup').fadeOut();" class="gBtn grey">
+                                Kembali
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="popup-confirmation-direct-order-ppk" class="popup general" title="cancel-order-ppk">
         <div class="wh100">
             <div class="popup-wrapper">
@@ -3389,18 +3393,18 @@
         </div>
     </div>
 
-    <div id="popup-confirmation-parsial-order-ppk" class="popup general" title="cancel-order-ppk">
+    <div id="si-aku-popup" class="popup general" title="cancel-order-ppk">
         <div class="wh100">
             <div class="popup-wrapper">
                 <div class="inner">
-                    <h3>Pengiriman Parsial</h3>
+                    <h3>Sinkronkan SI-AKU</h3>
                     <a href="javascript:void(0);" class="close-btn" onclick="$(this).parents('.popup').fadeOut();"></a>
-                    <p>Apakah anda yakin ingin membuat pengiriman parsial?</p>
+                    <p>Apakah anda yakin?</p>
                     <div class="row">
                         <div class="btn-wrapper">
                             <input id="confirm-parsial-order-id" type="hidden" value="{{ data_order['o_id'] }}">
                             <input id="confirm-parsial-order-state" type="hidden" value="parsial">
-                            <button id="confirm-parsial-btn" type="submit" class="sBtn red">
+                            <button type="button" class="sBtn red">
                                 Ya, Saya Yakin
                             </button>
                             <a href="javascript:void(0);" onclick="$(this).parents('.popup').fadeOut();" class="gBtn grey">
@@ -4405,6 +4409,11 @@
                 parsialForm.attr('style' , '');
             }
         })
+    
 
+        $(document).on('click', '#pop-up-si-aku', function() {
+            // Show the pop-up for SI-AKU synchronization
+            $('#si-aku-popup').fadeIn();
+        });
     </script>
 {% endblock %}
