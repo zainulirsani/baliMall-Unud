@@ -8,16 +8,16 @@
 </style>
 
 <footer class="{{ class }}">
-    <div class="container">
+    <div class="container d-flex justify-content-between align-items-start flex-wrap">
         <div class="logo">
-            <img src="{{ asset('dist/img/balimall.png') }}" alt="" style="display: none;">
+            {# <img src="{{ asset('dist/img/balimall.png') }}" alt="" style="display: none;">
             <a href="https://play.google.com/store/apps/details?id=com.baliyoni.balimall">
                 <span>{{ 'title.page.download_app'|trans }}</span>
                 <br><br>
                 <img src="{{ asset('dist/img/google-play.webp') }}" alt="Google Play Badge" class="google-badge" title="Balimall">
-            </a>
+            </a> #}
         </div>
-        <div class="links">
+        {# <div class="links">
             <ul>
                 <li>
                     <a href="{{ path('privacy_policy') }}">{{ 'title.page.privacy_policy'|trans }}</a>
@@ -35,7 +35,7 @@
                     <a href="{{ path('tips') }}">{{ 'title.page.tips'|trans }}</a>
                 </li>
             </ul>
-        </div>
+        </div> #}
         <div class="links">
             <ul>
 				<li class="hub">
@@ -46,13 +46,13 @@
 				<p><span>{{ get_parameter('app_name') }}</span></p>
 
 				<li>
-					Hp:<a href="https://wa.me/6281131164999"> 0811 3116 4999</a>
+					Hp:<a href="#">  (0361) 701954, 701797, 701812</a>
 				</li>
 				<li>
-					Email:<a href="mailto:info@balimall.id"> info@balimall.id</a>
+					Email:<a href="mailto:info@balimall.id"> info@unud.ac.id</a>
 				</li>
 				<li>
-					Alamat Kantor:<a> Jl. M. Yamin IX No. 19 Denpasar, Bali</a>
+					Alamat Kantor:<a> Jalan Raya Kampus Unud, Jimbaran, Kuta Selatan, Badung Bali 80361</a>
 				</li>
 				<br>
 			</ul>
@@ -66,21 +66,24 @@
 				</li>
 			</ul> #}
         </div>
-        <div class="social">
-            <div class="inner">
-                <p>{{ 'message.info.follow_us'|trans }}</p>
-                <div class="btn-wrapper">
-                    <a href="{{ social_buttons['facebook'] }}" class="fab fa-facebook-square" target="_blank"></a>
-                    {#<a href="{{ social_buttons['twitter'] }}" class="fab fa-twitter-square" target="_blank"></a>#}
-                    <a href="{{ social_buttons['instagram'] }}" class="fab fa-instagram" target="_blank"></a>
-                </div>
-            </div>
+       <div class="social text-end ms-auto">
+    <div class="inner d-inline-block text-start">
+        <p>{{ 'message.info.follow_us'|trans }}</p>
+        <div class="btn-wrapper">
+            <a href="{{ social_buttons['facebook'] }}" class="fab fa-facebook-square" target="_blank"></a>
+            <a href="{{ social_buttons['twitter'] }}" class="fab fa-twitter-square" target="_blank"></a>
+            <a href="{{ social_buttons['instagram'] }}" class="fab fa-instagram" target="_blank"></a>
+            <a href="{{ social_buttons['youtube'] }}" class="fab fa-youtube" target="_blank"></a>
         </div>
+    </div>
+</div>
+
         <div class="clear"></div>
     </div>
     <div class="bot">
         <div class="container">
-            {{ 'label.copyrights'|trans }} &copy; 2020 <b>{{ get_parameter('app_name') }}</b> {{ get_parameter('app_version') }}
+            {{ 'label.copyrights'|trans }} &copy; 2025 <b>{{ get_parameter('app_name') }}</b> - Power by <b>Universitas Udayana</b> &amp; <b> PT.
+            Baliyoni Saguna</b>
         </div>
     </div>
 </footer>

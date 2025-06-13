@@ -87,9 +87,10 @@ class AppExtension extends AbstractExtension implements GlobalsInterface
                 ],
             ],
             'social_buttons' => [
-                'facebook' => 'https://www.facebook.com/Balimallid.Official',
-                'twitter' => null,
-                'instagram' => 'https://www.instagram.com/balimallid/',
+                'facebook' => 'https://www.facebook.com/universitasudayana/',
+                'twitter' => 'https://x.com/udayanauniv/',
+                'instagram' => 'https://www.instagram.com/univ.udayana/',
+                'youtube' => 'https://www.youtube.com/channel/UCGcZDMJ2hdxtS1wASNAKXDA',
             ],
             'search_filter' => [
                 'price' => 'input', // ['input', 'slider']
