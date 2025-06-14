@@ -1574,37 +1574,45 @@ class OrderController extends PublicController
         // Example payload – customize as needed
         /** @var OrderRepository $repository */ 
         $repository = $this->getRepository(Order::class); 
+        
+        /** @var StoreRepository $storeRepository */
+        $storeRepository = $this->getRepository(Store::class);
         $parameters = [];
         $order = $repository->getOrderDetail($id, $parameters); 
+        $getStore = $storeRepository->getStoreByOwnerId($order['s_ow_id']);
+        
+
         if (!$order) {
             return new JsonResponse(['error' => 'Order not found'], 404);
         }
-        dd($order, $order['o_fiscalYear']);
         $json = json_encode([
             "tahun_anggaran" => $order['o_fiscalYear'],
             "id_unit" => 33,
             "nama_paket" => $order['o_jobPackageName'],
             "nominal" => $order['o_total'],
-            "keterangan" => "Lorem ipsum",
-            "nip_pelaksana" => "19851321465475",
-            "nama_pelaksana" => "Wayan Travolta",
-            "npwp_pihak3" => "1234567890",
+            "keterangan" => $order['o_note'],
+            "nip_pelaksana" => $order['u_nip'],
+            "nama_pelaksana" => $order['u_firstName'] . ' ' . $order['u_lastName'],
+            "npwp_pihak3" => $order['ow_npwp'],
             "id_bank_pihak3" => 1,
-            "norek_pihak3" => "1234567890",
-            "an_pihak3" => "John Doe",
-            "nip_ppk" => "196512241995021001",
-            "nama_ppk" => "I Komang Teken"
+            "norek_pihak3" => $getStore[0]['s_nomorRekening'],
+            "an_pihak3" => $getStore[0]['s_rekeningName'],
+            "nip_ppk" => $order['o_ppk_nip'],
+            "nama_ppk" => $order['o_ppk_name'],
         ]);
 
-        $urlAPI = getenv('SIRUPKU_API_URL') . 'insert-bayar';
-        $headers = [
-            'Content-Type' => 'application/json',
-            'Authorization' => getenv('SIRUPKU_API_AUTH_KEY'),
+        $urlAPI = getenv('SIRUPKU_API_URL') . '/insert_bayar';
+        $options = [
+            'headers' => [
+                'Content-Type' => 'application/json',
+                'Authkey' => getenv('SIRUPKU_API_AUTH_KEY'),
+            ],
+            'body' => $json,
         ];
-        dd($urlAPI, $headers, $json);
+        // dd($urlAPI, $headers, $json);
         $client = new HttpClientService();
-        $response = $client->run($urlAPI, $headers, $json, 'POST');
-
+        $response = $client->run($urlAPI, $options, 'POST');
+        dd($response);
         return new JsonResponse($response);
     }
 

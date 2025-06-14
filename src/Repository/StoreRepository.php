@@ -269,4 +269,16 @@ class StoreRepository extends BaseEntityRepository
 
         return $q->getQuery()->getArrayResult();
     }
+
+     public function getStoreByOwnerId($id):array
+    {
+        $q = $this
+            ->createQueryBuilder('s')
+            ->select('s')
+            ->where('s.user = :id')
+            ->setParameter('id', $id)
+        ;
+
+        return $q->getQuery()->getScalarResult();
+    }
 }
