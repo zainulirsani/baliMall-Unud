@@ -867,7 +867,7 @@ class OrderController extends PublicController
             return $this->redirectToRoute('user_order_index');
         }
 
-        dd($sharedInvoice, $invoice, $channel);
+        // dd($sharedInvoice, $invoice, $channel);
         /** @var OrderRepository $orderRepository */
         $orderRepository = $this->getRepository(Order::class);
         /** @var Order[] $orders */
