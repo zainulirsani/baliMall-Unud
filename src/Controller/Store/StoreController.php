@@ -362,7 +362,7 @@ class StoreController extends PublicController
             'store_data' => $storeData,
             'product' => $productData,
             'product_files' => $productFiles,
-            'product_reviews' => $productReviews ? $productReviews : $getProductReviews ? $getProductReviews : [],
+            'product_reviews' => $productReviews ?? $getProductReviews ?? [],
             'avg_rating' => round($avgRating, 1),
             'product_category' => $this->getCategoryNameFromProduct($productData),
             'related_products' => $relatedProducts,
