@@ -2698,7 +2698,7 @@
                                                 {% if bolehTrx %}
                                                         {# {{ dump(order|json_encode(constant('JSON_PRETTY_PRINT'))) }} #}
                                                     <div style="display: flex; flex-direction: column;" class="dc12">
-                                                        <a href="#" type="button"><button style="width: 100%;" id="pop-up-si-aku" class="btn-ppk-red-border" type="button">Sinkronisasi SI-AKU</button></a>
+                                                        <button style="width: 100%;" id="pop-up-si-aku" class="btn-ppk-red-border" type="button">Sinkronisasi SI-AKU</button>
                                                     </div>
                                                 {% else %}
                                                     {# <div class="badges yellow2">
@@ -3402,11 +3402,12 @@
                     <p>Apakah anda yakin?</p>
                     <div class="row">
                         <div class="btn-wrapper">
-                            <input id="confirm-parsial-order-id" type="hidden" value="{{ data_order['o_id'] }}">
-                            <input id="confirm-parsial-order-state" type="hidden" value="parsial">
-                            <button type="button" class="sBtn red">
-                                Ya, Saya Yakin
-                            </button>
+                            <form action="{{ path('order_sync_siaku', {'id': order['o_id']}) }}" method="POST" style="display:inline;">
+                                {{ csrf_field('order_sync_siaku') }}
+                                <button type="submit" class="sBtn red">
+                                    Ya, Saya Yakin
+                                </button>
+                            </form>
                             <a href="javascript:void(0);" onclick="$(this).parents('.popup').fadeOut();" class="gBtn grey">
                                 Kembali
                             </a>

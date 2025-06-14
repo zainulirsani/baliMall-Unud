@@ -58,6 +58,8 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use DateTimeZone;
+use App\Service\HttpClientService;
+use Symfony\Component\HttpFoundation\Request;
 
 class OrderController extends PublicController
 {
@@ -1565,6 +1567,49 @@ class OrderController extends PublicController
         }
 
         return $this->view('', $response, 'json');
+    }
+
+    public function syncToSiAku(Request $request, $id) {
+        if ($request->isMethod('POST')) {
+        // Example payload – customize as needed
+        /** @var OrderRepository $repository */ 
+        $repository = $this->getRepository(Order::class); 
+        $parameters = [];
+        $order = $repository->getOrderDetail($id, $parameters); 
+        if (!$order) {
+            return new JsonResponse(['error' => 'Order not found'], 404);
+        }
+        dd($order, $order['o_fiscalYear']);
+        $json = json_encode([
+            "tahun_anggaran" => $order['o_fiscalYear'],
+            "id_unit" => 33,
+            "nama_paket" => $order['o_jobPackageName'],
+            "nominal" => $order['o_total'],
+            "keterangan" => "Lorem ipsum",
+            "nip_pelaksana" => "19851321465475",
+            "nama_pelaksana" => "Wayan Travolta",
+            "npwp_pihak3" => "1234567890",
+            "id_bank_pihak3" => 1,
+            "norek_pihak3" => "1234567890",
+            "an_pihak3" => "John Doe",
+            "nip_ppk" => "196512241995021001",
+            "nama_ppk" => "I Komang Teken"
+        ]);
+
+        $urlAPI = getenv('SIRUPKU_API_URL') . 'insert-bayar';
+        $headers = [
+            'Content-Type' => 'application/json',
+            'Authorization' => getenv('SIRUPKU_API_AUTH_KEY'),
+        ];
+        dd($urlAPI, $headers, $json);
+        $client = new HttpClientService();
+        $response = $client->run($urlAPI, $headers, $json, 'POST');
+
+        return new JsonResponse($response);
+    }
+
+    // Optional: return error if method is not POST
+    return new JsonResponse(['error' => 'Invalid request method'], 405);
     }
 
     public function confirmationOrderPpk()

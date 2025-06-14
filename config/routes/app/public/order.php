@@ -1,6 +1,7 @@
 <?php
 
 use App\Controller\Order\OrderController;
+use App\Entity\Order;
 use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
 return function (RoutingConfigurator $routes) {
@@ -51,5 +52,9 @@ return function (RoutingConfigurator $routes) {
         ->controller([OrderController::class, 'vaCallback'])
         ->methods(['POST'])
     ;
-
+    $routes
+        ->add('sync_siaku', 'sync-siaku/{id}')
+        ->controller([OrderController::class, 'syncToSiAku'])
+        ->methods(['POST'])
+        ;
 };
