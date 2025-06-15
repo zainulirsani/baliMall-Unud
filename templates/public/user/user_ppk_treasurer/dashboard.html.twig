@@ -710,15 +710,15 @@
                                                                             {# <a href="{{ path('user_ppktreasurer_detail', {'id': item[0]['id']}) }}">
                                                                             </a> #}
                                                                                 <button type="button" class="btn-ppk-red btn-confirm-order-ppk" data-key="{{ key }}" data-id="{{item[0]['id']}}" data-document="{{ path('user_order_print', {'id': item[0]['id'], 'type': 'spk_non_ttd'}) }}" data-invoice="{{item[0]['invoice']}}">
-                                                                                    Setuju
+                                                                                    Pilih Pengiriman
                                                                                 </button>
                                                                         {% endif %}
 
-                                                                        {% if is_granted('order.cancel_order' , 'permission') %}
+                                                                        {# {% if is_granted('order.cancel_order' , 'permission') %}
                                                                             <button type="button" class="btn-ppk-red btn-confirm-order-ppk reject">
                                                                                 Tidak setuju
                                                                             </button>
-                                                                        {% endif %}
+                                                                        {% endif %} #}
 
                                                                     {% elseif item[0]['status'] == 'approved_order' %}
                                                                         <a href="{{ path('user_ppktreasurer_detail', {'id': item[0]['id']}) }}"><button type="button" class="btn-ppk-red">Buat SPP</button></a>
