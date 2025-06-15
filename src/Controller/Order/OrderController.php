@@ -438,7 +438,7 @@ class OrderController extends PublicController
             $order->setSourceOfFund(filter_var($source_of_fund, FILTER_SANITIZE_STRING));
             $order->setBudgetCeiling(filter_var(str_replace(".", "", $postData['budget-ceiling'])), FILTER_SANITIZE_STRING);
             $order->setWorkUnitName($satker_data->getSatkerName());
-            $order->setInstitutionName($data_ppk->getLkppKLDI());
+            $order->setInstitutionName($data_ppk->getLkppKLDI());          
             $order->setBudgetAccount(filter_var($postData['budget-account'], FILTER_SANITIZE_STRING));
             $order->setPpkPaymentMethod(filter_var($postData['payment-method'], FILTER_SANITIZE_STRING));
             $order->setExecutionTime($merchant['negotiation']['time']);
@@ -454,7 +454,7 @@ class OrderController extends PublicController
                 $order->setUnitAddress(filter_var($data_pic->getAddress(), FILTER_SANITIZE_STRING));
                 $order->setUnitTelp(filter_var($data_pic->getNotelp(), FILTER_SANITIZE_STRING));
             }
-
+        
             if (!empty($postData['ppk-data'])) {
                 $order->setPpkName(filter_var($data_ppk->getFirstName().' '.$data_ppk->getLastName(), FILTER_SANITIZE_STRING));
                 $order->setPpkNip(filter_var($data_ppk->getNip(), FILTER_SANITIZE_STRING));
@@ -1612,8 +1612,13 @@ class OrderController extends PublicController
         // dd($urlAPI, $headers, $json);
         $client = new HttpClientService();
         $response = $client->run($urlAPI, $options, 'POST');
-        dd($response);
-        return new JsonResponse($response);
+        if ($response['data']['status'] == 200 || $response['data']['status'] == 201) {
+            dd($response['data']['status'], $response['data']['message'], $response['data']);
+            return new JsonResponse(['status' => 'success', 'message' => 'Berhasil mengirimkan data ke SIAKU'], 200);
+        } else {
+            dd($response['data']['status'], $response['data']['message'], $response['data']);
+            return new JsonResponse(['status' => 'error', 'message' => 'Gagal mengirimkan data ke SIAKU'], 400);
+        }
     }
 
     // Optional: return error if method is not POST
